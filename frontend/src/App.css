@@ -7,38 +7,62 @@
   text-align: left;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Pancake-themed selection color */
+::selection {
+  background-color: rgba(255, 181, 73, 0.3); /* Butter yellow */
+  color: #B16B2F; /* Brown sugar */
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Custom scrollbar for pancake theme */
+::-webkit-scrollbar {
+  width: 10px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+::-webkit-scrollbar-track {
+  background: #FFF8E8; /* Cream */
 }
 
-.card {
-  padding: 2em;
+::-webkit-scrollbar-thumb {
+  background: #E9833A; /* Maple syrup */
+  border-radius: 5px;
 }
 
-.read-the-docs {
-  color: #888;
+::-webkit-scrollbar-thumb:hover {
+  background: #D14B1F; /* Cinnamon */
+}
+
+/* Button hover animations */
+.ant-btn {
+  transition: all 0.3s ease !important;
+}
+
+.ant-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Card animations */
+.blog-card {
+  transition: all 0.3s ease;
+}
+
+/* Additional pancake-themed styling */
+.ant-pagination-item-active {
+  border-color: #E9833A !important;
+}
+
+.ant-pagination-item-active a {
+  color: #E9833A !important;
+}
+
+.ant-pagination-item:hover {
+  border-color: #D14B1F !important;
+}
+
+.ant-pagination-item:hover a {
+  color: #D14B1F !important;
+}
+
+/* Badge styling */
+.ant-badge-status-dot {
+  background: #E9833A !important;
 }

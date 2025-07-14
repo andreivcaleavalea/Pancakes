@@ -7,7 +7,11 @@ import './App.css';
 
 const theme = {
   token: {
-    colorPrimary: '#6840C6',
+    colorPrimary: '#E9833A', // Maple syrup orange
+    colorSuccess: '#B16B2F', // Brown sugar
+    colorWarning: '#FFB549', // Butter yellow
+    colorInfo: '#F5DEB3', // Wheat/pancake color
+    colorError: '#D14B1F', // Cinnamon
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
 };
