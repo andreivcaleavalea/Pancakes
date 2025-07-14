@@ -1,0 +1,53 @@
+.home-page {
+  background: white;
+  min-height: calc(100vh - 140px);
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  &__section {
+    margin-bottom: 32px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  &__title {
+    color: #1A1A1A;
+    margin-bottom: 24px;
+    font-size: 24px !important;
+    
+    &--mobile {
+      font-size: 20px !important;
+      text-align: center;
+    }
+  }
+  
+  &__featured {
+    margin-bottom: 32px;
+  }
+  
+  &__horizontal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+    
+    @media (max-width: 768px) {
+      gap: 10px;
+    }
+  }
+  
+  &__grid-posts {
+    margin-bottom: 24px;
+  }
+  
+  &__pagination {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+  }
+} 
