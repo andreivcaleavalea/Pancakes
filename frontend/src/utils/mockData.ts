@@ -8,7 +8,8 @@ export const blogData = {
       description: '',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/pch68867_expires_30_days.png',
-      author: 'be for you',
+      author: 'Chef Alexandra',
+      authorAvatar: 'https://i.pravatar.cc/150?img=1',
       isFeatured: true
     }
   ] as FeaturedPost[],
@@ -20,6 +21,8 @@ export const blogData = {
       description: 'Linear helps streamline software projects, sprints, tasks, and bug tracking. Here\'s how to get...',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/o8s1kb3h_expires_30_days.png',
+      author: 'Chef Marcus',
+      authorAvatar: 'https://i.pravatar.cc/150?img=2',
       isPopular: true
     },
     {
@@ -28,6 +31,8 @@ export const blogData = {
       description: 'The rise of RESTful APIs has been met by a rise in tools for creating, testing, and manag...',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/vqs7yiqj_expires_30_days.png',
+      author: 'Chef Sofia',
+      authorAvatar: 'https://i.pravatar.cc/150?img=3',
       isPopular: true
     }
   ] as BlogPost[],
@@ -39,6 +44,8 @@ export const blogData = {
       description: 'Like to know the secrets of transforming a 2-14 team into a 3x Super Bowl winning Dynasty?',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/on2j8p5i_expires_30_days.png',
+      author: 'Chef David',
+      authorAvatar: 'https://i.pravatar.cc/150?img=4',
     },
     {
       id: '5',
@@ -46,6 +53,8 @@ export const blogData = {
       description: 'Mental models are simple expressions of complex processes or relationships.',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/2952pnt4_expires_30_days.png',
+      author: 'Chef Emma',
+      authorAvatar: 'https://i.pravatar.cc/150?img=5',
     },
     {
       id: '6',
@@ -53,6 +62,8 @@ export const blogData = {
       description: 'Introduction to Wireframing and its Principles. Learn from the best in the industry.',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/hmqvmcju_expires_30_days.png',
+      author: 'Chef Roberto',
+      authorAvatar: 'https://i.pravatar.cc/150?img=6',
     },
     {
       id: '7',
@@ -60,6 +71,8 @@ export const blogData = {
       description: 'Collaboration can make our teams stronger, and our individual designs better.',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/d7d9r5nw_expires_30_days.png',
+      author: 'Chef Maria',
+      authorAvatar: 'https://i.pravatar.cc/150?img=7',
     },
     {
       id: '8',
@@ -67,6 +80,8 @@ export const blogData = {
       description: 'JavaScript frameworks make development easy with extensive features and functionalities.',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/1injdb85_expires_30_days.png',
+      author: 'Chef Antonio',
+      authorAvatar: 'https://i.pravatar.cc/150?img=8',
     },
     {
       id: '9',
@@ -74,6 +89,8 @@ export const blogData = {
       description: 'Starting a community doesn\'t need to be complicated, but how do you get started?',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/m6kvcs30_expires_30_days.png',
+      author: 'Chef Isabella',
+      authorAvatar: 'https://i.pravatar.cc/150?img=9',
     },
     {
       id: '10',
@@ -81,6 +98,8 @@ export const blogData = {
       description: 'Discover the latest trends and technologies shaping the future of mobile applications.',
       date: 'Monday, 15 Jan 2023',
       image: 'https://picsum.photos/seed/mobile1/800/600',
+      author: 'Chef Lucas',
+      authorAvatar: 'https://i.pravatar.cc/150?img=10',
     },
     {
       id: '11',
@@ -88,6 +107,8 @@ export const blogData = {
       description: 'Learn how to create complex web layouts with CSS Grid, the most powerful layout system available in CSS.',
       date: 'Wednesday, 18 Jan 2023',
       image: 'https://picsum.photos/seed/cssgrid/800/600',
+      author: 'Chef Valentina',
+      authorAvatar: 'https://i.pravatar.cc/150?img=11',
     },
     {
       id: '12',
@@ -95,13 +116,17 @@ export const blogData = {
       description: 'Why TypeScript is becoming essential for React projects and how to get started with it.',
       date: 'Friday, 20 Jan 2023',
       image: 'https://picsum.photos/seed/typescript/800/600',
+      author: 'Chef Gabriel',
+      authorAvatar: 'https://i.pravatar.cc/150?img=12',
     },
     {
       id: '13',
       title: 'Building Accessible Web Applications',
       description: 'Best practices for creating web applications that everyone can use, regardless of ability.',
       date: 'Monday, 23 Jan 2023',
-      image: 'https://picsum.photos/seed/a11y/800/600', 
+      image: 'https://picsum.photos/seed/a11y/800/600',
+      author: 'Chef Olivia',
+      authorAvatar: 'https://i.pravatar.cc/150?img=13',
     },
     {
       id: '14',
@@ -109,6 +134,8 @@ export const blogData = {
       description: 'A beginner\'s guide to GraphQL and why it might be better than REST for your next project.',
       date: 'Thursday, 26 Jan 2023',
       image: 'https://picsum.photos/seed/graphql/800/600',
+      author: 'Chef Sebastian',
+      authorAvatar: 'https://i.pravatar.cc/150?img=14',
     },
     {
       id: '15',
@@ -116,6 +143,8 @@ export const blogData = {
       description: 'How to give and receive code reviews that improve code quality and team collaboration.',
       date: 'Sunday, 29 Jan 2023',
       image: 'https://picsum.photos/seed/codereview/800/600',
+      author: 'Chef Camila',
+      authorAvatar: 'https://i.pravatar.cc/150?img=15',
     },
     {
       id: '16',
@@ -123,6 +152,8 @@ export const blogData = {
       description: 'Performance optimization techniques for faster and more efficient React applications.',
       date: 'Wednesday, 1 Feb 2023',
       image: 'https://picsum.photos/seed/reactperf/800/600',
+      author: 'Chef Marco',
+      authorAvatar: 'https://i.pravatar.cc/150?img=16',
     },
     {
       id: '17',
@@ -130,6 +161,8 @@ export const blogData = {
       description: 'Learn how Docker can simplify your development environment setup and deployment processes.',
       date: 'Saturday, 4 Feb 2023',
       image: 'https://picsum.photos/seed/docker/800/600',
+      author: 'Chef Elena',
+      authorAvatar: 'https://i.pravatar.cc/150?img=17',
     },
     {
       id: '18',
@@ -137,6 +170,8 @@ export const blogData = {
       description: 'How utility-first CSS frameworks like Tailwind can speed up your development workflow.',
       date: 'Tuesday, 7 Feb 2023',
       image: 'https://picsum.photos/seed/tailwind/800/600',
+      author: 'Chef Rafael',
+      authorAvatar: 'https://i.pravatar.cc/150?img=18',
     }
   ] as BlogPost[]
 };

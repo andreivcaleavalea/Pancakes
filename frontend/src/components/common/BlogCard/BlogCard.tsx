@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Typography, App } from 'antd';
+import { Card, Typography, App, Avatar } from 'antd';
 import { HeartOutlined, HeartFilled } from '@ant-design/icons';
 import type { BlogPost } from '@/types/blog';
 import { toggleFavorite } from './api';
@@ -65,6 +65,18 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, variant = 'default' }) => {
               )}
             </div>
             <Paragraph className="blog-card__description">{post.description}</Paragraph>
+            {post.author && (
+              <div className="blog-card__author-info">
+                <Avatar 
+                  src={post.authorAvatar} 
+                  size={32}
+                  style={{ marginRight: 8 }}
+                >
+                  {post.author.charAt(0)}
+                </Avatar>
+                <Text className="blog-card__author">By {post.author}</Text>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -96,7 +108,16 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, variant = 'default' }) => {
             )}
           </div>
           {post.author && (
-            <Text className="blog-card__author">From {post.author}</Text>
+            <div className="blog-card__author-info">
+              <Avatar 
+                src={post.authorAvatar} 
+                size={variant === 'featured' ? 40 : 32}
+                style={{ marginRight: 8 }}
+              >
+                {post.author.charAt(0)}
+              </Avatar>
+              <Text className="blog-card__author">By {post.author}</Text>
+            </div>
           )}
           {post.description && (
             <Paragraph className="blog-card__description">{post.description}</Paragraph>

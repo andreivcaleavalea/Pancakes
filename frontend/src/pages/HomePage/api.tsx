@@ -1,9 +1,10 @@
 import { blogData } from '@utils/mockData';
+import type { BlogPost, FeaturedPost } from '@/types/blog';
 
 interface BlogDataResponse {
-  featuredPosts: any[];
-  horizontalPosts: any[];
-  gridPosts: any[];
+  featuredPosts: FeaturedPost[];
+  horizontalPosts: BlogPost[];
+  gridPosts: BlogPost[];
 }
 
 export const fetchBlogData = async (): Promise<BlogDataResponse> => {
