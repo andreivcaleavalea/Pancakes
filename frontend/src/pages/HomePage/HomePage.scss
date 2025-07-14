@@ -1,5 +1,5 @@
 .home-page {
-  background: white;
+  background: var(--color-bg-card);
   min-height: calc(100vh - 140px);
   
   .container {
@@ -16,7 +16,7 @@
   }
   
   &__title {
-    color: #1A1A1A;
+    color: var(--color-text);
     margin-bottom: 24px;
     font-size: 24px !important;
     
