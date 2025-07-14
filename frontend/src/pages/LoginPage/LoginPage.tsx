@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Button, Divider } from "antd";
+import { Typography, Button, Divider, message } from "antd";
 import { FaGoogle, FaGithub, FaFacebook } from "react-icons/fa";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRouter } from "../../router/RouterProvider";
 import "./LoginPage.scss";
 
 const { Title, Text } = Typography;
@@ -12,16 +14,29 @@ interface LoginPageProps {
 const LoginPage: React.FC<LoginPageProps> = ({ initialMode = "signin" }) => {
   const [isLoginMode, setIsLoginMode] = useState(initialMode === "signin");
   const [loading, setLoading] = useState<string | null>(null);
+  const { signIn, isAuthenticated } = useAuth();
+  const { navigate } = useRouter();
 
   useEffect(() => {
     setIsLoginMode(initialMode === "signin");
   }, [initialMode]);
 
+  useEffect(() => {
+    // Redirect if already authenticated
+    if (isAuthenticated) {
+      navigate("home");
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSocialLogin = async (provider: string) => {
-    setLoading(provider);
-    console.log(`${isLoginMode ? "Login" : "Register"} with ${provider}`);
-    // Add social login logic here later
-    setTimeout(() => setLoading(null), 1000);
+    try {
+      setLoading(provider);
+      await signIn(provider.toLowerCase());
+    } catch (error) {
+      console.error(`${provider} login error:`, error);
+      message.error(`${provider} login failed`);
+      setLoading(null);
+    }
   };
 
   const toggleMode = () => {

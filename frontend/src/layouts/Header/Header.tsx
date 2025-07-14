@@ -13,7 +13,7 @@ import "./Header.scss";
 const { Header: AntHeader } = Layout;
 
 const Header: React.FC = () => {
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
   const { navigate } = useRouter();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -35,7 +35,6 @@ const Header: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Navigate to login page
   const handleSignIn = () => {
     navigate("login", "signin");
   };
@@ -44,19 +43,13 @@ const Header: React.FC = () => {
     navigate("login", "register");
   };
 
-  // Navigate back to home
   const handleLogoClick = () => {
     navigate("home");
   };
 
-  // For demo purposes - mock login function
-  const handleLogin = () => {
-    const mockUser = {
-      id: "1",
-      name: "John Doe",
-      avatar: "https://xsgames.co/randomusers/avatar.php?g=male",
-    };
-    login(mockUser);
+  const handleLogout = () => {
+    signOut();
+    navigate("home");
   };
 
   const userMenuItems = [
@@ -64,7 +57,7 @@ const Header: React.FC = () => {
       key: "logout",
       label: "Logout",
       icon: <LogoutOutlined />,
-      onClick: logout,
+      onClick: handleLogout,
     },
   ];
 
@@ -75,7 +68,7 @@ const Header: React.FC = () => {
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <div className="header__user-profile">
               <Avatar
-                src={user.avatar}
+                src={user.image}
                 alt={user.name}
                 size="default"
                 icon={<UserOutlined />}
@@ -112,7 +105,7 @@ const Header: React.FC = () => {
         <div className="header__mobile-user">
           <div className="header__user-profile">
             <Avatar
-              src={user.avatar}
+              src={user.image}
               alt={user.name}
               size="default"
               icon={<UserOutlined />}
@@ -123,7 +116,7 @@ const Header: React.FC = () => {
             block
             className="header__btn header__btn--primary"
             icon={<LogoutOutlined />}
-            onClick={logout}
+            onClick={handleLogout}
           >
             Logout
           </Button>
@@ -203,7 +196,6 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       <Drawer
         title="Menu"
         placement="right"
