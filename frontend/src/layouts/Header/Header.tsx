@@ -20,7 +20,7 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      setShowMobileMenu(window.innerWidth < 1100);
+      setShowMobileMenu(window.innerWidth < 700);
     };
 
     handleResize();
