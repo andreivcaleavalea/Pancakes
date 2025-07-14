@@ -118,29 +118,6 @@
     overflow: hidden;
   }
 
-  &__tags {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: auto;
-  }
-
-  &__tag {
-    margin: 0;
-    transition: all 0.2s ease;
-    border: none !important;
-    border-radius: 14px !important;
-    font-size: 11px !important;
-    font-weight: 500 !important;
-    padding: 2px 10px !important;
-    cursor: pointer;
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(177, 107, 47, 0.1); /* Brown sugar shadow */
-    }
-  }
-
   &--horizontal {
     display: flex;
     gap: 12px;
@@ -200,11 +177,6 @@
       @media (max-width: 768px) {
         font-size: 18px !important;
       }
-    }
-
-    .blog-card__tag {
-      font-size: 12px !important;
-      padding: 3px 12px !important;
     }
   }
 }

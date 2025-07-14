@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Tag, Typography } from 'antd';
+import { Card, Typography } from 'antd';
 import { HeartOutlined } from '@ant-design/icons';
 import type { BlogPost } from '@/types/blog';
 import './BlogCard.scss';
@@ -12,28 +12,6 @@ interface BlogCardProps {
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({ post, variant = 'default' }) => {
-  const handleTagClick = (tagName: string) => {
-    console.log(`Tag clicked: ${tagName}`);
-  };
-
-  const renderTags = () => (
-    <div className="blog-card__tags">
-      {post.tags.map((tag: any, index: number) => (
-        <Tag
-          key={index}
-          className="blog-card__tag"
-          style={{
-            backgroundColor: tag.backgroundColor,
-            color: tag.color
-          }}
-          onClick={() => handleTagClick(tag.name)}
-        >
-          {tag.name}
-        </Tag>
-      ))}
-    </div>
-  );
-
   if (variant === 'horizontal') {
     return (
       <div className="blog-card blog-card--horizontal">
@@ -46,7 +24,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, variant = 'default' }) => {
             </div>
             <Paragraph className="blog-card__description">{post.description}</Paragraph>
           </div>
-          {renderTags()}
         </div>
       </div>
     );
@@ -71,7 +48,6 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, variant = 'default' }) => {
             <Paragraph className="blog-card__description">{post.description}</Paragraph>
           )}
         </div>
-        {renderTags()}
       </div>
     </Card>
   );
