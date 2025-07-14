@@ -1,6 +1,6 @@
 .header {
   background: white;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #F0E0D0; /* Pancake edge color */
   padding: 0;
   display: flex;
   align-items: center;
@@ -54,7 +54,7 @@
     &-icon {
       width: 36px;
       height: 36px;
-      background: linear-gradient(135deg, #6840C6 0%, #8B5CF6 100%);
+      background: linear-gradient(135deg, #FFB549 0%, #E9833A 100%); /* Butter to syrup gradient */
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -75,7 +75,7 @@
     }
     
     &-text {
-      color: #6840C6;
+      color: #E9833A; /* Maple syrup color */
       font-size: 20px;
       font-weight: bold;
       
@@ -133,19 +133,19 @@
     min-width: fit-content;
     
     .ant-menu-item {
-      color: #1E1E1E;
+      color: #1A1A1A;
       font-size: 15px;
       padding: 0 16px;
       
       &:hover {
-        color: #6840C6;
+        color: #E9833A; /* Maple syrup color */
       }
       
       &.ant-menu-item-selected {
-        color: #6840C6;
+        color: #E9833A; /* Maple syrup color */
         
         &::after {
-          border-bottom-color: #6840C6;
+          border-bottom-color: #E9833A; /* Maple syrup color */
         }
       }
     }
@@ -226,25 +226,25 @@
     height: auto;
     
     &--secondary {
-      background: #F9F5FF;
-      border: 1px solid #6840C6;
-      color: #6840C6;
+      background: #FFF8E8; /* Cream color */
+      border: 1px solid #E9833A; /* Maple syrup color */
+      color: #E9833A; /* Maple syrup color */
       
       &:hover {
-        background: #f0e8ff;
-        border-color: #8B5CF6;
-        color: #8B5CF6;
+        background: #F9F3E3; /* Light pancake color */
+        border-color: #D14B1F; /* Cinnamon color */
+        color: #D14B1F; /* Cinnamon color */
       }
     }
     
     &--primary {
-      background: #6840C6;
-      border: 1px solid #6840C6;
+      background: #E9833A; /* Maple syrup color */
+      border: 1px solid #E9833A; /* Maple syrup color */
       color: #ffffff;
       
       &:hover {
-        background: #8B5CF6;
-        border-color: #8B5CF6;
+        background: #D14B1F; /* Cinnamon color */
+        border-color: #D14B1F; /* Cinnamon color */
       }
     }
   }
@@ -255,17 +255,32 @@
     font-size: 20px;
     
     &:hover {
-      color: #6840C6;
+      color: #E9833A; /* Maple syrup color */
     }
   }
   
   &__drawer {
     .ant-drawer-header {
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid #F0E0D0; /* Pancake edge color */
+      background-color: #FFF8E8; /* Cream color */
+      
+      .ant-drawer-title {
+        color: #B16B2F; /* Brown sugar color */
+        font-weight: 600;
+      }
     }
     
     .ant-drawer-body {
       padding: 16px;
+      background-color: #FFF8E8; /* Cream color */
+    }
+    
+    .ant-drawer-close {
+      color: #E9833A; /* Maple syrup color */
+      
+      &:hover {
+        color: #D14B1F; /* Cinnamon color */
+      }
     }
   }
   
@@ -281,20 +296,24 @@
     flex: 1;
     
     .ant-menu-item {
-      color: #1E1E1E;
+      color: #1A1A1A;
       font-size: 15px;
       padding: 10px 0;
       margin: 0;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
       
       &:hover {
-        color: #6840C6;
-        background: #F9F5FF;
+        color: #E9833A; /* Maple syrup color */
+        background: #FFF8E8; /* Cream color */
       }
       
       &.ant-menu-item-selected {
-        color: #6840C6;
-        background: #F9F5FF;
+        color: #E9833A; /* Maple syrup color */
+        background: #FFF8E8; /* Cream color */
         
         &::after {
           display: none;
