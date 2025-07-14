@@ -5,6 +5,7 @@ export interface BlogPost {
   date: string;
   image: string;
   author?: string;
+  authorAvatar?: string;
   isFeatured?: boolean;
   isPopular?: boolean;
 }
