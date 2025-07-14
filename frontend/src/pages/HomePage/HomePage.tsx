@@ -2,16 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Row, Col } from 'antd';
 import { BlogCard } from '@common/BlogCard';
 import Pagination from '@components/Pagination/Pagination';
-import { blogData } from '@utils/mockData';
+import { fetchBlogData, fetchPaginatedPosts } from './api';
+import type { BlogPost, FeaturedPost } from '@/types/blog';
 import './HomePage.scss';
 
 const { Title } = Typography;
 
 const HomePage: React.FC = () => {
-  const { featuredPosts, gridPosts, horizontalPosts } = blogData;
+  const [blogData, setBlogData] = useState<{
+    featuredPosts: FeaturedPost[];
+    horizontalPosts: BlogPost[];
+    gridPosts: BlogPost[];
+  }>({
+    featuredPosts: [],
+    horizontalPosts: [],
+    gridPosts: []
+  });
   const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentPosts, setCurrentPosts] = useState<BlogPost[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
   const postsPerPage = 9;
+
+  useEffect(() => {
+    const loadBlogData = async () => {
+      const data = await fetchBlogData();
+      setBlogData(data);
+    };
+    
+    loadBlogData();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -24,17 +44,23 @@ const HomePage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Calculate paginated posts
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = gridPosts.slice(indexOfFirstPost, indexOfLastPost);
-  const totalPages = Math.ceil(gridPosts.length / postsPerPage);
+  useEffect(() => {
+    const loadPaginatedPosts = async () => {
+      const { posts, totalPages: pages } = await fetchPaginatedPosts(currentPage, postsPerPage);
+      setCurrentPosts(posts);
+      setTotalPages(pages);
+    };
+    
+    loadPaginatedPosts();
+  }, [currentPage]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     // Scroll to the top of the posts section
     document.querySelector('.home-page__grid-posts')?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const { featuredPosts, horizontalPosts } = blogData;
 
   return (
     <div className="home-page">
