@@ -5,6 +5,8 @@ export interface BlogPost {
   date: string;
   image: string;
   author?: string;
+  isFeatured?: boolean;
+  isPopular?: boolean;
 }
 
 export interface FeaturedPost extends BlogPost {
