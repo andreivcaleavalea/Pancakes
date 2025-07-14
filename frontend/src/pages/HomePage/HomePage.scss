@@ -33,11 +33,11 @@
   &__horizontal-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     margin-bottom: 32px;
     
     @media (max-width: 768px) {
-      gap: 10px;
+      gap: 16px;
     }
   }
   

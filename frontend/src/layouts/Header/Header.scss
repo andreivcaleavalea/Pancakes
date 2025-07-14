@@ -24,6 +24,10 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 4px;
+    
+    @media (max-width: 950px) {
+      width: 98%;
+    }
   }
   
   &__left {
@@ -95,6 +99,14 @@
       border-radius: 20px;
       border: 1px solid #d9d9d9;
       
+      @media (max-width: 950px) {
+        width: 140px;
+      }
+      
+      @media (max-width: 900px) {
+        width: 120px;
+      }
+      
       @media (max-width: 768px) {
         width: 180px;
       }
@@ -110,6 +122,10 @@
       .ant-input {
         border: none;
         padding: 8px 12px;
+        
+        @media (max-width: 950px) {
+          padding: 6px 10px;
+        }
       }
       
       .ant-input-prefix {
@@ -125,6 +141,14 @@
   &__center {
     flex: 0 0 auto;
     margin: 0 24px;
+    
+    @media (max-width: 950px) {
+      margin: 0 8px;
+    }
+    
+    @media (max-width: 900px) {
+      margin: 0 4px;
+    }
   }
   
   &__menu {
@@ -136,6 +160,16 @@
       color: #1E1E1E;
       font-size: 15px;
       padding: 0 16px;
+      
+      @media (max-width: 950px) {
+        padding: 0 8px;
+        font-size: 14px;
+      }
+      
+      @media (max-width: 900px) {
+        padding: 0 6px;
+        font-size: 13px;
+      }
       
       &:hover {
         color: #6840C6;
@@ -156,11 +190,20 @@
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+    
+    @media (max-width: 950px) {
+      flex-shrink: 0;
+      min-width: fit-content;
+    }
   }
   
   &__auth {
     display: flex;
     gap: 8px;
+    
+    @media (max-width: 950px) {
+      gap: 6px;
+    }
     
     &--mobile {
       margin-top: 16px;
@@ -215,6 +258,11 @@
       .header__user-name {
         font-size: 16px;
         font-weight: 500;
+        display: block !important; /* Override the media query in the parent class */
+        
+        @media (max-width: 360px) {
+          font-size: 14px;
+        }
       }
     }
   }
@@ -224,6 +272,17 @@
     border-radius: 6px;
     font-size: 14px;
     height: auto;
+    white-space: nowrap;
+    
+    @media (max-width: 950px) {
+      padding: 4px 8px;
+      font-size: 13px;
+    }
+    
+    @media (max-width: 900px) {
+      padding: 3px 6px;
+      font-size: 12px;
+    }
     
     &--secondary {
       background: #F9F5FF;
