@@ -4,10 +4,25 @@
   box-sizing: border-box;
 }
 
+:root {
+  --color-syrup: #E9833A;
+  --color-pancake: #F9F3E3;
+  --color-butter: #FFB549;
+  --color-cinnamon: #D14B1F;
+  --color-brown-sugar: #B16B2F;
+  --color-cream: #FFF8E8;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: white;
+  background: var(--color-cream);
   color: #1A1A1A;
   line-height: 1.6;
   overflow-x: hidden;
+  background-image: 
+    radial-gradient(var(--color-pancake) 15%, transparent 16%),
+    radial-gradient(var(--color-pancake) 15%, transparent 16%);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+  background-attachment: fixed;
 }

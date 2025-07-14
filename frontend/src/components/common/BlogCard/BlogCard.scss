@@ -1,11 +1,12 @@
 .blog-card {
   border: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1); /* Brown sugar shadow */
   border-radius: 8px;
   overflow: hidden;
   transition: all 0.3s ease;
   height: 100%;
   cursor: pointer;
+  background-color: white; /* White base for all cards */
   
   @media (max-width: 768px) {
     padding: 12px;
@@ -15,11 +16,11 @@
   
   &:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 16px rgba(177, 107, 47, 0.15); /* Brown sugar shadow */
     
     @media (max-width: 768px) {
       transform: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1); /* Brown sugar shadow */
     }
   }
   
@@ -73,7 +74,7 @@
   }
   
   &__date {
-    color: #6840C6;
+    color: #E9833A; /* Maple syrup color */
     font-size: 12px;
     font-weight: bold;
   }
@@ -101,11 +102,11 @@
   &__favorite {
     width: 20px;
     height: 24px;
-    color: #667084;
+    color: #B16B2F; /* Brown sugar color */
     cursor: pointer;
     
     &:hover {
-      color: #6840C6;
+      color: #E9833A; /* Maple syrup color */
     }
   }
   
@@ -144,7 +145,7 @@
     
     &:hover {
       transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 4px rgba(177, 107, 47, 0.1); /* Brown sugar shadow */
     }
   }
   
@@ -181,10 +182,10 @@
   }
   
   &--featured {
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 12px rgba(177, 107, 47, 0.12); /* Brown sugar shadow */
     
     @media (max-width: 768px) {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1); /* Brown sugar shadow */
     }
     
     .blog-card__image {
