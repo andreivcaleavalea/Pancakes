@@ -1,12 +1,18 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
 
-export type PageType = "home" | "login";
-export type LoginMode = "signin" | "register";
+type Page = "home" | "login";
+type LoginMode = "signin" | "register";
 
 interface RouterContextType {
-  currentPage: PageType;
+  currentPage: Page;
   loginMode: LoginMode;
-  navigate: (page: PageType, mode?: LoginMode) => void;
+  navigate: (page: Page, mode?: LoginMode) => void;
 }
 
 const RouterContext = createContext<RouterContextType | undefined>(undefined);
@@ -24,14 +30,43 @@ interface RouterProviderProps {
 }
 
 export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
-  const [currentPage, setCurrentPage] = useState<PageType>("home");
+  const [currentPage, setCurrentPage] = useState<Page>("home");
   const [loginMode, setLoginMode] = useState<LoginMode>("signin");
 
-  const navigate = (page: PageType, mode?: LoginMode) => {
+  useEffect(() => {
+    const path = window.location.pathname;
+
+    // Handle auth callback
+    if (path === "/auth/callback") {
+      return; // Let AuthCallback component handle this
+    }
+
+    if (path === "/login") {
+      setCurrentPage("login");
+    } else {
+      setCurrentPage("home");
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    if (mode === "register" || mode === "signin") {
+      setLoginMode(mode);
+    }
+  }, []);
+
+  const navigate = (page: Page, mode?: LoginMode) => {
     setCurrentPage(page);
     if (mode) {
       setLoginMode(mode);
     }
+
+    // Update URL
+    let url = `/${page === "home" ? "" : page}`;
+    if (page === "login" && mode) {
+      url += `?mode=${mode}`;
+    }
+
+    window.history.pushState({}, "", url);
   };
 
   return (
@@ -40,3 +75,5 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
     </RouterContext.Provider>
   );
 };
+
+export default RouterProvider;
