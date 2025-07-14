@@ -20,6 +20,7 @@ export const blogData = {
       description: 'Linear helps streamline software projects, sprints, tasks, and bug tracking. Here\'s how to get...',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/o8s1kb3h_expires_30_days.png',
+      isPopular: true
     },
     {
       id: '3',
@@ -27,6 +28,7 @@ export const blogData = {
       description: 'The rise of RESTful APIs has been met by a rise in tools for creating, testing, and manag...',
       date: 'Sunday, 1 Jan 2023',
       image: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/5u0tUzYz6l/vqs7yiqj_expires_30_days.png',
+      isPopular: true
     }
   ] as BlogPost[],
 

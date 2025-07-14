@@ -50,22 +50,18 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, variant = 'default' }) => {
             <Text className="blog-card__date">{post.date}</Text>
             <div className="blog-card__header">
               <Title level={4} className="blog-card__title">{post.title}</Title>
-              {variant !== 'horizontal' && (
-                <>
-                  {isFavorite ? (
-                    <HeartFilled
-                      className="blog-card__favorite blog-card__favorite--active"
-                      onClick={handleFavoriteClick}
-                      style={{ opacity: isLoading ? 0.5 : 1 }}
-                    />
-                  ) : (
-                    <HeartOutlined
-                      className="blog-card__favorite"
-                      onClick={handleFavoriteClick}
-                      style={{ opacity: isLoading ? 0.5 : 1 }}
-                    />
-                  )}
-                </>
+              {isFavorite ? (
+                <HeartFilled
+                  className="blog-card__favorite blog-card__favorite--active"
+                  onClick={handleFavoriteClick}
+                  style={{ opacity: isLoading ? 0.5 : 1 }}
+                />
+              ) : (
+                <HeartOutlined
+                  className="blog-card__favorite"
+                  onClick={handleFavoriteClick}
+                  style={{ opacity: isLoading ? 0.5 : 1 }}
+                />
               )}
             </div>
             <Paragraph className="blog-card__description">{post.description}</Paragraph>

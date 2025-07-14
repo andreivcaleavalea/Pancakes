@@ -67,7 +67,7 @@ const HomePage: React.FC = () => {
       {/* Hero Section */}
       <section className="home-page__section">
         <Title level={1} className={`home-page__title ${isMobile ? 'home-page__title--mobile' : ''}`}>
-          Your pancakes
+          Today's Special
         </Title>
         
         {featuredPosts.length > 0 && (
@@ -77,11 +77,11 @@ const HomePage: React.FC = () => {
         )}
       </section>
 
-      {/* Featured Posts Section */}
+      {/* Popular Recipes Section */}
       {horizontalPosts.length > 0 && (
         <section className="home-page__section">
           <Title level={2} className={`home-page__title ${isMobile ? 'home-page__title--mobile' : ''}`}>
-            Featured posts
+            Popular Recipes
           </Title>
           
           <div className="home-page__horizontal-list">
@@ -92,10 +92,10 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {/* All Blog Posts Section */}
+      {/* All Recipes Section */}
       <section className="home-page__section">
         <Title level={2} className={`home-page__title ${isMobile ? 'home-page__title--mobile' : ''}`}>
-          All blog posts
+          All Recipes
         </Title>
         
         <div className="home-page__grid-posts">
