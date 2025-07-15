@@ -19,28 +19,30 @@ export async function authenticatedFetch<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5141';
-  const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5141";
+  const url = `${baseUrl}${
+    endpoint.startsWith("/") ? endpoint : "/" + endpoint
+  }`;
 
   // Get token from localStorage
-  const authSession = localStorage.getItem('auth-session');
-  let token = '';
-  
+  const authSession = localStorage.getItem("auth-session");
+  let token = "";
+
   if (authSession) {
     try {
       const session = JSON.parse(authSession);
-      token = session.token || '';
+      token = session.token || "";
     } catch (error) {
-      console.error('Error parsing auth session:', error);
+      console.error("Error parsing auth session:", error);
     }
   }
 
   // Prepare headers
   const headers = new Headers(options.headers);
-  headers.set('Content-Type', 'application/json');
-  
+  headers.set("Content-Type", "application/json");
+
   if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   try {
@@ -50,19 +52,19 @@ export async function authenticatedFetch<T = unknown>(
     });
 
     const status = response.status;
-    
+
     // Handle authentication errors
     if (status === 401) {
       // Token is invalid or expired, clear session
-      localStorage.removeItem('auth-session');
-      window.location.href = '/login';
-      return { status, error: 'Authentication required' };
+      localStorage.removeItem("auth-session");
+      window.location.href = "/login";
+      return { status, error: "Authentication required" };
     }
 
     let data;
-    const contentType = response.headers.get('content-type');
-    
-    if (contentType && contentType.includes('application/json')) {
+    const contentType = response.headers.get("content-type");
+
+    if (contentType && contentType.includes("application/json")) {
       data = await response.json();
     } else {
       data = await response.text();
@@ -71,16 +73,19 @@ export async function authenticatedFetch<T = unknown>(
     if (!response.ok) {
       return {
         status,
-        error: typeof data === 'object' && data?.message ? data.message : 'Request failed'
+        error:
+          typeof data === "object" && data?.message
+            ? data.message
+            : "Request failed",
       };
     }
 
     return { status, data };
   } catch (error) {
-    console.error('API call failed:', error);
+    console.error("API call failed:", error);
     return {
       status: 0,
-      error: error instanceof Error ? error.message : 'Network error'
+      error: error instanceof Error ? error.message : "Network error",
     };
   }
 }
@@ -90,7 +95,7 @@ export async function authenticatedFetch<T = unknown>(
  * @returns Promise with user data or error
  */
 export async function getCurrentUser(): Promise<ApiResponse> {
-  return authenticatedFetch('/auth/me');
+  return authenticatedFetch("/auth/me");
 }
 
 /**
@@ -98,7 +103,7 @@ export async function getCurrentUser(): Promise<ApiResponse> {
  * @returns Promise with validation result
  */
 export async function validateToken(): Promise<ApiResponse> {
-  return authenticatedFetch('/auth/validate');
+  return authenticatedFetch("/auth/validate");
 }
 
 /**
@@ -106,8 +111,10 @@ export async function validateToken(): Promise<ApiResponse> {
  * @param endpoint - API endpoint
  * @returns Promise with response data
  */
-export async function authenticatedGet<T = unknown>(endpoint: string): Promise<ApiResponse<T>> {
-  return authenticatedFetch<T>(endpoint, { method: 'GET' });
+export async function authenticatedGet<T = unknown>(
+  endpoint: string
+): Promise<ApiResponse<T>> {
+  return authenticatedFetch<T>(endpoint, { method: "GET" });
 }
 
 /**
@@ -117,11 +124,11 @@ export async function authenticatedGet<T = unknown>(endpoint: string): Promise<A
  * @returns Promise with response data
  */
 export async function authenticatedPost<T = unknown>(
-  endpoint: string, 
+  endpoint: string,
   body?: Record<string, unknown>
 ): Promise<ApiResponse<T>> {
   return authenticatedFetch<T>(endpoint, {
-    method: 'POST',
+    method: "POST",
     body: body ? JSON.stringify(body) : undefined,
   });
 }
@@ -133,11 +140,11 @@ export async function authenticatedPost<T = unknown>(
  * @returns Promise with response data
  */
 export async function authenticatedPut<T = unknown>(
-  endpoint: string, 
+  endpoint: string,
   body?: Record<string, unknown>
 ): Promise<ApiResponse<T>> {
   return authenticatedFetch<T>(endpoint, {
-    method: 'PUT',
+    method: "PUT",
     body: body ? JSON.stringify(body) : undefined,
   });
 }
@@ -147,8 +154,10 @@ export async function authenticatedPut<T = unknown>(
  * @param endpoint - API endpoint
  * @returns Promise with response data
  */
-export async function authenticatedDelete<T = unknown>(endpoint: string): Promise<ApiResponse<T>> {
-  return authenticatedFetch<T>(endpoint, { method: 'DELETE' });
+export async function authenticatedDelete<T = unknown>(
+  endpoint: string
+): Promise<ApiResponse<T>> {
+  return authenticatedFetch<T>(endpoint, { method: "DELETE" });
 }
 
 /**
@@ -157,7 +166,7 @@ export async function authenticatedDelete<T = unknown>(endpoint: string): Promis
  * @returns boolean indicating if user appears to be authenticated
  */
 export function isAuthenticated(): boolean {
-  const authSession = localStorage.getItem('auth-session');
+  const authSession = localStorage.getItem("auth-session");
   if (!authSession) return false;
 
   try {
@@ -174,7 +183,7 @@ export function isAuthenticated(): boolean {
  * @returns User object if authenticated, null otherwise
  */
 export function getLocalUser() {
-  const authSession = localStorage.getItem('auth-session');
+  const authSession = localStorage.getItem("auth-session");
   if (!authSession) return null;
 
   try {
