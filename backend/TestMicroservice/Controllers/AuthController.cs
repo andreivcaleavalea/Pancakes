@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TestMicroservice.Models;
+using Microsoft.AspNetCore.Authorization;
 using TestMicroservice.Services;
+using TestMicroservice.Models;
 
 namespace TestMicroservice.Controllers
 {
@@ -11,44 +12,35 @@ namespace TestMicroservice.Controllers
         private readonly OAuthService _oauthService;
         private readonly UserService _userService;
         private readonly JwtService _jwtService;
+        private readonly CurrentUserService _currentUserService;
 
         public AuthController(
             OAuthService oauthService, 
             UserService userService, 
-            JwtService jwtService)
+            JwtService jwtService,
+            CurrentUserService currentUserService)
         {
             _oauthService = oauthService;
             _userService = userService;
             _jwtService = jwtService;
+            _currentUserService = currentUserService;
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
             {
-                if (string.IsNullOrEmpty(request.Code) || string.IsNullOrEmpty(request.Provider))
-                {
-                    return BadRequest(new { message = "Code and provider are required" });
-                }
+                Console.WriteLine($"Login attempt for provider: {request.Provider}");
 
-                // Only support Google for now
-                if (request.Provider.ToLower() != "google")
-                {
-                    return BadRequest(new { message = "Only Google authentication is currently supported" });
-                }
-
-                // Exchange code for user info
                 var userInfo = await _oauthService.ExchangeCodeForUserInfo(request.Code, request.Provider);
                 if (userInfo == null)
                 {
-                    return BadRequest(new { message = "Failed to exchange OAuth code" });
+                    return BadRequest(new { message = "Failed to get user information" });
                 }
 
-                // Create or update user
-                var user = _userService.CreateOrUpdateUser(userInfo, request.Provider);
-
-                // Generate JWT token
+                // Create user object (stateless - no persistence)
+                var user = _userService.CreateUserFromOAuth(userInfo, request.Provider);
                 var token = _jwtService.GenerateToken(user);
 
                 var response = new LoginResponse
@@ -58,6 +50,7 @@ namespace TestMicroservice.Controllers
                     ExpiresAt = DateTime.UtcNow.AddMinutes(1440) // 24 hours
                 };
 
+                Console.WriteLine($"Login successful for user: {user.Name}");
                 return Ok(response);
             }
             catch (Exception ex)
@@ -70,16 +63,84 @@ namespace TestMicroservice.Controllers
         [HttpGet("{provider}/callback")]
         public IActionResult OAuthCallback(string provider, [FromQuery] string code, [FromQuery] string state)
         {
-            // Only support Google for now
-            if (provider.ToLower() != "google")
+            try
             {
-                var errorUrl = $"http://localhost:5173/login?error=unsupported_provider";
-                return Redirect(errorUrl);
+                Console.WriteLine($"OAuth callback received for {provider}");
+                
+                var frontendUrl = $"http://localhost:5173/auth/callback?code={code}&state={state}&provider={provider}";
+                return Redirect(frontendUrl);
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"OAuth callback error: {ex.Message}");
+                return Redirect("http://localhost:5173/login?error=callback_failed");
+            }
+        }
 
-            // This endpoint receives the OAuth callback and redirects back to frontend
-            var frontendUrl = $"http://localhost:5173/auth/callback?code={code}&state={state}&provider={provider}";
-            return Redirect(frontendUrl);
+        [HttpPost("logout")]
+        [Authorize]
+        public IActionResult Logout()
+        {
+            try
+            {
+                var currentUser = _currentUserService.GetCurrentUser();
+                if (currentUser != null)
+                {
+                    Console.WriteLine($"User {currentUser.Name} logged out");
+                }
+                
+                // In a stateless system, logout is handled on the frontend by removing the token
+                // No server-side state to clear
+                return Ok(new { message = "Logged out successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Logout error: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult GetCurrentUser()
+        {
+            try
+            {
+                var currentUser = _currentUserService.GetCurrentUser();
+                if (currentUser == null)
+                {
+                    return Unauthorized(new { message = "User not authenticated" });
+                }
+
+                Console.WriteLine($"Retrieved current user: {currentUser.Name}");
+                return Ok(currentUser);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Get current user error: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        [HttpGet("validate")]
+        [Authorize]
+        public IActionResult ValidateToken()
+        {
+            try
+            {
+                var isAuthenticated = _currentUserService.IsAuthenticated();
+                var userId = _currentUserService.GetCurrentUserId();
+                
+                return Ok(new { 
+                    isValid = isAuthenticated,
+                    userId = userId
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Token validation error: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error" });
+            }
         }
     }
 }

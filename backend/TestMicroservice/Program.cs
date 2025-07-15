@@ -9,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// Add HttpContextAccessor for current user service
+builder.Services.AddHttpContextAccessor();
+
 // Add HttpClient for OAuth service
 builder.Services.AddHttpClient<OAuthService>();
 
@@ -16,6 +19,7 @@ builder.Services.AddHttpClient<OAuthService>();
 builder.Services.AddScoped<OAuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<CurrentUserService>();
 
 // Add CORS
 builder.Services.AddCors(options =>

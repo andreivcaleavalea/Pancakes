@@ -5,6 +5,7 @@ import React, {
   useEffect,
   type ReactNode,
 } from "react";
+import { initiateOAuthLogin, type OAuthProvider } from "../lib/auth";
 
 interface User {
   id: string;
@@ -16,8 +17,8 @@ interface User {
 
 interface Session {
   user: User;
-  expires: string;
   token: string;
+  expires: string;
 }
 
 interface AuthContextType {
@@ -26,7 +27,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   signIn: (provider: string) => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   updateSession: (session: Session) => void;
 }
 
@@ -73,20 +74,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (provider: string) => {
     try {
-      const authUrl = createOAuthUrl(provider);
-      sessionStorage.setItem("oauth-provider", provider);
-      window.location.href = authUrl;
+      // Use the simplified OAuth system from auth.ts
+      initiateOAuthLogin(provider.toLowerCase() as OAuthProvider);
     } catch (error) {
       console.error("Sign in error:", error);
       throw error;
     }
   };
 
-  const signOut = () => {
-    setSession(null);
-    localStorage.removeItem("auth-session");
-    sessionStorage.removeItem("oauth-provider");
-    sessionStorage.removeItem("oauth-state");
+  const signOut = async () => {
+    try {
+      // Optionally call backend logout endpoint for logging/analytics
+      // In a stateless system, the backend doesn't need to clear any state
+      if (session?.token) {
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.token}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error calling logout endpoint:", error);
+      // Don't throw error - logout should succeed even if backend call fails
+    } finally {
+      // Clear frontend session - this is the actual logout in a stateless system
+      setSession(null);
+      localStorage.removeItem("auth-session");
+      sessionStorage.removeItem("oauth-provider");
+      sessionStorage.removeItem("oauth-state");
+      console.log("User signed out successfully");
+    }
   };
 
   const updateSession = (newSession: Session) => {
@@ -110,45 +129,3 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-function createOAuthUrl(provider: string): string {
-  const redirectUri = `http://localhost:5141/auth/callback`;
-  const state = Math.random().toString(36).substring(2, 15);
-
-  sessionStorage.setItem("oauth-state", state);
-
-  switch (provider.toLowerCase()) {
-    case "google":
-      return (
-        `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${import.meta.env.VITE_GOOGLE_CLIENT_ID}&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `response_type=code&` +
-        `scope=openid email profile&` +
-        `state=${state}`
-      );
-
-    case "github":
-      return (
-        `https://github.com/login/oauth/authorize?` +
-        `client_id=${import.meta.env.VITE_GITHUB_CLIENT_ID}&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `scope=user:email&` +
-        `state=${state}`
-      );
-
-    case "facebook":
-      return (
-        `https://www.facebook.com/v18.0/dialog/oauth?` +
-        `client_id=${import.meta.env.VITE_FACEBOOK_APP_ID}&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `scope=email,public_profile&` +
-        `state=${state}`
-      );
-
-    default:
-      throw new Error(`Unsupported provider: ${provider}`);
-  }
-}
-
-export default AuthContext;
