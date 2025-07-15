@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Spin, message } from "antd";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "../../router/RouterProvider";
@@ -6,7 +6,6 @@ import { useRouter } from "../../router/RouterProvider";
 const AuthCallback: React.FC = () => {
   const { updateSession } = useAuth();
   const { navigate } = useRouter();
-  const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -71,7 +70,6 @@ const AuthCallback: React.FC = () => {
         // Clean up
         sessionStorage.removeItem("oauth-state");
         sessionStorage.removeItem("oauth-provider");
-        setProcessing(false);
       }
     };
 

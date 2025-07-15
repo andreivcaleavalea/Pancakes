@@ -1,88 +1,62 @@
 using TestMicroservice.Models;
-using System.Text.Json;
 
 namespace TestMicroservice.Services
 {
     public class UserService
     {
-        private readonly string _filePath = "users.json";
-        private readonly object _lock = new object();
-
-        public User? GetUserByProviderAndId(string provider, string providerUserId)
+        /// <summary>
+        /// Creates a new user from OAuth information.
+        /// This is stateless - no persistence, returns a user object ready for JWT token generation.
+        /// </summary>
+        /// <param name="oauthInfo">OAuth user information</param>
+        /// <param name="provider">OAuth provider name</param>
+        /// <returns>New user object</returns>
+        public User CreateUserFromOAuth(OAuthUserInfo oauthInfo, string provider)
         {
-            var users = LoadUsers();
-            return users.FirstOrDefault(u => u.Provider == provider && u.ProviderUserId == providerUserId);
+            var user = new User
+            {
+                Id = GenerateUniqueUserId(provider, oauthInfo.Id),
+                Name = oauthInfo.Name,
+                Email = oauthInfo.Email,
+                Image = oauthInfo.Picture,
+                Provider = provider,
+                ProviderUserId = oauthInfo.Id,
+                CreatedAt = DateTime.UtcNow,
+                LastLoginAt = DateTime.UtcNow
+            };
+
+            Console.WriteLine($"Created user from OAuth: {user.Name} ({user.Email}) via {provider}");
+            return user;
         }
 
-        public User CreateOrUpdateUser(OAuthUserInfo oauthInfo, string provider)
+        /// <summary>
+        /// Generates a unique user ID based on provider and provider user ID.
+        /// This ensures the same user from the same provider always gets the same ID.
+        /// </summary>
+        /// <param name="provider">OAuth provider</param>
+        /// <param name="providerUserId">Provider-specific user ID</param>
+        /// <returns>Deterministic unique user ID</returns>
+        private string GenerateUniqueUserId(string provider, string providerUserId)
         {
-            lock (_lock)
-            {
-                var users = LoadUsers();
-                var existingUser = users.FirstOrDefault(u => 
-                    u.Provider == provider && u.ProviderUserId == oauthInfo.Id);
-
-                if (existingUser != null)
-                {
-                    // Update existing user
-                    existingUser.Name = oauthInfo.Name;
-                    existingUser.Email = oauthInfo.Email;
-                    existingUser.Image = oauthInfo.Picture;
-                    existingUser.LastLoginAt = DateTime.UtcNow;
-                }
-                else
-                {
-                    // Create new user
-                    existingUser = new User
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Name = oauthInfo.Name,
-                        Email = oauthInfo.Email,
-                        Image = oauthInfo.Picture,
-                        Provider = provider,
-                        ProviderUserId = oauthInfo.Id,
-                        CreatedAt = DateTime.UtcNow,
-                        LastLoginAt = DateTime.UtcNow
-                    };
-                    users.Add(existingUser);
-                }
-
-                SaveUsers(users);
-                return existingUser;
-            }
+            // Create a deterministic ID based on provider and provider user ID
+            // This ensures the same user from the same provider always gets the same ID
+            var combinedString = $"{provider}:{providerUserId}";
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combinedString));
+            return Convert.ToHexString(hashBytes)[..32]; // Take first 32 characters for a reasonable ID length
         }
 
-        private List<User> LoadUsers()
+        /// <summary>
+        /// Validates if a user ID matches the expected format and provider pattern.
+        /// </summary>
+        /// <param name="userId">User ID to validate</param>
+        /// <param name="provider">Expected provider</param>
+        /// <param name="providerUserId">Expected provider user ID</param>
+        /// <returns>True if valid, false otherwise</returns>
+        public bool ValidateUserId(string userId, string provider, string providerUserId)
         {
-            try
-            {
-                if (!File.Exists(_filePath))
-                    return new List<User>();
-
-                var json = File.ReadAllText(_filePath);
-                return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading users: {ex.Message}");
-                return new List<User>();
-            }
-        }
-
-        private void SaveUsers(List<User> users)
-        {
-            try
-            {
-                var json = JsonSerializer.Serialize(users, new JsonSerializerOptions 
-                { 
-                    WriteIndented = true 
-                });
-                File.WriteAllText(_filePath, json);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error saving users: {ex.Message}");
-            }
+            var expectedId = GenerateUniqueUserId(provider, providerUserId);
+            return userId.Equals(expectedId, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

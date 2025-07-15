@@ -1,39 +1,24 @@
-import React, { useState } from "react";
+import React from "react";
+import { useRouter } from "./RouterProvider";
 import HomePage from "@pages/HomePage/HomePage";
 import LoginPage from "@pages/LoginPage/LoginPage";
+import AuthCallback from "@pages/AuthCallback/AuthCallback";
 
-export type PageType = "home" | "login";
-export type LoginMode = "signin" | "register";
+const AppRouter: React.FC = () => {
+  const { currentPage, loginMode } = useRouter();
 
-interface AppRouterProps {
-  onNavigate: (page: PageType, mode?: LoginMode) => void;
-}
+  // Handle auth callback
+  if (window.location.pathname === "/auth/callback") {
+    return <AuthCallback />;
+  }
 
-const AppRouter: React.FC<AppRouterProps> = ({ onNavigate }) => {
-  const [currentPage, setCurrentPage] = useState<PageType>("home");
-  const [loginMode, setLoginMode] = useState<LoginMode>("signin");
-
-  const handleNavigate = (page: PageType, mode?: LoginMode) => {
-    setCurrentPage(page);
-    if (mode) {
-      setLoginMode(mode);
-    }
-    onNavigate(page, mode);
-  };
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case "login":
-        return (
-          <LoginPage initialMode={loginMode} onNavigate={handleNavigate} />
-        );
-      case "home":
-      default:
-        return <HomePage onNavigate={handleNavigate} />;
-    }
-  };
-
-  return { page: renderPage(), navigate: handleNavigate };
+  switch (currentPage) {
+    case "login":
+      return <LoginPage initialMode={loginMode} />;
+    case "home":
+    default:
+      return <HomePage />;
+  }
 };
 
 export default AppRouter;

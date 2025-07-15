@@ -6,13 +6,13 @@ import React, {
   type ReactNode,
 } from "react";
 
-type Page = "home" | "login";
-type LoginMode = "signin" | "register";
+export type PageType = "home" | "login";
+export type LoginMode = "signin" | "register";
 
 interface RouterContextType {
-  currentPage: Page;
+  currentPage: PageType;
   loginMode: LoginMode;
-  navigate: (page: Page, mode?: LoginMode) => void;
+  navigate: (page: PageType, mode?: LoginMode) => void;
 }
 
 const RouterContext = createContext<RouterContextType | undefined>(undefined);
@@ -30,7 +30,7 @@ interface RouterProviderProps {
 }
 
 export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
-  const [currentPage, setCurrentPage] = useState<Page>("home");
+  const [currentPage, setCurrentPage] = useState<PageType>("home");
   const [loginMode, setLoginMode] = useState<LoginMode>("signin");
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const navigate = (page: Page, mode?: LoginMode) => {
+  const navigate = (page: PageType, mode?: LoginMode) => {
     setCurrentPage(page);
     if (mode) {
       setLoginMode(mode);
