@@ -12,8 +12,10 @@ const Header: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const menuItems = [
+    { key: 'home', label: 'Home' },
+    { key: 'explore', label: 'Explore' },
     { key: 'blogs', label: 'My blogs' },
-    { key: 'saved', label: 'Saved blogs' },
+    { key: 'saved', label: 'Saved' },
     { key: 'friends', label: 'Friends' },
     { key: 'profile', label: 'Profile' },
   ];
@@ -51,8 +53,8 @@ const Header: React.FC = () => {
     if (isAuthenticated && user) {
       return (
         <div className="header__user">
-          <Dropdown 
-            menu={{ items: userMenuItems }} 
+          <Dropdown
+            menu={{ items: userMenuItems }}
             placement="bottomRight"
           >
             <div className="header__user-profile">
@@ -84,8 +86,8 @@ const Header: React.FC = () => {
             <Avatar src={user.avatar} alt={user.name} size="default" icon={<UserOutlined />} />
             <span className="header__user-name">{user.name}</span>
           </div>
-          <Button 
-            block 
+          <Button
+            block
             className="header__btn header__btn--primary"
             icon={<LogoutOutlined />}
             onClick={logout}
