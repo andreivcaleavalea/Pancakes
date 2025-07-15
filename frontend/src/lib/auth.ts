@@ -30,7 +30,9 @@ export function initiateOAuthLogin(provider: OAuthProvider): void {
 
   const state = generateRandomState();
   // Redirect to backend callback URL, which will then redirect to frontend
-  const redirectUri = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5141'}/auth/${provider}/callback`;
+  const redirectUri = `${
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5141"
+  }/auth/${provider}/callback`;
 
   // Store state for verification
   sessionStorage.setItem("oauth-state", state);
@@ -51,6 +53,8 @@ export function initiateOAuthLogin(provider: OAuthProvider): void {
  * Generates a random state for OAuth security
  */
 function generateRandomState(): string {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
+  return (
+    Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15)
+  );
 }
