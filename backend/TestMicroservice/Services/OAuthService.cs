@@ -19,13 +19,6 @@ namespace TestMicroservice.Services
         {
             try
             {
-                // Only support Google for now
-                if (provider.ToLower() != "google")
-                {
-                    Console.WriteLine($"Provider {provider} is not yet supported. Only Google authentication is available.");
-                    return null;
-                }
-
                 var accessToken = await ExchangeCodeForToken(code, provider);
                 if (string.IsNullOrEmpty(accessToken))
                     return null;
@@ -41,10 +34,15 @@ namespace TestMicroservice.Services
 
         private async Task<string?> ExchangeCodeForToken(string code, string provider)
         {
-            if (provider.ToLower() != "google")
-                return null;
-
-            var tokenUrl = "https://oauth2.googleapis.com/token";
+            string tokenUrl;
+            if (provider.ToLower() == "google")
+                tokenUrl = "https://oauth2.googleapis.com/token";
+            else if (provider.ToLower() == "github")
+                tokenUrl = "https://github.com/login/oauth/access_token";
+            else if (provider.ToLower() == "facebook")
+                tokenUrl = "https://graph.facebook.com/v10.0/oauth/access_token";
+            else 
+                throw new ArgumentException($"Unsupported provider: {provider}");
             var parameters = GetTokenRequestParameters(code, provider);
             var content = new FormUrlEncodedContent(parameters);
 
@@ -75,6 +73,26 @@ namespace TestMicroservice.Services
                     {"redirect_uri", redirectUri}
                 };
             }
+            else if (provider.ToLower() == "github")
+            {
+                return new Dictionary<string, string>
+                {
+                    {"client_id", _configuration["OAuth:GitHub:ClientId"]!},
+                    {"client_secret", _configuration["OAuth:GitHub:ClientSecret"]!},
+                    {"code", code},
+                    {"redirect_uri", redirectUri}
+                };
+            }
+            else if (provider.ToLower() == "facebook")
+            {
+                return new Dictionary<string, string>
+                {
+                    {"client_id", _configuration["OAuth:Facebook:AppId"]!},
+                    {"client_secret", _configuration["OAuth:Facebook:AppSecret"]!},
+                    {"code", code},
+                    {"redirect_uri", redirectUri}
+                };
+            }
 
             throw new ArgumentException($"Unsupported provider: {provider}");
         }
@@ -89,6 +107,18 @@ namespace TestMicroservice.Services
                     var json = JsonDocument.Parse(response);
                     return json.RootElement.GetProperty("access_token").GetString();
                 }
+                if (provider.ToLower() == "github")
+                {
+                    // GitHub returns URL-encoded form
+                    var parameters = System.Web.HttpUtility.ParseQueryString(response);
+                    return parameters["access_token"];
+                }
+                if (provider.ToLower() == "facebook")
+                {
+                    // Facebook returns JSON
+                    var json = JsonDocument.Parse(response);
+                    return json.RootElement.GetProperty("access_token").GetString();
+                }
             }
             catch (Exception ex)
             {
@@ -100,10 +130,27 @@ namespace TestMicroservice.Services
 
         private async Task<OAuthUserInfo?> GetUserInfo(string accessToken, string provider)
         {
-            if (provider.ToLower() != "google")
-                return null;
+            // Clear any existing headers to prevent conflicts
+            _httpClient.DefaultRequestHeaders.Clear();
 
-            var userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
+            string userInfoUrl;
+            if (provider.ToLower() == "google")
+            {
+                userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
+            }
+            else if (provider.ToLower() == "github")
+            {
+                userInfoUrl = "https://api.github.com/user";
+            }
+            else if (provider.ToLower() == "facebook")
+            {
+                userInfoUrl = "https://graph.facebook.com/me?fields=id,name,email,picture";
+            }
+            else
+            {
+                Console.WriteLine($"Unsupported provider: {provider}");
+                return null;
+            }
 
             _httpClient.DefaultRequestHeaders.Authorization = 
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
@@ -124,26 +171,84 @@ namespace TestMicroservice.Services
         {
             try
             {
-                if (provider.ToLower() == "google")
-                {
-                    var json = JsonDocument.Parse(jsonContent);
-                    var root = json.RootElement;
+                var json = JsonDocument.Parse(jsonContent);
+                var root = json.RootElement;
 
-                    return new OAuthUserInfo
-                    {
-                        Id = root.GetProperty("id").GetString() ?? "",
-                        Name = root.GetProperty("name").GetString() ?? "",
-                        Email = root.GetProperty("email").GetString() ?? "",
-                        Picture = root.GetProperty("picture").GetString() ?? ""
-                    };
-                }
+                // Handle provider-specific field extraction
+                string id = GetIdField(root, provider);
+                string name = GetNameField(root, provider);
+                string email = GetEmailField(root, provider);
+                string picture = GetPictureField(root, provider);
+
+                return new OAuthUserInfo
+                {
+                    Id = id,
+                    Name = name,
+                    Email = email,
+                    Picture = picture
+                };
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to parse user info for {provider}: {ex.Message}");
+                Console.WriteLine($"JSON content: {jsonContent}");
             }
             
             return null;
+        }
+
+        private string GetIdField(JsonElement root, string provider)
+        {
+            if (provider.ToLower() == "github")
+            {
+                // GitHub returns ID as number
+                return root.GetProperty("id").GetInt64().ToString();
+            }
+            // Google, Facebook return ID as string
+            return root.GetProperty("id").GetString() ?? "";
+        }
+
+        private string GetNameField(JsonElement root, string provider)
+        {
+            if (provider.ToLower() == "github")
+            {
+                // GitHub: use 'name' if available, fallback to 'login'
+                if (root.TryGetProperty("name", out var nameElement) && nameElement.ValueKind != JsonValueKind.Null)
+                {
+                    return nameElement.GetString() ?? "";
+                }
+                return root.GetProperty("login").GetString() ?? "";
+            }
+            // Google, Facebook
+            return root.GetProperty("name").GetString() ?? "";
+        }
+
+        private string GetEmailField(JsonElement root, string provider)
+        {
+            if (provider.ToLower() == "github")
+            {
+                // GitHub: email might be null
+                if (root.TryGetProperty("email", out var emailElement) && emailElement.ValueKind != JsonValueKind.Null)
+                {
+                    return emailElement.GetString() ?? "";
+                }
+                return "";
+            }
+            // Google, Facebook
+            return root.GetProperty("email").GetString() ?? "";
+        }
+
+        private string GetPictureField(JsonElement root, string provider)
+        {
+            if (provider.ToLower() == "github")
+            {
+                // GitHub uses 'avatar_url'
+                return root.TryGetProperty("avatar_url", out var avatarElement) 
+                    ? avatarElement.GetString() ?? "" 
+                    : "";
+            }
+            // Google, Facebook use 'picture'
+            return root.GetProperty("picture").GetString() ?? "";
         }
 
         // Commented out GitHub and Facebook methods for future implementation
