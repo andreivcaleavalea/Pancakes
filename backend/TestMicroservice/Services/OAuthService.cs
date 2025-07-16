@@ -122,6 +122,7 @@ namespace TestMicroservice.Services
             }
             else if (provider.ToLower() == "github")
             {
+                _httpClient.DefaultRequestHeaders.Add("User-Agent", "PancakesBlog/1.0");
                 userInfoUrl = "https://api.github.com/user";
             }
             else
