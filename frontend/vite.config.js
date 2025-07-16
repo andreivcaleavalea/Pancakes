@@ -5,7 +5,15 @@ export default defineConfig({
     plugins: [react()],
     server: {
         host: '0.0.0.0',
-        port: 5173
+        port: 5173,
+        proxy: {
+            '/api': {
+                target: 'http://localhost:5000',
+                changeOrigin: true,
+                secure: false,
+                rewrite: function (path) { return path.replace(/^\/api/, '/api'); }
+            }
+        }
     },
     resolve: {
         alias: {
@@ -24,5 +32,21 @@ export default defineConfig({
             '@assets': '/src/assets',
             '@styles': '/src/styles'
         }
+    },
+    build: {
+        target: 'esnext',
+        minify: 'esbuild',
+        sourcemap: true,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['react', 'react-dom'],
+                    antd: ['antd']
+                }
+            }
+        }
+    },
+    optimizeDeps: {
+        include: ['react', 'react-dom', 'antd']
     }
 });

@@ -1,64 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col } from 'antd';
+import React, { useState } from 'react';
+import { Typography, Row, Col, Spin, Alert } from 'antd';
 import { BlogCard } from '@common/BlogCard';
 import Pagination from '@components/Pagination/Pagination';
-import { fetchBlogData, fetchPaginatedPosts } from './api';
-import type { BlogPost, FeaturedPost } from '@/types/blog';
+import { useBlogData, usePaginatedPosts, useResponsive } from '@/hooks/useBlog';
+import { PAGINATION, BREAKPOINTS } from '@/utils/constants';
 import './HomePage.scss';
 
 const { Title } = Typography;
 
 const HomePage: React.FC = () => {
-  const [blogData, setBlogData] = useState<{
-    featuredPosts: FeaturedPost[];
-    horizontalPosts: BlogPost[];
-    gridPosts: BlogPost[];
-  }>({
-    featuredPosts: [],
-    horizontalPosts: [],
-    gridPosts: []
-  });
-  const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentPosts, setCurrentPosts] = useState<BlogPost[]>([]);
-  const [totalPages, setTotalPages] = useState(0);
-  const postsPerPage = 9;
-
-  useEffect(() => {
-    const loadBlogData = async () => {
-      const data = await fetchBlogData();
-      setBlogData(data);
-    };
-    
-    loadBlogData();
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    const loadPaginatedPosts = async () => {
-      const { posts, totalPages: pages } = await fetchPaginatedPosts(currentPage, postsPerPage);
-      setCurrentPosts(posts);
-      setTotalPages(pages);
-    };
-    
-    loadPaginatedPosts();
-  }, [currentPage]);
+  
+  // Use custom hooks
+  const { data: blogData, loading: blogLoading, error: blogError } = useBlogData();
+  const { 
+    data: currentPosts, 
+    pagination, 
+    loading: postsLoading, 
+    error: postsError 
+  } = usePaginatedPosts(currentPage, PAGINATION.DEFAULT_PAGE_SIZE);
+  const isMobile = useResponsive(BREAKPOINTS.MOBILE);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     // Scroll to the top of the posts section
     document.querySelector('.home-page__grid-posts')?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Show loading spinner while initial blog data is loading
+  if (blogLoading) {
+    return (
+      <div className="home-page__loading">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  // Show error if blog data failed to load
+  if (blogError) {
+    return (
+      <div className="home-page__error">
+        <Alert
+          message="Error Loading Content"
+          description={blogError}
+          type="error"
+          showIcon
+        />
+      </div>
+    );
+  }
 
   const { featuredPosts, horizontalPosts } = blogData;
 
@@ -98,23 +88,42 @@ const HomePage: React.FC = () => {
           All Recipes
         </Title>
         
-        <div className="home-page__grid-posts">
-          <Row gutter={[12, 24]}>
-            {currentPosts.map((post) => (
-              <Col key={post.id} xs={24} sm={24} md={12} lg={8} xl={8}>
-                <BlogCard post={post} />
-              </Col>
-            ))}
-          </Row>
-        </div>
-
-        <div className="home-page__pagination">
-          <Pagination 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
+        {postsError ? (
+          <Alert
+            message="Error Loading Posts"
+            description={postsError}
+            type="error"
+            showIcon
           />
-        </div>
+        ) : (
+          <>
+            <div className="home-page__grid-posts">
+              {postsLoading ? (
+                <div style={{ textAlign: 'center', padding: '50px' }}>
+                  <Spin size="large" />
+                </div>
+              ) : (
+                <Row gutter={[12, 24]}>
+                  {currentPosts.map((post) => (
+                    <Col key={post.id} xs={24} sm={24} md={12} lg={8} xl={8}>
+                      <BlogCard post={post} />
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </div>
+
+            {pagination.totalPages > 1 && (
+              <div className="home-page__pagination">
+                <Pagination 
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
+          </>
+        )}
       </section>
     </div>
   );
