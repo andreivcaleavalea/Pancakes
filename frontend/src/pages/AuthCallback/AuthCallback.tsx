@@ -50,10 +50,7 @@ const AuthCallback: React.FC = () => {
               name: userData.user.name,
               email: userData.user.email,
               image: userData.user.image,
-              provider: userData.user.provider as
-                | "google"
-                | "github"
-                | "facebook",
+              provider: userData.user.provider as "google" | "github",
             },
             token: userData.token,
             expires: userData.expiresAt,
@@ -61,10 +58,6 @@ const AuthCallback: React.FC = () => {
 
           updateSession(session);
           message.success(`Welcome ${userData.user.name}!`);
-
-          // Set processedRef to true to prevent future runs
-          processedRef.current = true;
-
           navigate("home");
         } else {
           message.error("Failed to get user data");

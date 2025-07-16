@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Typography, Button, Divider, message } from "antd";
-import { FaGoogle, FaGithub, FaFacebook } from "react-icons/fa";
+import { FaGoogle, FaGithub } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "../../router/RouterProvider";
 import "./LoginPage.scss";
@@ -83,17 +83,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ initialMode = "signin" }) => {
               block
             >
               {isLoginMode ? "Continue with GitHub" : "Sign up with GitHub"}
-            </Button>
-
-            <Button
-              size="large"
-              className="login-page__social-btn login-page__social-btn--facebook"
-              icon={<FaFacebook />}
-              onClick={() => handleSocialLogin("Facebook")}
-              loading={loading === "Facebook"}
-              block
-            >
-              {isLoginMode ? "Continue with Facebook" : "Sign up with Facebook"}
             </Button>
           </div>
 

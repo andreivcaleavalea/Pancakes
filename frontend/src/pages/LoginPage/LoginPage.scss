@@ -162,25 +162,6 @@
       }
     }
 
-    &--facebook {
-      background: #1877f2;
-      border: 1px solid #1877f2;
-      color: white;
-
-      &:hover {
-        background: #166fe5;
-        border-color: #166fe5;
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(24, 119, 242, 0.3);
-      }
-
-      svg {
-        color: white;
-        font-size: 18px;
-      }
-    }
-
     &:focus {
       outline: none;
       box-shadow: 0 0 0 2px rgba(233, 131, 58, 0.1);

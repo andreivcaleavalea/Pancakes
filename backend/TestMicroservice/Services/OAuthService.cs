@@ -39,8 +39,6 @@ namespace TestMicroservice.Services
                 tokenUrl = "https://oauth2.googleapis.com/token";
             else if (provider.ToLower() == "github")
                 tokenUrl = "https://github.com/login/oauth/access_token";
-            else if (provider.ToLower() == "facebook")
-                tokenUrl = "https://graph.facebook.com/v10.0/oauth/access_token";
             else 
                 throw new ArgumentException($"Unsupported provider: {provider}");
             var parameters = GetTokenRequestParameters(code, provider);
@@ -83,16 +81,6 @@ namespace TestMicroservice.Services
                     {"redirect_uri", redirectUri}
                 };
             }
-            else if (provider.ToLower() == "facebook")
-            {
-                return new Dictionary<string, string>
-                {
-                    {"client_id", _configuration["OAuth:Facebook:AppId"]!},
-                    {"client_secret", _configuration["OAuth:Facebook:AppSecret"]!},
-                    {"code", code},
-                    {"redirect_uri", redirectUri}
-                };
-            }
 
             throw new ArgumentException($"Unsupported provider: {provider}");
         }
@@ -112,12 +100,6 @@ namespace TestMicroservice.Services
                     // GitHub returns URL-encoded form
                     var parameters = System.Web.HttpUtility.ParseQueryString(response);
                     return parameters["access_token"];
-                }
-                if (provider.ToLower() == "facebook")
-                {
-                    // Facebook returns JSON
-                    var json = JsonDocument.Parse(response);
-                    return json.RootElement.GetProperty("access_token").GetString();
                 }
             }
             catch (Exception ex)
@@ -141,10 +123,6 @@ namespace TestMicroservice.Services
             else if (provider.ToLower() == "github")
             {
                 userInfoUrl = "https://api.github.com/user";
-            }
-            else if (provider.ToLower() == "facebook")
-            {
-                userInfoUrl = "https://graph.facebook.com/me?fields=id,name,email,picture";
             }
             else
             {
@@ -204,7 +182,7 @@ namespace TestMicroservice.Services
                 // GitHub returns ID as number
                 return root.GetProperty("id").GetInt64().ToString();
             }
-            // Google, Facebook return ID as string
+            // Google returns ID as string
             return root.GetProperty("id").GetString() ?? "";
         }
 
@@ -219,7 +197,7 @@ namespace TestMicroservice.Services
                 }
                 return root.GetProperty("login").GetString() ?? "";
             }
-            // Google, Facebook
+            // Google
             return root.GetProperty("name").GetString() ?? "";
         }
 
@@ -234,7 +212,7 @@ namespace TestMicroservice.Services
                 }
                 return "";
             }
-            // Google, Facebook
+            // Google
             return root.GetProperty("email").GetString() ?? "";
         }
 
@@ -247,11 +225,11 @@ namespace TestMicroservice.Services
                     ? avatarElement.GetString() ?? "" 
                     : "";
             }
-            // Google, Facebook use 'picture'
+            // Google uses 'picture'
             return root.GetProperty("picture").GetString() ?? "";
         }
 
-        // Commented out GitHub and Facebook methods for future implementation
+        // Commented out GitHub methods for future implementation
         /*
         private async Task<string?> GetGitHubEmail()
         {
