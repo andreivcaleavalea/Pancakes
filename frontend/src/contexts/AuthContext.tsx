@@ -12,7 +12,7 @@ interface User {
   name: string;
   email: string;
   image: string;
-  provider: "google" | "github" | "facebook";
+  provider: "google" | "github";
 }
 
 interface Session {

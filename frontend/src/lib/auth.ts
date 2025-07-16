@@ -10,11 +10,6 @@ export const oauthProviders = {
     authUrl: "https://github.com/login/oauth/authorize",
     scope: "user:email",
   },
-  facebook: {
-    clientId: import.meta.env.VITE_FACEBOOK_APP_ID,
-    authUrl: "https://www.facebook.com/v18.0/dialog/oauth",
-    scope: "email,public_profile",
-  },
 } as const;
 
 export type OAuthProvider = keyof typeof oauthProviders;
