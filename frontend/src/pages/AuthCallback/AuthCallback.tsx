@@ -2,12 +2,16 @@ import React, { useEffect } from "react";
 import { Spin, message } from "antd";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "../../router/RouterProvider";
+import { useRef } from "react";
 
 const AuthCallback: React.FC = () => {
   const { updateSession } = useAuth();
   const { navigate } = useRouter();
+  const processedRef = useRef(false);
 
   useEffect(() => {
+    if (processedRef.current) return;
+
     const handleCallback = async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -57,6 +61,10 @@ const AuthCallback: React.FC = () => {
 
           updateSession(session);
           message.success(`Welcome ${userData.user.name}!`);
+
+          // Set processedRef to true to prevent future runs
+          processedRef.current = true;
+
           navigate("home");
         } else {
           message.error("Failed to get user data");
@@ -112,7 +120,16 @@ async function exchangeCodeForUser(code: string, provider: string) {
 
     if (!response.ok) {
       const error = await response.json();
-      console.error("Backend login error:", error);
+      console.error(`${provider} login error:`, {
+        status: response.status,
+        statusText: response.statusText,
+        error,
+        requestBody: {
+          code,
+          provider,
+          state: sessionStorage.getItem("oauth-state"),
+        },
+      });
       return null;
     }
 
