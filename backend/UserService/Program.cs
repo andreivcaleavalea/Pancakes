@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using TestMicroservice.Services;
+using UserService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +17,7 @@ builder.Services.AddHttpClient<OAuthService>();
 
 // Add custom services
 builder.Services.AddScoped<OAuthService>();
-builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<UserManagementService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<CurrentUserService>();
 

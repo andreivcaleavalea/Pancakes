@@ -1,8 +1,8 @@
-using TestMicroservice.Models;
+using UserService.Models;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 
-namespace TestMicroservice.Services
+namespace UserService.Services
 {
     public class OAuthService
     {

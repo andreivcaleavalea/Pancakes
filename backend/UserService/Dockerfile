@@ -10,4 +10,4 @@ RUN dotnet publish -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app .
-ENTRYPOINT ["dotnet", "TestMicroservice.dll"]
+ENTRYPOINT ["dotnet", "UserService.dll"]

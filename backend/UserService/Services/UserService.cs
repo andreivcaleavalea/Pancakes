@@ -1,8 +1,8 @@
-using TestMicroservice.Models;
+using UserService.Models;
 
-namespace TestMicroservice.Services
+namespace UserService.Services
 {
-    public class UserService
+    public class UserManagementService
     {
         /// <summary>
         /// Creates a new user from OAuth information.
