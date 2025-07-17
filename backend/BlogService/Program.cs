@@ -134,13 +134,12 @@ var app = builder.Build();
 
 // Configure port based on environment variable
 var port = Environment.GetEnvironmentVariable("BLOG_SERVICE_PORT") ?? "5001";
-System.Console.WriteLine($"Blog Service running on port: {port}");
 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
 {
     app.Urls.Clear();
     app.Urls.Add("http://0.0.0.0:80");
 }
-else
+else if (app.Environment.IsDevelopment())
 {
     app.Urls.Clear();
     app.Urls.Add($"http://localhost:{port}");
