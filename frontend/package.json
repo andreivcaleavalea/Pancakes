@@ -10,9 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@auth/core": "^0.40.0",
+    "@types/node": "^24.0.13",
     "antd": "^5.26.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-icons": "^5.5.0",
     "sass": "^1.89.2"
   },
   "devDependencies": {
