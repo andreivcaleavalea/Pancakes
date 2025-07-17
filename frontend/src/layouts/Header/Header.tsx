@@ -1,13 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Layout, Button, Input, Menu, Drawer, Avatar, Dropdown } from 'antd';
-import { SearchOutlined, MenuOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { useAuth } from '../../contexts/AuthContext';
-import './Header.scss';
+import React, { useState, useEffect } from "react";
+import { Layout, Button, Input, Menu, Drawer, Avatar, Dropdown } from "antd";
+import {
+  SearchOutlined,
+  MenuOutlined,
+  UserOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRouter } from "../../router/RouterProvider";
+import "./Header.scss";
 
 const { Header: AntHeader } = Layout;
 
 const Header: React.FC = () => {
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
+  const { navigate } = useRouter();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
@@ -26,26 +33,33 @@ const Header: React.FC = () => {
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // For demo purposes - mock login function
-  const handleLogin = () => {
-    const mockUser = {
-      id: '1',
-      name: 'John Doe',
-      avatar: 'https://xsgames.co/randomusers/avatar.php?g=male'
-    };
-    login(mockUser);
+  const handleSignIn = () => {
+    navigate("login", "signin");
+  };
+
+  const handleRegister = () => {
+    navigate("login", "register");
+  };
+
+  const handleLogoClick = () => {
+    navigate("home");
+  };
+
+  const handleLogout = () => {
+    signOut();
+    navigate("home");
   };
 
   const userMenuItems = [
     {
-      key: 'logout',
-      label: 'Logout',
+      key: "logout",
+      label: "Logout",
       icon: <LogoutOutlined />,
-      onClick: logout,
+      onClick: handleLogout,
     },
   ];
 
@@ -58,7 +72,12 @@ const Header: React.FC = () => {
             placement="bottomRight"
           >
             <div className="header__user-profile">
-              <Avatar src={user.avatar} alt={user.name} size="default" icon={<UserOutlined />} />
+              <Avatar
+                src={user.image}
+                alt={user.name}
+                size="default"
+                icon={<UserOutlined />}
+              />
               <span className="header__user-name">{user.name}</span>
             </div>
           </Dropdown>
@@ -68,10 +87,17 @@ const Header: React.FC = () => {
 
     return (
       <div className="header__auth">
-        <Button className="header__btn header__btn--secondary" onClick={handleLogin}>
+        <Button
+          className="header__btn header__btn--secondary"
+          onClick={handleSignIn}
+        >
           Sign in
         </Button>
-        <Button type="primary" className="header__btn header__btn--primary">
+        <Button
+          type="primary"
+          className="header__btn header__btn--primary"
+          onClick={handleRegister}
+        >
           Register
         </Button>
       </div>
@@ -83,14 +109,19 @@ const Header: React.FC = () => {
       return (
         <div className="header__mobile-user">
           <div className="header__user-profile">
-            <Avatar src={user.avatar} alt={user.name} size="default" icon={<UserOutlined />} />
+            <Avatar
+              src={user.image}
+              alt={user.name}
+              size="default"
+              icon={<UserOutlined />}
+            />
             <span className="header__user-name">{user.name}</span>
           </div>
           <Button
             block
             className="header__btn header__btn--primary"
             icon={<LogoutOutlined />}
-            onClick={logout}
+            onClick={handleLogout}
           >
             Logout
           </Button>
@@ -100,10 +131,19 @@ const Header: React.FC = () => {
 
     return (
       <div className="header__auth header__auth--mobile">
-        <Button block className="header__btn header__btn--secondary" onClick={handleLogin}>
+        <Button
+          block
+          className="header__btn header__btn--secondary"
+          onClick={handleSignIn}
+        >
           Sign in
         </Button>
-        <Button block type="primary" className="header__btn header__btn--primary">
+        <Button
+          block
+          type="primary"
+          className="header__btn header__btn--primary"
+          onClick={handleRegister}
+        >
           Register
         </Button>
       </div>
@@ -114,7 +154,11 @@ const Header: React.FC = () => {
     <AntHeader className="header">
       <div className="header__container">
         <div className="header__left">
-          <div className="header__logo">
+          <div
+            className="header__logo"
+            onClick={handleLogoClick}
+            style={{ cursor: "pointer" }}
+          >
             <div className="header__logo-icon">🥞</div>
             <span className="header__logo-text">Pancakes</span>
           </div>
@@ -137,7 +181,7 @@ const Header: React.FC = () => {
               mode="horizontal"
               items={menuItems}
               className="header__menu"
-              selectedKeys={['blogs']}
+              selectedKeys={["blogs"]}
               disabledOverflow={true}
             />
           </div>
@@ -157,14 +201,13 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       <Drawer
         title="Menu"
         placement="right"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
         className="header__drawer"
-        width={window.innerWidth < 400 ? '80%' : 280}
+        width={window.innerWidth < 400 ? "80%" : 280}
       >
         <div className="header__mobile-content">
           <div className="header__search header__search--mobile">
@@ -179,7 +222,7 @@ const Header: React.FC = () => {
             mode="vertical"
             items={menuItems}
             className="header__mobile-menu-items"
-            selectedKeys={['blogs']}
+            selectedKeys={["blogs"]}
           />
 
           {renderMobileAuthSection()}

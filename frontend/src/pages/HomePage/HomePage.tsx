@@ -24,7 +24,9 @@ const HomePage: React.FC = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     // Scroll to the top of the posts section
-    document.querySelector('.home-page__grid-posts')?.scrollIntoView({ behavior: 'smooth' });
+    document
+      .querySelector(".home-page__grid-posts")
+      ?.scrollIntoView({ behavior: "smooth" });
   };
 
   // Show loading spinner while initial blog data is loading
@@ -59,7 +61,7 @@ const HomePage: React.FC = () => {
         <Title level={1} className={`home-page__title ${isMobile ? 'home-page__title--mobile' : ''}`}>
           Today's Special
         </Title>
-        
+
         {featuredPosts.length > 0 && (
           <div className="home-page__featured">
             <BlogCard post={featuredPosts[0]} variant="featured" />
@@ -73,9 +75,9 @@ const HomePage: React.FC = () => {
           <Title level={2} className={`home-page__title ${isMobile ? 'home-page__title--mobile' : ''}`}>
             Popular Recipes
           </Title>
-          
+
           <div className="home-page__horizontal-list">
-            {horizontalPosts.map(post => (
+            {horizontalPosts.map((post) => (
               <BlogCard key={post.id} post={post} variant="horizontal" />
             ))}
           </div>
@@ -129,4 +131,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default HomePage; 
+export default HomePage;

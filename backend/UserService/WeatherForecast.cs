@@ -1,4 +1,4 @@
-namespace TestMicroservice
+namespace UserService
 {
     public class WeatherForecast
     {
