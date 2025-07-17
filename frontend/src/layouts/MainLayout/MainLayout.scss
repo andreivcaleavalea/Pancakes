@@ -8,7 +8,7 @@
   
   &__content {
     flex: 1;
-    background: #fff;
+    background: var(--color-bg-card);
     width: 100%;
   }
   
@@ -19,7 +19,12 @@
     padding: 24px 0;
     
     @media (max-width: 768px) {
-      width: 98%;
+      width: 94%;
+      padding: 16px 0;
+    }
+    
+    @media (max-width: 480px) {
+      width: 92%;
       padding: 16px 0;
     }
     

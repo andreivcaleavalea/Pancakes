@@ -1,26 +1,26 @@
 .blog-card {
   border: none;
-  box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1); /* Brown sugar shadow */
+  box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1);
   border-radius: 8px;
   overflow: hidden;
   transition: all 0.3s ease;
   height: 100%;
   cursor: pointer;
-  background-color: white; /* White base for all cards */
-
+  background-color: var(--color-bg-card);
+  
   @media (max-width: 768px) {
     padding: 12px;
-    background: white;
+    background: var(--color-bg-card);
     border-radius: 8px;
   }
-
+  
   &:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(177, 107, 47, 0.15); /* Brown sugar shadow */
-
+    box-shadow: 0 6px 16px rgba(177, 107, 47, 0.15);
+    
     @media (max-width: 768px) {
       transform: none;
-      box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1); /* Brown sugar shadow */
+      box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1);
     }
   }
 
@@ -31,6 +31,10 @@
 
     @media (max-width: 768px) {
       height: 140px;
+      border-radius: 8px 8px 0 0;
+      margin: -12px;
+      margin-bottom: 0;
+      width: calc(100% + 24px);
     }
   }
 
@@ -44,6 +48,10 @@
     @media (max-width: 992px) {
       width: 100%;
       height: 140px;
+      border-radius: 8px 8px 0 0;
+      margin: -12px;
+      margin-bottom: 0;
+      width: calc(100% + 24px);
     }
   }
 
@@ -54,7 +62,7 @@
     gap: 12px;
 
     @media (max-width: 768px) {
-      padding: 10px;
+      padding: 10px 0;
       gap: 10px;
     }
   }
@@ -66,7 +74,7 @@
   }
 
   &__date {
-    color: #e9833a; /* Maple syrup color */
+    color: var(--color-primary);
     font-size: 12px;
     font-weight: bold;
   }
@@ -78,7 +86,7 @@
   }
 
   &__title {
-    color: #1a1a1a;
+    color: var(--color-text);
     font-weight: bold;
     margin: 0;
     flex: 1;
@@ -94,30 +102,59 @@
   &__favorite {
     width: 20px;
     height: 24px;
-    color: #b16b2f; /* Brown sugar color */
+    color: var(--color-secondary);
     cursor: pointer;
-
+    transition: all 0.2s ease;
+    
     &:hover {
-      color: #e9833a; /* Maple syrup color */
+      color: var(--color-primary);
+      transform: scale(1.1);
+    }
+    
+    &--active {
+      color: var(--color-primary);
+      
+      &:hover {
+        color: var(--color-error);
+      }
+    }
+  }
+  
+  &__author-info {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(177, 107, 47, 0.1);
+    
+    @media (max-width: 768px) {
+      margin-top: 8px;
+      padding-top: 8px;
     }
   }
 
   &__author {
-    color: #667084;
     font-size: 14px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    
+    @media (max-width: 768px) {
+      font-size: 13px;
+    }
   }
 
   &__description {
-    color: #667084;
+    color: var(--color-text-secondary);
     font-size: 14px;
     margin: 0;
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-
+  
   &--horizontal {
     display: flex;
     gap: 12px;
@@ -126,17 +163,20 @@
     @media (max-width: 992px) {
       flex-direction: column;
       gap: 10px;
-      padding: 0;
-
+      padding: 12px;
+      background: var(--color-bg-card);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      
       .blog-card__image--horizontal {
         border-radius: 8px 8px 0 0;
       }
 
       .blog-card__content {
-        padding: 12px;
-
+        padding: 10px 12px;
+        
         @media (max-width: 768px) {
-          padding: 10px;
+          padding: 10px 12px;
         }
       }
     }
@@ -148,12 +188,12 @@
   }
 
   &--featured {
-    box-shadow: 0 2px 12px rgba(177, 107, 47, 0.12); /* Brown sugar shadow */
-
+    box-shadow: 0 2px 12px rgba(177, 107, 47, 0.12);
+    
     @media (max-width: 768px) {
-      box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1); /* Brown sugar shadow */
+      box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1);
     }
-
+    
     .blog-card__image {
       height: 220px;
 
@@ -166,7 +206,7 @@
       padding: 16px;
 
       @media (max-width: 768px) {
-        padding: 12px;
+        padding: 10px 0;
       }
     }
 
@@ -177,6 +217,18 @@
       @media (max-width: 768px) {
         font-size: 18px !important;
       }
+    }
+  }
+  
+  // Override Ant Design Card styles on mobile
+  @media (max-width: 768px) {
+    .ant-card-body {
+      padding: 0 !important;
+    }
+    
+    &.ant-card {
+      background-color: transparent !important;
+      box-shadow: none !important;
     }
   }
 }

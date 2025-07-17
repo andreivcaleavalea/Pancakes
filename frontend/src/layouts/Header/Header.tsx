@@ -19,15 +19,17 @@ const Header: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const menuItems = [
-    { key: "blogs", label: "My blogs" },
-    { key: "saved", label: "Saved blogs" },
-    { key: "friends", label: "Friends" },
-    { key: "profile", label: "Profile" },
+    { key: 'home', label: 'Home' },
+    { key: 'explore', label: 'Explore' },
+    { key: 'blogs', label: 'My blogs' },
+    { key: 'saved', label: 'Saved' },
+    { key: 'friends', label: 'Friends' },
+    { key: 'profile', label: 'Profile' },
   ];
 
   useEffect(() => {
     const handleResize = () => {
-      setShowMobileMenu(window.innerWidth < 1100);
+      setShowMobileMenu(window.innerWidth < 700);
     };
 
     handleResize();
@@ -65,7 +67,10 @@ const Header: React.FC = () => {
     if (isAuthenticated && user) {
       return (
         <div className="header__user">
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+          <Dropdown
+            menu={{ items: userMenuItems }}
+            placement="bottomRight"
+          >
             <div className="header__user-profile">
               <Avatar
                 src={user.image}
