@@ -3,25 +3,41 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:5173"
-    environment:
-      - VITE_BLOG_API_URL=http://localhost:5001
+      - "${FRONTEND_PORT:-3000}:5173"
+    env_file:
+      - .env
     depends_on:
       - blogservice
+      - userservice
 
   blogservice:
     build: ./backend/BlogService
     ports:
-      - "5001:80"
+      - "${BLOG_SERVICE_PORT:-5001}:80"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  userservice:
+    build: ./backend/UserService
+    ports:
+      - "${USER_SERVICE_PORT:-5141}:80"
+    env_file:
+      - .env
     depends_on:
       - postgres
 
   postgres:
     image: postgres:15
     env_file:
-      - .env.compose
+      - .env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DATABASE}
+      - POSTGRES_USER=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

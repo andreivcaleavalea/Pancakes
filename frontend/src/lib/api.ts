@@ -19,7 +19,7 @@ export async function authenticatedFetch<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5141";
+  const baseUrl = import.meta.env.VITE_USER_API_URL || "http://localhost:5141";
   const url = `${baseUrl}${
     endpoint.startsWith("/") ? endpoint : "/" + endpoint
   }`;

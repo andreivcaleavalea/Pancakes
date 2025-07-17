@@ -17,7 +17,6 @@ RUN dotnet publish "BlogService.csproj" -c Release -o /app/publish /p:UseAppHost
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY .env.container .env
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV ASPNETCORE_URLS=http://+:80
 ENTRYPOINT ["dotnet", "BlogService.dll"]

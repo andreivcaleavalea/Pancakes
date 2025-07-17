@@ -22,7 +22,9 @@ namespace UserService.Services
         /// <returns>JWT token string</returns>
         public string GenerateToken(User user)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
+            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+                ?? throw new InvalidOperationException("JWT_SECRET_KEY must be set");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
@@ -37,11 +39,15 @@ namespace UserService.Services
                 new Claim("last_login_at", user.LastLoginAt.ToString("O")) // ISO 8601 format
             };
 
+            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog";
+            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers";
+            var expirationMinutes = int.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES") ?? "1440");
+
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: issuer,
+                audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpirationMinutes"]!)),
+                expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -57,7 +63,12 @@ namespace UserService.Services
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!);
+                var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+                    ?? throw new InvalidOperationException("JWT_SECRET_KEY must be set");
+                var key = Encoding.UTF8.GetBytes(secretKey);
+                
+                var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog";
+                var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers";
 
                 var validationParameters = new TokenValidationParameters
                 {
@@ -65,8 +76,8 @@ namespace UserService.Services
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = _configuration["Jwt:Issuer"],
-                    ValidAudience = _configuration["Jwt:Audience"],
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ClockSkew = TimeSpan.Zero
                 };

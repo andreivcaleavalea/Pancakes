@@ -62,10 +62,15 @@ namespace UserService.Services
 
             if (provider.ToLower() == "google")
             {
+                var clientId = Environment.GetEnvironmentVariable("OAUTH_GOOGLE_CLIENT_ID") 
+                    ?? throw new InvalidOperationException("OAUTH_GOOGLE_CLIENT_ID must be set");
+                var clientSecret = Environment.GetEnvironmentVariable("OAUTH_GOOGLE_CLIENT_SECRET") 
+                    ?? throw new InvalidOperationException("OAUTH_GOOGLE_CLIENT_SECRET must be set");
+
                 return new Dictionary<string, string>
                 {
-                    {"client_id", _configuration["OAuth:Google:ClientId"]!},
-                    {"client_secret", _configuration["OAuth:Google:ClientSecret"]!},
+                    {"client_id", clientId},
+                    {"client_secret", clientSecret},
                     {"code", code},
                     {"grant_type", "authorization_code"},
                     {"redirect_uri", redirectUri}
@@ -73,10 +78,15 @@ namespace UserService.Services
             }
             else if (provider.ToLower() == "github")
             {
+                var clientId = Environment.GetEnvironmentVariable("OAUTH_GITHUB_CLIENT_ID") 
+                    ?? throw new InvalidOperationException("OAUTH_GITHUB_CLIENT_ID must be set");
+                var clientSecret = Environment.GetEnvironmentVariable("OAUTH_GITHUB_CLIENT_SECRET") 
+                    ?? throw new InvalidOperationException("OAUTH_GITHUB_CLIENT_SECRET must be set");
+
                 return new Dictionary<string, string>
                 {
-                    {"client_id", _configuration["OAuth:GitHub:ClientId"]!},
-                    {"client_secret", _configuration["OAuth:GitHub:ClientSecret"]!},
+                    {"client_id", clientId},
+                    {"client_secret", clientSecret},
                     {"code", code},
                     {"redirect_uri", redirectUri}
                 };
