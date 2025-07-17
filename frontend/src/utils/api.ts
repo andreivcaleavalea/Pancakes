@@ -32,10 +32,10 @@ export const apiRequest = async <T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+  const url = `${API_CONFIG.BLOG_API_URL}${endpoint}`;
   
   console.log('🚀 Making API request to:', url);
-  console.log('🔧 BASE_URL used:', API_CONFIG.BASE_URL);
+  console.log('🔧 BLOG_API_URL used:', API_CONFIG.BLOG_API_URL);
   console.log('🔧 Endpoint:', endpoint);
   
   const controller = new AbortController();

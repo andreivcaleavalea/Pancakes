@@ -26,7 +26,7 @@ export function initiateOAuthLogin(provider: OAuthProvider): void {
   const state = generateRandomState();
   // Redirect to backend callback URL, which will then redirect to frontend
   const redirectUri = `${
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5141"
+    import.meta.env.VITE_USER_API_URL || "http://localhost:5141"
   }/auth/${provider}/callback`;
 
   // Store state for verification

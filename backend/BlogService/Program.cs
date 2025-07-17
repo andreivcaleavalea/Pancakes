@@ -27,11 +27,11 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<BlogDbContext>(options =>
 {
-    var host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
-    var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
-    var database = Environment.GetEnvironmentVariable("POSTGRES_DATABASE") ?? "PancakesBlogDB";
-    var username = Environment.GetEnvironmentVariable("POSTGRES_USERNAME") ?? "postgres";
-    var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "postgres123";
+    var host = Environment.GetEnvironmentVariable("POSTGRES_HOST");
+    var port = Environment.GetEnvironmentVariable("POSTGRES_PORT");
+    var database = Environment.GetEnvironmentVariable("POSTGRES_DATABASE");
+    var username = Environment.GetEnvironmentVariable("POSTGRES_USERNAME");
+    var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
     
     var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
     options.UseNpgsql(connectionString);
@@ -45,20 +45,32 @@ builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+// Configure CORS from environment variables
+var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
+    ?? new[] { "http://localhost:5173", "http://localhost:3000" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
-              .AllowAnyHeader());
+              .AllowAnyHeader()
+              .AllowCredentials());
 });
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment() && Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+// Configure port based on environment variable
+var port = Environment.GetEnvironmentVariable("BLOG_SERVICE_PORT") ?? "5001";
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
 {
     app.Urls.Clear();
     app.Urls.Add("http://0.0.0.0:80");
+}
+else if (app.Environment.IsDevelopment())
+{
+    app.Urls.Clear();
+    app.Urls.Add($"http://localhost:{port}");
 }
 
 if (app.Environment.IsDevelopment())

@@ -31,7 +31,7 @@ namespace UserService.Controllers
         {
             try
             {
-                Console.WriteLine($"Login attempt for provider: {request.Provider}");
+                Console.WriteLine($"Login request received - Provider: {request.Provider}, Code: {(string.IsNullOrEmpty(request.Code) ? "NULL" : request.Code.Substring(0, Math.Min(10, request.Code.Length)))}..., State: {request.State}");
 
                 var userInfo = await _oauthService.ExchangeCodeForUserInfo(request.Code, request.Provider);
                 if (userInfo == null)
@@ -67,13 +67,13 @@ namespace UserService.Controllers
             {
                 Console.WriteLine($"OAuth callback received for {provider}");
                 
-                var frontendUrl = $"http://localhost:5173/auth/callback?code={code}&state={state}&provider={provider}";
+                var frontendUrl = $"http://localhost:3000/auth/callback?code={code}&state={state}&provider={provider}";
                 return Redirect(frontendUrl);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"OAuth callback error: {ex.Message}");
-                return Redirect("http://localhost:5173/login?error=callback_failed");
+                return Redirect("http://localhost:3000/login?error=callback_failed");
             }
         }
 
