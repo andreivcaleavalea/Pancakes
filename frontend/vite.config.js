@@ -4,26 +4,49 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
     plugins: [react()],
     server: {
-        host: "0.0.0.0",
+        host: '0.0.0.0',
         port: 5173,
+        proxy: {
+            '/api': {
+                target: 'http://localhost:5000',
+                changeOrigin: true,
+                secure: false,
+                rewrite: function (path) { return path.replace(/^\/api/, '/api'); }
+            }
+        }
     },
     resolve: {
         alias: {
-            "@": "/src",
-            "@components": "/src/components",
-            "@common": "/src/components/common",
-            "@ui": "/src/components/ui",
-            "@features": "/src/features",
-            "@layouts": "/src/layouts",
-            "@pages": "/src/pages",
-            "@hooks": "/src/hooks",
-            "@services": "/src/services",
-            "@store": "/src/store",
-            "@utils": "/src/utils",
-            "@types": "/src/types",
-            "@assets": "/src/assets",
-            "@styles": "/src/styles",
-            "@router": "/src/router",
-        },
+            '@': '/src',
+            '@components': '/src/components',
+            '@common': '/src/components/common',
+            '@ui': '/src/components/ui',
+            '@features': '/src/features',
+            '@layouts': '/src/layouts',
+            '@pages': '/src/pages',
+            '@hooks': '/src/hooks',
+            '@services': '/src/services',
+            '@store': '/src/store',
+            '@utils': '/src/utils',
+            '@types': '/src/types',
+            '@assets': '/src/assets',
+            '@styles': '/src/styles'
+        }
     },
+    build: {
+        target: 'esnext',
+        minify: 'esbuild',
+        sourcemap: true,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['react', 'react-dom'],
+                    antd: ['antd']
+                }
+            }
+        }
+    },
+    optimizeDeps: {
+        include: ['react', 'react-dom', 'antd']
+    }
 });

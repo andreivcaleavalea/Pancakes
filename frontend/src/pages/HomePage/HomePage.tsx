@@ -1,34 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { Typography, Row, Col } from "antd";
-import { BlogCard } from "@common/BlogCard";
-import Pagination from "@components/Pagination/Pagination";
-import { blogData } from "@utils/mockData";
-import "./HomePage.scss";
+import React, { useState } from 'react';
+import { Typography, Row, Col, Spin, Alert } from 'antd';
+import { BlogCard } from '@common/BlogCard';
+import Pagination from '@components/Pagination/Pagination';
+import { useBlogData, usePaginatedPosts, useResponsive } from '@/hooks/useBlog';
+import { PAGINATION, BREAKPOINTS } from '@/utils/constants';
+import './HomePage.scss';
 
 const { Title } = Typography;
 
 const HomePage: React.FC = () => {
-  const { featuredPosts, gridPosts, horizontalPosts } = blogData;
-  const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 9;
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Calculate paginated posts
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = gridPosts.slice(indexOfFirstPost, indexOfLastPost);
-  const totalPages = Math.ceil(gridPosts.length / postsPerPage);
+  
+  // Use custom hooks
+  const { data: blogData, loading: blogLoading, error: blogError } = useBlogData();
+  const { 
+    data: currentPosts, 
+    pagination, 
+    loading: postsLoading, 
+    error: postsError 
+  } = usePaginatedPosts(currentPage, PAGINATION.DEFAULT_PAGE_SIZE);
+  const isMobile = useResponsive(BREAKPOINTS.MOBILE);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -38,17 +29,37 @@ const HomePage: React.FC = () => {
       ?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Show loading spinner while initial blog data is loading
+  if (blogLoading) {
+    return (
+      <div className="home-page__loading">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  // Show error if blog data failed to load
+  if (blogError) {
+    return (
+      <div className="home-page__error">
+        <Alert
+          message="Error Loading Content"
+          description={blogError}
+          type="error"
+          showIcon
+        />
+      </div>
+    );
+  }
+
+  const { featuredPosts, horizontalPosts } = blogData;
+
   return (
     <div className="home-page">
       {/* Hero Section */}
       <section className="home-page__section">
-        <Title
-          level={1}
-          className={`home-page__title ${
-            isMobile ? "home-page__title--mobile" : ""
-          }`}
-        >
-          Your pancakes
+        <Title level={1} className={`home-page__title ${isMobile ? 'home-page__title--mobile' : ''}`}>
+          Today's Special
         </Title>
 
         {featuredPosts.length > 0 && (
@@ -58,16 +69,11 @@ const HomePage: React.FC = () => {
         )}
       </section>
 
-      {/* Featured Posts Section */}
+      {/* Popular Recipes Section */}
       {horizontalPosts.length > 0 && (
         <section className="home-page__section">
-          <Title
-            level={2}
-            className={`home-page__title ${
-              isMobile ? "home-page__title--mobile" : ""
-            }`}
-          >
-            Featured posts
+          <Title level={2} className={`home-page__title ${isMobile ? 'home-page__title--mobile' : ''}`}>
+            Popular Recipes
           </Title>
 
           <div className="home-page__horizontal-list">
@@ -78,34 +84,48 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {/* All Blog Posts Section */}
+      {/* All Recipes Section */}
       <section className="home-page__section">
-        <Title
-          level={2}
-          className={`home-page__title ${
-            isMobile ? "home-page__title--mobile" : ""
-          }`}
-        >
-          All blog posts
+        <Title level={2} className={`home-page__title ${isMobile ? 'home-page__title--mobile' : ''}`}>
+          All Recipes
         </Title>
-
-        <div className="home-page__grid-posts">
-          <Row gutter={[12, 24]}>
-            {currentPosts.map((post) => (
-              <Col key={post.id} xs={24} sm={24} md={12} lg={8} xl={8}>
-                <BlogCard post={post} />
-              </Col>
-            ))}
-          </Row>
-        </div>
-
-        <div className="home-page__pagination">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
+        
+        {postsError ? (
+          <Alert
+            message="Error Loading Posts"
+            description={postsError}
+            type="error"
+            showIcon
           />
-        </div>
+        ) : (
+          <>
+            <div className="home-page__grid-posts">
+              {postsLoading ? (
+                <div style={{ textAlign: 'center', padding: '50px' }}>
+                  <Spin size="large" />
+                </div>
+              ) : (
+                <Row gutter={[12, 24]}>
+                  {currentPosts.map((post) => (
+                    <Col key={post.id} xs={24} sm={24} md={12} lg={8} xl={8}>
+                      <BlogCard post={post} />
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </div>
+
+            {pagination.totalPages > 1 && (
+              <div className="home-page__pagination">
+                <Pagination 
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
+          </>
+        )}
       </section>
     </div>
   );

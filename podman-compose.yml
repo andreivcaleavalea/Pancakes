@@ -3,11 +3,27 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "5173:5173"
-
-  testmicroservice:
-    build: ./backend/TestMicroservice
-    ports:
-      - "5000:8080"
+      - "3000:5173"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - VITE_BLOG_API_URL=http://localhost:5001
+    depends_on:
+      - blogservice
+
+  blogservice:
+    build: ./backend/BlogService
+    ports:
+      - "5001:80"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    env_file:
+      - .env.compose
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
