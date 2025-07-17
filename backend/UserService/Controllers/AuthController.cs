@@ -1,22 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using TestMicroservice.Services;
-using TestMicroservice.Models;
+using UserService.Services;
+using UserService.Models;
 
-namespace TestMicroservice.Controllers
+namespace UserService.Controllers
 {
     [ApiController]
     [Route("auth")]
     public class AuthController : ControllerBase
     {
         private readonly OAuthService _oauthService;
-        private readonly UserService _userService;
+        private readonly UserManagementService _userService;
         private readonly JwtService _jwtService;
         private readonly CurrentUserService _currentUserService;
 
         public AuthController(
             OAuthService oauthService, 
-            UserService userService, 
+            UserManagementService userService, 
             JwtService jwtService,
             CurrentUserService currentUserService)
         {

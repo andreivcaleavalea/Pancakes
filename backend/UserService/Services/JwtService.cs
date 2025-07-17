@@ -2,9 +2,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using TestMicroservice.Models;
+using UserService.Models;
 
-namespace TestMicroservice.Services
+namespace UserService.Services
 {
     public class JwtService
     {

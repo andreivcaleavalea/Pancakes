@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using TestMicroservice.Models;
+using UserService.Models;
 
-namespace TestMicroservice.Services
+namespace UserService.Services
 {
     /// <summary>
     /// Service for accessing the current authenticated user from the HTTP context.

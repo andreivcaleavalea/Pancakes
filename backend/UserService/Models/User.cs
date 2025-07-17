@@ -1,4 +1,4 @@
-namespace TestMicroservice.Models
+namespace UserService.Models
 {
     public class User
     {
