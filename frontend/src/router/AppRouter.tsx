@@ -3,6 +3,7 @@ import { useRouter } from "./RouterProvider";
 import HomePage from "@pages/HomePage/HomePage";
 import LoginPage from "@pages/LoginPage/LoginPage";
 import AuthCallback from "@pages/AuthCallback/AuthCallback";
+import ProfilePage from "@pages/ProfilePage/ProfilePage";
 
 const AppRouter: React.FC = () => {
   const { currentPage, loginMode } = useRouter();
@@ -15,6 +16,8 @@ const AppRouter: React.FC = () => {
   switch (currentPage) {
     case "login":
       return <LoginPage initialMode={loginMode} />;
+    case "profile":
+      return <ProfilePage />;
     case "home":
     default:
       return <HomePage />;

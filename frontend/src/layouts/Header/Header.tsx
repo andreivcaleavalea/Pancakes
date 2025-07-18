@@ -18,6 +18,26 @@ const Header: React.FC = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+  const handleMenuClick = (key: string) => {
+    switch (key) {
+      case 'home':
+        navigate('home');
+        break;
+      case 'profile':
+        navigate('profile');
+        break;
+      case 'explore':
+      case 'blogs':
+      case 'saved':
+      case 'friends':
+        // These pages don't exist yet, so we'll just log for now
+        console.log(`Navigate to ${key} - not implemented yet`);
+        break;
+      default:
+        break;
+    }
+  };
+
   const menuItems = [
     { key: 'home', label: 'Home' },
     { key: 'explore', label: 'Explore' },
@@ -55,6 +75,12 @@ const Header: React.FC = () => {
   };
 
   const userMenuItems = [
+    {
+      key: "profile",
+      label: "Profile",
+      icon: <UserOutlined />,
+      onClick: () => navigate("profile"),
+    },
     {
       key: "logout",
       label: "Logout",
@@ -117,6 +143,17 @@ const Header: React.FC = () => {
             />
             <span className="header__user-name">{user.name}</span>
           </div>
+          <Button
+            block
+            className="header__btn header__btn--secondary"
+            icon={<UserOutlined />}
+            onClick={() => {
+              navigate('profile');
+              setDrawerVisible(false);
+            }}
+          >
+            Profile
+          </Button>
           <Button
             block
             className="header__btn header__btn--primary"
@@ -183,6 +220,7 @@ const Header: React.FC = () => {
               className="header__menu"
               selectedKeys={["blogs"]}
               disabledOverflow={true}
+              onSelect={({ key }) => handleMenuClick(key)}
             />
           </div>
         )}
@@ -223,6 +261,10 @@ const Header: React.FC = () => {
             items={menuItems}
             className="header__mobile-menu-items"
             selectedKeys={["blogs"]}
+            onSelect={({ key }) => {
+              handleMenuClick(key);
+              setDrawerVisible(false); // Close drawer on mobile after selection
+            }}
           />
 
           {renderMobileAuthSection()}

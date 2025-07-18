@@ -1,16 +1,25 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using UserService.Data;
 using UserService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load environment variables from .env file
-DotNetEnv.Env.Load();
+DotNetEnv.Env.Load("../../.env");
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+    ?? "Host=localhost;Port=5432;Database=PancakesBlogDB;Username=postgres;Password=postgres123";
+
+builder.Services.AddDbContext<UserDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
 
 // Add HttpContextAccessor for current user service
 builder.Services.AddHttpContextAccessor();
