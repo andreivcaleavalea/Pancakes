@@ -12,7 +12,7 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-DotNetEnv.Env.Load();
+DotNetEnv.Env.Load("../../.env");
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
@@ -27,11 +27,11 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<BlogDbContext>(options =>
 {
-    var host = Environment.GetEnvironmentVariable("POSTGRES_HOST");
-    var port = Environment.GetEnvironmentVariable("POSTGRES_PORT");
-    var database = Environment.GetEnvironmentVariable("POSTGRES_DATABASE");
-    var username = Environment.GetEnvironmentVariable("POSTGRES_USERNAME");
-    var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+    var host = Environment.GetEnvironmentVariable("BLOGS_DB_HOST");
+    var port = Environment.GetEnvironmentVariable("BLOGS_DB_PORT");
+    var database = Environment.GetEnvironmentVariable("BLOGS_DB_DATABASE");
+    var username = Environment.GetEnvironmentVariable("BLOGS_DB_USERNAME");
+    var password = Environment.GetEnvironmentVariable("BLOGS_DB_PASSWORD");
     
     var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
     options.UseNpgsql(connectionString);
@@ -62,15 +62,16 @@ var app = builder.Build();
 
 // Configure port based on environment variable
 var port = Environment.GetEnvironmentVariable("BLOG_SERVICE_PORT") ?? "5001";
+System.Console.WriteLine($"Blog Service running on port: {port}");
 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
 {
     app.Urls.Clear();
-    app.Urls.Add("http://0.0.0.0:80");
+    app.Urls.Add("http://0.0.0.0:5001");
 }
-else if (app.Environment.IsDevelopment())
+else 
 {
     app.Urls.Clear();
-    app.Urls.Add($"http://localhost:{port}");
+    app.Urls.Add($"http://localhost:5001");
 }
 
 if (app.Environment.IsDevelopment())

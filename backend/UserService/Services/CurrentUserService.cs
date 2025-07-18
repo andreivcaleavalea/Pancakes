@@ -3,10 +3,6 @@ using UserService.Models;
 
 namespace UserService.Services
 {
-    /// <summary>
-    /// Service for accessing the current authenticated user from the HTTP context.
-    /// This provides a clean abstraction for getting user information from JWT tokens.
-    /// </summary>
     public class CurrentUserService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -16,10 +12,6 @@ namespace UserService.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <summary>
-        /// Gets the current authenticated user from the JWT token in the request.
-        /// </summary>
-        /// <returns>Current user if authenticated, null otherwise</returns>
         public User? GetCurrentUser()
         {
             var context = _httpContextAccessor.HttpContext;
@@ -53,20 +45,13 @@ namespace UserService.Services
             }
         }
 
-        /// <summary>
-        /// Gets the current user's ID.
-        /// </summary>
-        /// <returns>User ID if authenticated, null otherwise</returns>
         public string? GetCurrentUserId()
         {
             var context = _httpContextAccessor.HttpContext;
             return context?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
-        /// <summary>
-        /// Checks if the current request is authenticated.
-        /// </summary>
-        /// <returns>True if authenticated, false otherwise</returns>
+
         public bool IsAuthenticated()
         {
             var context = _httpContextAccessor.HttpContext;

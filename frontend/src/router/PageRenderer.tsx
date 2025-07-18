@@ -2,6 +2,7 @@ import React from "react";
 import HomePage from "../pages/HomePage/HomePage";
 import LoginPage from "../pages/LoginPage/LoginPage";
 import AuthCallback from "../pages/AuthCallback/AuthCallback";
+import ProfilePage from "../pages/ProfilePage/ProfilePage";
 import { useRouter } from "./RouterProvider";
 
 const PageRenderer: React.FC = () => {
@@ -15,6 +16,8 @@ const PageRenderer: React.FC = () => {
   switch (currentPage) {
     case "login":
       return <LoginPage initialMode={loginMode} />;
+    case "profile":
+      return <ProfilePage />;
     case "home":
     default:
       return <HomePage />;

@@ -6,7 +6,7 @@ import React, {
   type ReactNode,
 } from "react";
 
-export type PageType = "home" | "login";
+export type PageType = "home" | "login" | "profile";
 export type LoginMode = "signin" | "register";
 
 interface RouterContextType {
@@ -33,7 +33,7 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
   const [loginMode, setLoginMode] = useState<LoginMode>("signin");
 
-  useEffect(() => {
+  const updatePageFromPath = () => {
     const path = window.location.pathname;
 
     // Handle auth callback
@@ -43,6 +43,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
 
     if (path === "/login") {
       setCurrentPage("login");
+    } else if (path === "/profile") {
+      setCurrentPage("profile");
     } else {
       setCurrentPage("home");
     }
@@ -52,6 +54,22 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
     if (mode === "register" || mode === "signin") {
       setLoginMode(mode);
     }
+  };
+
+  useEffect(() => {
+    // Update page on initial load
+    updatePageFromPath();
+
+    // Listen for back/forward navigation
+    const handlePopState = () => {
+      updatePageFromPath();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
 
   const navigate = (page: PageType, mode?: LoginMode) => {

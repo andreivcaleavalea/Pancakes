@@ -8,8 +8,12 @@ namespace UserService.Models
         public string Image { get; set; } = string.Empty;
         public string Provider { get; set; } = string.Empty;
         public string ProviderUserId { get; set; } = string.Empty;
+        public string Bio { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public DateTime? DateOfBirth { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastLoginAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
     public class LoginRequest

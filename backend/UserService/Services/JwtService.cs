@@ -14,12 +14,7 @@ namespace UserService.Services
         {
             _configuration = configuration;
         }
-
-        /// <summary>
-        /// Generates a JWT token containing all user information needed for stateless operation.
-        /// </summary>
-        /// <param name="user">User object to encode in the token</param>
-        /// <returns>JWT token string</returns>
+        
         public string GenerateToken(User user)
         {
             var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
@@ -52,12 +47,7 @@ namespace UserService.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-        /// <summary>
-        /// Extracts user information from a JWT token.
-        /// </summary>
-        /// <param name="token">JWT token string</param>
-        /// <returns>User object if token is valid, null otherwise</returns>
+        
         public User? GetUserFromToken(string token)
         {
             try
@@ -91,12 +81,7 @@ namespace UserService.Services
                 return null;
             }
         }
-
-        /// <summary>
-        /// Extracts user information from JWT claims.
-        /// </summary>
-        /// <param name="claims">JWT claims</param>
-        /// <returns>User object</returns>
+        
         private User ExtractUserFromClaims(IEnumerable<Claim> claims)
         {
             var claimsDictionary = claims.ToDictionary(x => x.Type, x => x.Value);
@@ -114,11 +99,6 @@ namespace UserService.Services
             };
         }
 
-        /// <summary>
-        /// Validates if a token is valid without extracting user information.
-        /// </summary>
-        /// <param name="token">JWT token string</param>
-        /// <returns>True if valid, false otherwise</returns>
         public bool ValidateToken(string token)
         {
             return GetUserFromToken(token) != null;
