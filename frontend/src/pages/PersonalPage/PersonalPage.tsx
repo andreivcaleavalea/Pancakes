@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Button, Space, Typography, Switch, Spin, Alert, Avatar, Row, Col, Timeline, Tag, Form, Input, Select, App } from 'antd';
+import { Card, Button, Space, Typography, Switch, Spin, Alert, Avatar, Row, Col, Timeline, Tag, Form, Input, Select, App, Dropdown, Popover } from 'antd';
 import { SettingOutlined, ShareAltOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useRouter } from '../../router/RouterProvider';
 import { useProfile } from '../../hooks/useProfile';
@@ -9,7 +9,11 @@ import './PersonalPage.scss';
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 // Beautiful PersonalPageView component with real data and dynamic settings
-const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
+const PersonalPageView: React.FC<{ 
+  settings: any;
+  sectionSettings: Record<string, any>;
+  onSectionSettingsChange: (sectionKey: string, newSettings: any) => void;
+}> = ({ settings, sectionSettings, onSectionSettingsChange }) => {
   const { profileData } = useProfile();
   
   if (!profileData) {
@@ -57,23 +61,82 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
   
   const primaryColor = colors[colorScheme as keyof typeof colors] || colors.blue;
 
+  // Template options for each section
+  const allTemplateOptions = {
+    personal: [
+      { value: 'hero', label: '🦸 Hero Banner' },
+      { value: 'minimal', label: '⭕ Minimal' },
+      { value: 'creative', label: '🎨 Creative' },
+      { value: 'professional', label: '💼 Executive' }
+    ],
+    education: [
+      { value: 'academic', label: '🎓 Academic Timeline' },
+      { value: 'university', label: '🏛️ University Cards' },
+      { value: 'progress', label: '📈 Progress Journey' },
+      { value: 'certificates', label: '🏆 Achievement Gallery' },
+      { value: 'simple', label: '📋 Simple List' }
+    ],
+    jobs: [
+      { value: 'career', label: '🚀 Career Journey' },
+      { value: 'corporate', label: '🏢 Corporate Timeline' },
+      { value: 'experience', label: '💼 Experience Cards' },
+      { value: 'skills', label: '⚡ Skills Evolution' },
+      { value: 'compact', label: '📊 Compact View' }
+    ],
+    projects: [
+      { value: 'portfolio', label: '🎯 Portfolio Showcase' },
+      { value: 'github', label: '💻 GitHub Style' },
+      { value: 'masonry', label: '🧱 Masonry Grid' },
+      { value: 'slider', label: '🎠 Project Slider' },
+      { value: 'detailed', label: '📋 Detailed List' }
+    ],
+    hobbies: [
+      { value: 'creative', label: '🎨 Creative Cloud' },
+      { value: 'interactive', label: '⚡ Interactive Skills' },
+      { value: 'badges', label: '🏆 Achievement Badges' },
+      { value: 'radar', label: '📊 Skill Radar' },
+      { value: 'minimal', label: '🏷️ Tag Cloud' }
+    ]
+  };
+
   // Section renderers
   const renderPersonalSection = () => {
     if (!sectionVisibility.personal) return null;
     
-    const template = sectionTemplates.personal || 'hero';
+    const sectionKey = 'personal';
+    const currentSectionSettings = sectionSettings[sectionKey] || { template: 'hero', color: 'blue' };
+    const template = currentSectionSettings.template;
+    const sectionColors = {
+      blue: '#1890ff',
+      purple: '#722ed1',
+      green: '#52c41a',
+      orange: '#fa8c16',
+      red: '#f5222d',
+      gold: '#faad14'
+    };
+    const sectionPrimaryColor = sectionColors[currentSectionSettings.color as keyof typeof sectionColors] || sectionColors.blue;
+    
+    const templateOptions = allTemplateOptions[sectionKey];
     
     if (template === 'hero') {
       return (
         <div key="personal" style={{
-          background: `linear-gradient(135deg, ${primaryColor}15, ${primaryColor}05)`,
+          background: `linear-gradient(135deg, ${sectionPrimaryColor}15, ${sectionPrimaryColor}05)`,
           borderRadius: '20px',
           padding: '40px',
           marginBottom: '32px',
           position: 'relative',
           overflow: 'hidden',
-          border: `2px solid ${primaryColor}20`
+          border: `2px solid ${sectionPrimaryColor}20`
         }}>
+          {/* Section Settings Icon */}
+          <SectionSettingsPopover
+            sectionKey={sectionKey}
+            sectionSettings={currentSectionSettings}
+            onSettingsChange={onSectionSettingsChange}
+            templateOptions={templateOptions}
+          />
+          
           {/* Background Pattern */}
           <div style={{
             position: 'absolute',
@@ -81,7 +144,7 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
             right: 0,
             width: '200px',
             height: '200px',
-            background: `radial-gradient(circle, ${primaryColor}10, transparent)`,
+            background: `radial-gradient(circle, ${sectionPrimaryColor}10, transparent)`,
             borderRadius: '50%',
             transform: 'translate(50%, -50%)'
           }} />
@@ -90,12 +153,12 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
             <Col xs={24} md={8}>
               <div style={{ textAlign: 'center', position: 'relative' }}>
                 <div style={{
-                  background: `linear-gradient(45deg, ${primaryColor}, ${primaryColor}80)`,
+                  background: `linear-gradient(45deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}80)`,
                   borderRadius: '50%',
                   padding: '8px',
                   display: 'inline-block',
                   marginBottom: '16px',
-                  boxShadow: `0 8px 32px ${primaryColor}40`,
+                  boxShadow: `0 8px 32px ${sectionPrimaryColor}40`,
                   animation: 'pulse 2s infinite'
                 }}>
                   <Avatar
@@ -109,7 +172,7 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
             <Col xs={24} md={16}>
               <Title level={1} style={{ 
                 fontSize: '48px', 
-                background: `linear-gradient(45deg, ${primaryColor}, ${primaryColor}80)`,
+                background: `linear-gradient(45deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}80)`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 marginBottom: '8px',
@@ -137,7 +200,7 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                   background: 'rgba(255,255,255,0.7)',
                   padding: '20px',
                   borderRadius: '12px',
-                  border: `2px solid ${primaryColor}20`
+                  border: `2px solid ${sectionPrimaryColor}20`
                 }}>
                   {user.bio}
                 </Paragraph>
@@ -250,10 +313,10 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                     background: `linear-gradient(45deg, ${primaryColor}, ${primaryColor}90)`,
                     borderRadius: '20px',
                     padding: '16px',
-                    display: 'inline-block',
-                    marginBottom: '16px'
-                  }}>
-                    <Avatar
+                                         display: 'inline-block',
+                     marginBottom: '16px'
+                   }}>
+                     <Avatar
                       size={100}
                       src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
                       style={{ border: '3px solid white' }}
@@ -273,9 +336,9 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                 <div style={{
                   background: `${primaryColor}10`,
                   padding: '12px 16px',
-                  borderRadius: '8px',
-                  marginBottom: '16px',
-                  borderLeft: `4px solid ${primaryColor}`
+                                     borderRadius: '8px',
+                   marginBottom: '16px',
+                   borderLeft: `4px solid ${sectionPrimaryColor}`
                 }}>
                   <Text style={{ fontSize: '16px', color: '#555' }}>
                     📧 {user.email}
@@ -301,13 +364,19 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
     
     // Minimal template (fallback)
     return (
-      <Card key="personal" style={{ marginBottom: '24px', textAlign: 'center', padding: '32px' }}>
+      <Card key="personal" style={{ marginBottom: '24px', textAlign: 'center', padding: '32px', position: 'relative' }}>
+        <SectionSettingsPopover
+          sectionKey={sectionKey}
+          sectionSettings={currentSectionSettings}
+          onSettingsChange={onSectionSettingsChange}
+          templateOptions={templateOptions}
+        />
         <Avatar
           size={80}
           src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
-          style={{ marginBottom: '16px', border: `3px solid ${primaryColor}` }}
+          style={{ marginBottom: '16px', border: `3px solid ${sectionPrimaryColor}` }}
         />
-        <Title level={2} style={{ color: primaryColor, margin: '16px 0 8px' }}>
+        <Title level={2} style={{ color: sectionPrimaryColor, margin: '16px 0 8px' }}>
           {user.name}
         </Title>
         <Text type="secondary" style={{ fontSize: '16px' }}>{user.email}</Text>
@@ -323,22 +392,43 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
   const renderEducationSection = () => {
     if (!sectionVisibility.education || !educations || educations.length === 0) return null;
     
-    const template = sectionTemplates.education || 'academic';
+    const sectionKey = 'education';
+    const currentSectionSettings = sectionSettings[sectionKey] || { template: 'academic', color: 'blue' };
+    const template = currentSectionSettings.template;
+    const sectionColors = {
+      blue: '#1890ff',
+      purple: '#722ed1',
+      green: '#52c41a',
+      orange: '#fa8c16',
+      red: '#f5222d',
+      gold: '#faad14'
+    };
+    const sectionPrimaryColor = sectionColors[currentSectionSettings.color as keyof typeof sectionColors] || sectionColors.blue;
+    const templateOptions = allTemplateOptions[sectionKey];
     
-    if (template === 'academic') {
-      return (
-        <Card key="education" style={{ 
-          marginBottom: '32px',
-          background: `linear-gradient(135deg, ${primaryColor}08, ${primaryColor}03)`,
-          border: `2px solid ${primaryColor}20`,
-          borderRadius: '16px'
-        }}>
-          <Title level={2} style={{ 
-            color: primaryColor, 
-            marginBottom: '24px',
-            textAlign: 'center',
-            fontSize: '28px'
-          }}>🎓 Academic Journey</Title>
+          if (template === 'academic') {
+        return (
+          <Card key="education" style={{ 
+            marginBottom: '32px',
+            background: `linear-gradient(135deg, ${sectionPrimaryColor}08, ${sectionPrimaryColor}03)`,
+            border: `2px solid ${sectionPrimaryColor}20`,
+            borderRadius: '16px',
+            position: 'relative'
+          }}>
+            {/* Section Settings Icon */}
+            <SectionSettingsPopover
+              sectionKey={sectionKey}
+              sectionSettings={currentSectionSettings}
+              onSettingsChange={onSectionSettingsChange}
+              templateOptions={templateOptions}
+            />
+            
+            <Title level={2} style={{ 
+              color: sectionPrimaryColor, 
+              marginBottom: '24px',
+              textAlign: 'center',
+              fontSize: '28px'
+            }}>🎓 Academic Journey</Title>
           
           <div style={{ position: 'relative' }}>
             {/* Academic Timeline with Progress */}
@@ -365,14 +455,14 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                   position: 'absolute',
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  background: primaryColor,
+                  background: sectionPrimaryColor,
                   color: 'white',
                   padding: '8px 16px',
                   borderRadius: '20px',
                   fontSize: '12px',
                   fontWeight: 'bold',
                   zIndex: 2,
-                  boxShadow: `0 4px 12px ${primaryColor}40`
+                  boxShadow: `0 4px 12px ${sectionPrimaryColor}40`
                 }}>
                   {edu.startDate?.split('-')[0]} - {edu.endDate?.split('-')[0] || 'Now'}
                 </div>
@@ -387,8 +477,8 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                     background: 'white',
                     padding: '24px',
                     borderRadius: '12px',
-                    boxShadow: `0 8px 25px ${primaryColor}20`,
-                    border: `1px solid ${primaryColor}20`,
+                    boxShadow: `0 8px 25px ${sectionPrimaryColor}20`,
+                    border: `1px solid ${sectionPrimaryColor}20`,
                     position: 'relative',
                     transform: 'translateY(20px)'
                   }}>
@@ -520,9 +610,9 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                   <div style={{
                     background: 'rgba(255,255,255,0.8)',
                     padding: '16px',
-                    borderRadius: '12px',
-                    marginBottom: '16px',
-                    border: `1px solid ${primaryColor}15`
+                                         borderRadius: '12px',
+                     marginBottom: '16px',
+                     border: `1px solid ${primaryColor}15`
                   }}>
                     <Text strong style={{ fontSize: '15px', color: '#333' }}>
                       {edu.degree}
@@ -756,8 +846,16 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
     
     // Simple list (fallback)
     return (
-      <Card key="education" style={{ marginBottom: '24px' }}>
-        <Title level={2} style={{ color: primaryColor }}>🎓 Education</Title>
+      <Card key="education" style={{ marginBottom: '24px', position: 'relative' }}>
+        {/* Section Settings Icon */}
+        <SectionSettingsPopover
+          sectionKey={sectionKey}
+          sectionSettings={currentSectionSettings}
+          onSettingsChange={onSectionSettingsChange}
+          templateOptions={templateOptions}
+        />
+        
+        <Title level={2} style={{ color: sectionPrimaryColor }}>🎓 Education</Title>
         {educations.map((edu: any, index: number) => (
           <div key={index} style={{ 
             padding: '16px 0', 
@@ -782,58 +880,533 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
   const renderJobsSection = () => {
     if (!sectionVisibility.jobs || !jobs || jobs.length === 0) return null;
     
-    const template = sectionTemplates.jobs;
+    const sectionKey = 'jobs';
+    const currentSectionSettings = sectionSettings[sectionKey] || { template: 'career', color: 'blue' };
+    const template = currentSectionSettings.template;
+    const sectionColors = {
+      blue: '#1890ff',
+      purple: '#722ed1',
+      green: '#52c41a',
+      orange: '#fa8c16',
+      red: '#f5222d',
+      gold: '#faad14'
+    };
+    const sectionPrimaryColor = sectionColors[currentSectionSettings.color as keyof typeof sectionColors] || sectionColors.blue;
+    const templateOptions = allTemplateOptions[sectionKey];
     
-    return (
-      <Card key="jobs" style={{ marginBottom: '24px' }}>
-        <Title level={2} style={{ color: primaryColor }}>💼 Work Experience</Title>
-        
-        {template === 'cards' ? (
-          <Row gutter={[16, 16]}>
+    if (template === 'career') {
+      return (
+        <Card key="jobs" style={{ 
+          marginBottom: '32px',
+          position: 'relative'
+        }}>
+          {/* Section Settings Icon */}
+          <SectionSettingsPopover
+            sectionKey={sectionKey}
+            sectionSettings={currentSectionSettings}
+            onSettingsChange={onSectionSettingsChange}
+            templateOptions={templateOptions}
+          />
+          
+          <Title level={2} style={{ color: sectionPrimaryColor, marginBottom: '32px' }}>
+            🚀 Career Journey
+          </Title>
+          
+          <div style={{ padding: '20px' }}>
             {jobs.map((job: any, index: number) => (
-              <Col xs={24} md={12} key={index}>
-                <Card size="small" style={{ height: '100%' }}>
-                  <Title level={4}>{job.position}</Title>
-                  <Text strong>{job.company}</Text>
-                  {job.location && <Text type="secondary"> • {job.location}</Text>}
-                  <br />
-                  <Text type="secondary">
-                    {job.startDate} - {job.endDate || 'Present'}
-                  </Text>
-                  {job.description && <Paragraph style={{ marginTop: '8px' }}>{job.description}</Paragraph>}
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        ) : template === 'compact' ? (
-          <div>
-            {jobs.map((job: any, index: number) => (
-              <div key={index} style={{ padding: '12px 0', borderBottom: index < jobs.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
-                <Text strong>{job.position}</Text> at <Text>{job.company}</Text>
-                <br />
-                <Text type="secondary" style={{ fontSize: '12px' }}>
-                  {job.startDate} - {job.endDate || 'Present'}
-                </Text>
+              <div key={index} style={{
+                background: '#fafafa',
+                borderRadius: '12px',
+                padding: '24px',
+                marginBottom: '20px',
+                border: `1px solid ${sectionPrimaryColor}20`,
+                position: 'relative'
+              }}>
+                <Row align="middle" gutter={[32, 24]}>
+                  <Col xs={24} sm={6}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{
+                        background: `linear-gradient(45deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}90)`,
+                        borderRadius: '50%',
+                        width: '80px',
+                        height: '80px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: '24px'
+                      }}>
+                        💼
+                      </div>
+                      <Tag color={sectionPrimaryColor}>
+                        {job.startDate} - {job.endDate || 'Present'}
+                      </Tag>
+                    </div>
+                  </Col>
+                  <Col xs={24} sm={18}>
+                    <Title level={3} style={{ 
+                      color: '#2c3e50', 
+                      marginBottom: '8px',
+                      fontWeight: '700'
+                    }}>
+                      {job.position}
+                    </Title>
+                    <Title level={4} style={{ 
+                      color: sectionPrimaryColor, 
+                      marginBottom: '12px',
+                      fontWeight: '600'
+                    }}>
+                      {job.company}
+                    </Title>
+                    {job.location && (
+                      <Text style={{ fontSize: '14px', color: '#666', marginBottom: '12px', display: 'block' }}>
+                        📍 {job.location}
+                      </Text>
+                    )}
+                    {job.description && (
+                      <Paragraph style={{ 
+                        fontSize: '15px', 
+                        lineHeight: 1.6,
+                        color: '#555',
+                        margin: 0
+                      }}>
+                        {job.description}
+                      </Paragraph>
+                    )}
+                  </Col>
+                </Row>
               </div>
             ))}
           </div>
-        ) : (
-          // Timeline (default)
-          <Timeline>
+        </Card>
+      );
+    }
+    
+    if (template === 'corporate') {
+      return (
+        <Card key="jobs" style={{ marginBottom: '32px', borderRadius: '16px' }}>
+          <Title level={2} style={{ color: primaryColor, textAlign: 'center', marginBottom: '32px' }}>
+            🏢 Corporate Timeline
+          </Title>
+          
+          <Row gutter={[24, 24]}>
             {jobs.map((job: any, index: number) => (
-              <Timeline.Item key={index}>
-                <Title level={4}>{job.position}</Title>
-                <Text strong>{job.company}</Text>
-                {job.location && <Text type="secondary"> • {job.location}</Text>}
-                <br />
-                <Text type="secondary">
-                  {job.startDate} - {job.endDate || 'Present'}
-                </Text>
-                {job.description && <Paragraph>{job.description}</Paragraph>}
-              </Timeline.Item>
+              <Col xs={24} md={12} lg={8} key={index}>
+                <div style={{
+                  background: `linear-gradient(145deg, white, ${primaryColor}05)`,
+                  border: `2px solid ${primaryColor}20`,
+                  borderRadius: '20px',
+                  padding: '24px',
+                  height: '100%',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px)';
+                  e.currentTarget.style.boxShadow = `0 20px 40px ${primaryColor}30`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                  {/* Corporate Badge */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '20px',
+                    background: `linear-gradient(45deg, ${primaryColor}, ${primaryColor}80)`,
+                    color: 'white',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    boxShadow: `0 4px 12px ${primaryColor}40`
+                  }}>
+                    🏢 CORPORATE
+                  </div>
+                  
+                  {/* Job Header */}
+                  <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                    <div style={{
+                      background: `conic-gradient(${primaryColor}, ${primaryColor}60, ${primaryColor})`,
+                      borderRadius: '50%',
+                      width: '80px',
+                      height: '80px',
+                      margin: '0 auto 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '32px',
+                      animation: 'rotate 8s linear infinite'
+                    }}>
+                      🏢
+                    </div>
+                    <Title level={4} style={{ 
+                      margin: 0, 
+                      color: primaryColor,
+                      fontSize: '18px',
+                      textAlign: 'center'
+                    }}>
+                      {job.company}
+                    </Title>
+                  </div>
+                  
+                  {/* Job Details */}
+                  <div style={{
+                    background: 'rgba(255,255,255,0.8)',
+                    padding: '16px',
+                                         borderRadius: '12px',
+                     marginBottom: '16px',
+                     border: `1px solid ${primaryColor}15`
+                  }}>
+                    <Text strong style={{ fontSize: '15px', color: '#333' }}>
+                      {job.position}
+                    </Text>
+                    <br />
+                    <Text style={{ fontSize: '14px', color: primaryColor }}>
+                      {job.location}
+                    </Text>
+                  </div>
+                  
+                  {/* Duration */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '12px'
+                  }}>
+                    <Tag color={primaryColor}>{job.startDate}</Tag>
+                    <span style={{ color: '#999' }}>→</span>
+                    <Tag color={primaryColor}>{job.endDate || 'Present'}</Tag>
+                  </div>
+                  
+                  {job.description && (
+                    <Paragraph style={{ 
+                      fontSize: '13px', 
+                      color: '#666',
+                      lineHeight: 1.5,
+                      margin: 0
+                    }}>
+                      {job.description}
+                    </Paragraph>
+                  )}
+                </div>
+              </Col>
             ))}
-          </Timeline>
-        )}
+          </Row>
+        </Card>
+      );
+    }
+    
+    if (template === 'experience') {
+      return (
+        <Card key="jobs" style={{ marginBottom: '32px', borderRadius: '16px' }}>
+          <Title level={2} style={{ color: primaryColor, textAlign: 'center', marginBottom: '32px' }}>
+            💼 Experience Cards
+          </Title>
+          
+          <Row gutter={[24, 24]}>
+            {jobs.map((job: any, index: number) => (
+              <Col xs={24} md={12} lg={8} key={index}>
+                <div style={{
+                  background: `linear-gradient(145deg, white, ${primaryColor}05)`,
+                  border: `2px solid ${primaryColor}20`,
+                  borderRadius: '20px',
+                  padding: '24px',
+                  height: '100%',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px)';
+                  e.currentTarget.style.boxShadow = `0 20px 40px ${primaryColor}30`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                  {/* Experience Badge */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '20px',
+                    background: `linear-gradient(45deg, ${primaryColor}, ${primaryColor}80)`,
+                    color: 'white',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    boxShadow: `0 4px 12px ${primaryColor}40`
+                  }}>
+                    💼 EXPERIENCE
+                  </div>
+                  
+                  {/* Job Header */}
+                  <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                    <div style={{
+                      background: `conic-gradient(${primaryColor}, ${primaryColor}60, ${primaryColor})`,
+                      borderRadius: '50%',
+                      width: '80px',
+                      height: '80px',
+                      margin: '0 auto 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '32px',
+                      animation: 'rotate 8s linear infinite'
+                    }}>
+                      💼
+                    </div>
+                    <Title level={4} style={{ 
+                      margin: 0, 
+                      color: primaryColor,
+                      fontSize: '18px',
+                      textAlign: 'center'
+                    }}>
+                      {job.company}
+                    </Title>
+                  </div>
+                  
+                  {/* Job Details */}
+                  <div style={{
+                    background: 'rgba(255,255,255,0.8)',
+                    padding: '16px',
+                                         borderRadius: '12px',
+                     marginBottom: '16px',
+                     border: `1px solid ${primaryColor}15`
+                  }}>
+                    <Text strong style={{ fontSize: '15px', color: '#333' }}>
+                      {job.position}
+                    </Text>
+                    <br />
+                    <Text style={{ fontSize: '14px', color: primaryColor }}>
+                      {job.location}
+                    </Text>
+                  </div>
+                  
+                  {/* Duration */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '12px'
+                  }}>
+                    <Tag color={primaryColor}>{job.startDate}</Tag>
+                    <span style={{ color: '#999' }}>→</span>
+                    <Tag color={primaryColor}>{job.endDate || 'Present'}</Tag>
+                  </div>
+                  
+                  {job.description && (
+                    <Paragraph style={{ 
+                      fontSize: '13px', 
+                      color: '#666',
+                      lineHeight: 1.5,
+                      margin: 0
+                    }}>
+                      {job.description}
+                    </Paragraph>
+                  )}
+                </div>
+              </Col>
+            ))}
+          </Row>
+        </Card>
+      );
+    }
+    
+    if (template === 'skills') {
+      return (
+        <Card key="jobs" style={{ marginBottom: '32px', borderRadius: '16px' }}>
+          <Title level={2} style={{ color: primaryColor, textAlign: 'center', marginBottom: '32px' }}>
+            ⚡ Skills Evolution
+          </Title>
+          
+          <Row gutter={[24, 24]}>
+            {jobs.map((job: any, index: number) => (
+              <Col xs={24} md={12} lg={8} key={index}>
+                <div style={{
+                  background: `linear-gradient(145deg, white, ${primaryColor}05)`,
+                  border: `2px solid ${primaryColor}20`,
+                  borderRadius: '20px',
+                  padding: '24px',
+                  height: '100%',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px)';
+                  e.currentTarget.style.boxShadow = `0 20px 40px ${primaryColor}30`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                  {/* Skills Badge */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '20px',
+                    background: `linear-gradient(45deg, ${primaryColor}, ${primaryColor}80)`,
+                    color: 'white',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    boxShadow: `0 4px 12px ${primaryColor}40`
+                  }}>
+                    ⚡ SKILLS
+                  </div>
+                  
+                  {/* Job Header */}
+                  <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                    <div style={{
+                      background: `conic-gradient(${primaryColor}, ${primaryColor}60, ${primaryColor})`,
+                      borderRadius: '50%',
+                      width: '80px',
+                      height: '80px',
+                      margin: '0 auto 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '32px',
+                      animation: 'rotate 8s linear infinite'
+                    }}>
+                      ⚡
+                    </div>
+                    <Title level={4} style={{ 
+                      margin: 0, 
+                      color: primaryColor,
+                      fontSize: '18px',
+                      textAlign: 'center'
+                    }}>
+                      {job.company}
+                    </Title>
+                  </div>
+                  
+                  {/* Skill Details */}
+                  <div style={{
+                    background: 'rgba(255,255,255,0.8)',
+                    padding: '16px',
+                                         borderRadius: '12px',
+                     marginBottom: '16px',
+                     border: `1px solid ${primaryColor}15`
+                  }}>
+                    {job.skills.map((skill: any, index: number) => (
+                      <div key={index} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '12px'
+                      }}>
+                        <Text style={{ fontSize: '14px', color: '#666' }}>
+                          {skill.name}
+                        </Text>
+                        <Tag color={primaryColor} style={{ fontSize: '10px' }}>
+                          {skill.level}
+                        </Tag>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Duration */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '12px'
+                  }}>
+                    <Tag color={primaryColor}>{job.startDate}</Tag>
+                    <span style={{ color: '#999' }}>→</span>
+                    <Tag color={primaryColor}>{job.endDate || 'Present'}</Tag>
+                  </div>
+                  
+                  {job.description && (
+                    <Paragraph style={{ 
+                      fontSize: '13px', 
+                      color: '#666',
+                      lineHeight: 1.5,
+                      margin: 0
+                    }}>
+                      {job.description}
+                    </Paragraph>
+                  )}
+                </div>
+              </Col>
+            ))}
+          </Row>
+        </Card>
+      );
+    }
+    
+    if (template === 'compact') {
+      return (
+        <Card key="jobs" style={{ marginBottom: '24px', textAlign: 'center', padding: '32px' }}>
+          <Title level={2} style={{ color: primaryColor, marginBottom: '24px' }}>
+            📊 Compact View
+          </Title>
+          
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: '12px',
+            justifyContent: 'center'
+          }}>
+            {jobs.map((job: any, index: number) => (
+              <div key={index} style={{
+                background: `linear-gradient(45deg, ${primaryColor}, ${primaryColor}80)`,
+                color: 'white',
+                padding: '12px 20px',
+                borderRadius: '25px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                boxShadow: `0 4px 15px ${primaryColor}30`,
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = `0 6px 20px ${primaryColor}50`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = `0 4px 15px ${primaryColor}30`;
+              }}>
+                {job.position} at {job.company}
+              </div>
+            ))}
+          </div>
+        </Card>
+      );
+    }
+    
+         // Timeline (default)
+     return (
+       <Card key="jobs" style={{ marginBottom: '24px', position: 'relative' }}>
+         {/* Section Settings Icon */}
+         <SectionSettingsPopover
+           sectionKey={sectionKey}
+           sectionSettings={currentSectionSettings}
+           onSettingsChange={onSectionSettingsChange}
+           templateOptions={templateOptions}
+         />
+         
+         <Title level={2} style={{ color: sectionPrimaryColor }}>💼 Work Experience</Title>
+        
+        {jobs.map((job: any, index: number) => (
+          <div key={index} style={{ padding: '12px 0', borderBottom: index < jobs.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+            <Text strong>{job.position}</Text> at <Text>{job.company}</Text>
+            <br />
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              {job.startDate} - {job.endDate || 'Present'}
+            </Text>
+          </div>
+        ))}
       </Card>
     );
   };
@@ -841,7 +1414,19 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
   const renderProjectsSection = () => {
     if (!sectionVisibility.projects || !projects || projects.length === 0) return null;
     
-    const template = sectionTemplates.projects || 'portfolio';
+    const sectionKey = 'projects';
+    const currentSectionSettings = sectionSettings[sectionKey] || { template: 'portfolio', color: 'blue' };
+    const template = currentSectionSettings.template;
+    const sectionColors = {
+      blue: '#1890ff',
+      purple: '#722ed1',
+      green: '#52c41a',
+      orange: '#fa8c16',
+      red: '#f5222d',
+      gold: '#faad14'
+    };
+    const sectionPrimaryColor = sectionColors[currentSectionSettings.color as keyof typeof sectionColors] || sectionColors.blue;
+    const templateOptions = allTemplateOptions[sectionKey];
     
     if (template === 'portfolio') {
       return (
@@ -849,10 +1434,19 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
           marginBottom: '32px',
           borderRadius: '20px',
           overflow: 'hidden',
-          background: `linear-gradient(135deg, ${primaryColor}08, ${primaryColor}03)`
+          background: `linear-gradient(135deg, ${sectionPrimaryColor}08, ${sectionPrimaryColor}03)`,
+          position: 'relative'
         }}>
+          {/* Section Settings Icon */}
+          <SectionSettingsPopover
+            sectionKey={sectionKey}
+            sectionSettings={currentSectionSettings}
+            onSettingsChange={onSectionSettingsChange}
+            templateOptions={templateOptions}
+          />
+          
           <div style={{
-            background: `linear-gradient(45deg, ${primaryColor}, ${primaryColor}80)`,
+            background: `linear-gradient(45deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}80)`,
             color: 'white',
             padding: '32px',
             textAlign: 'center',
@@ -1348,8 +1942,16 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
     
     // Detailed list (fallback)
     return (
-      <Card key="projects" style={{ marginBottom: '24px' }}>
-        <Title level={2} style={{ color: primaryColor }}>🚀 Projects</Title>
+      <Card key="projects" style={{ marginBottom: '24px', position: 'relative' }}>
+        {/* Section Settings Icon */}
+        <SectionSettingsPopover
+          sectionKey={sectionKey}
+          sectionSettings={currentSectionSettings}
+          onSettingsChange={onSectionSettingsChange}
+          templateOptions={templateOptions}
+        />
+        
+        <Title level={2} style={{ color: sectionPrimaryColor }}>🚀 Projects</Title>
         {projects.map((project: any, index: number) => (
           <div key={index} style={{ 
             padding: '20px 0', 
@@ -1391,17 +1993,38 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
   const renderHobbiesSection = () => {
     if (!sectionVisibility.hobbies || !hobbies || hobbies.length === 0) return null;
     
-    const template = sectionTemplates.hobbies || 'creative';
+    const sectionKey = 'hobbies';
+    const currentSectionSettings = sectionSettings[sectionKey] || { template: 'creative', color: 'blue' };
+    const template = currentSectionSettings.template;
+    const sectionColors = {
+      blue: '#1890ff',
+      purple: '#722ed1',
+      green: '#52c41a',
+      orange: '#fa8c16',
+      red: '#f5222d',
+      gold: '#faad14'
+    };
+    const sectionPrimaryColor = sectionColors[currentSectionSettings.color as keyof typeof sectionColors] || sectionColors.blue;
+    const templateOptions = allTemplateOptions[sectionKey];
     
     if (template === 'creative') {
       return (
         <Card key="hobbies" style={{ 
           marginBottom: '32px',
           borderRadius: '20px',
-          background: `radial-gradient(circle at top right, ${primaryColor}12, ${primaryColor}04, transparent)`
+          background: `radial-gradient(circle at top right, ${sectionPrimaryColor}12, ${sectionPrimaryColor}04, transparent)`,
+          position: 'relative'
         }}>
+          {/* Section Settings Icon */}
+          <SectionSettingsPopover
+            sectionKey={sectionKey}
+            sectionSettings={currentSectionSettings}
+            onSettingsChange={onSectionSettingsChange}
+            templateOptions={templateOptions}
+          />
+          
           <Title level={2} style={{ 
-            color: primaryColor, 
+            color: sectionPrimaryColor, 
             textAlign: 'center', 
             marginBottom: '32px',
             fontSize: '28px'
@@ -1417,18 +2040,18 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
           }}>
             {hobbies.map((hobby: any, index: number) => (
               <div key={index} style={{
-                background: `linear-gradient(135deg, ${primaryColor}15, ${primaryColor}05)`,
+                background: `linear-gradient(135deg, ${sectionPrimaryColor}15, ${sectionPrimaryColor}05)`,
                 borderRadius: '20px',
                 padding: '24px',
                 position: 'relative',
                 overflow: 'hidden',
-                border: `2px solid ${primaryColor}25`,
+                border: `2px solid ${sectionPrimaryColor}25`,
                 transition: 'all 0.4s ease',
                 cursor: 'pointer'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-8px) rotate(2deg)';
-                e.currentTarget.style.boxShadow = `0 20px 40px ${primaryColor}30`;
+                e.currentTarget.style.boxShadow = `0 20px 40px ${sectionPrimaryColor}30`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0) rotate(0deg)';
@@ -1449,7 +2072,7 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                 {/* Hobby Icon & Name */}
                 <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                   <div style={{
-                    background: `conic-gradient(${primaryColor}, ${primaryColor}60, ${primaryColor})`,
+                    background: `conic-gradient(${sectionPrimaryColor}, ${sectionPrimaryColor}60, ${sectionPrimaryColor})`,
                     borderRadius: '50%',
                     width: '70px',
                     height: '70px',
@@ -1465,8 +2088,8 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                   
                   <Title level={4} style={{ 
                     margin: 0, 
-                    color: primaryColor,
-                    textShadow: `1px 1px 2px ${primaryColor}20`
+                    color: sectionPrimaryColor,
+                    textShadow: `1px 1px 2px ${sectionPrimaryColor}20`
                   }}>
                     {hobby.name}
                   </Title>
@@ -1479,21 +2102,21 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                   padding: '12px',
                   marginBottom: '16px',
                   textAlign: 'center',
-                  border: `1px solid ${primaryColor}20`
+                  border: `1px solid ${sectionPrimaryColor}20`
                 }}>
                   <Text style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
                     Skill Level
                   </Text>
                   <div style={{ position: 'relative' }}>
                     <div style={{
-                      background: `${primaryColor}20`,
+                      background: `${sectionPrimaryColor}20`,
                       borderRadius: '10px',
                       height: '20px',
                       overflow: 'hidden',
                       marginBottom: '8px'
                     }}>
                       <div style={{
-                        background: `linear-gradient(90deg, ${primaryColor}, ${primaryColor}80)`,
+                        background: `linear-gradient(90deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}80)`,
                         height: '100%',
                         width: hobby.level === 'Expert' ? '100%' : hobby.level === 'Advanced' ? '75%' : hobby.level === 'Intermediate' ? '50%' : '25%',
                         borderRadius: '10px',
@@ -1514,7 +2137,7 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
                         </div>
                       </div>
                     </div>
-                    <Text strong style={{ color: primaryColor, fontSize: '14px' }}>
+                    <Text strong style={{ color: sectionPrimaryColor, fontSize: '14px' }}>
                       {hobby.level}
                     </Text>
                   </div>
@@ -1901,8 +2524,16 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
     
     // Minimal tag cloud (fallback)
     return (
-      <Card key="hobbies" style={{ marginBottom: '24px', textAlign: 'center', padding: '32px' }}>
-        <Title level={2} style={{ color: primaryColor, marginBottom: '24px' }}>
+      <Card key="hobbies" style={{ marginBottom: '24px', textAlign: 'center', padding: '32px', position: 'relative' }}>
+        {/* Section Settings Icon */}
+        <SectionSettingsPopover
+          sectionKey={sectionKey}
+          sectionSettings={currentSectionSettings}
+          onSettingsChange={onSectionSettingsChange}
+          templateOptions={templateOptions}
+        />
+        
+        <Title level={2} style={{ color: sectionPrimaryColor, marginBottom: '24px' }}>
           🏷️ Interests & Hobbies
         </Title>
         
@@ -1971,7 +2602,143 @@ const PersonalPageView: React.FC<{ settings: any }> = ({ settings }) => {
   );
 };
 
+// Section Settings Popover - Individual section customization
+const SectionSettingsPopover: React.FC<{
+  sectionKey: string;
+  sectionSettings: any;
+  onSettingsChange: (sectionKey: string, newSettings: any) => void;
+  templateOptions: Array<{ value: string; label: string }>;
+}> = ({ sectionKey, sectionSettings, onSettingsChange, templateOptions }) => {
+  const colorSchemes = [
+    { value: 'blue', label: '🔵 Blue', color: '#1890ff' },
+    { value: 'purple', label: '🟣 Purple', color: '#722ed1' },
+    { value: 'green', label: '🟢 Green', color: '#52c41a' },
+    { value: 'orange', label: '🟠 Orange', color: '#fa8c16' },
+    { value: 'red', label: '🔴 Red', color: '#f5222d' },
+    { value: 'gold', label: '🟡 Gold', color: '#faad14' }
+  ];
 
+  const updateSetting = (key: string, value: any) => {
+    onSettingsChange(sectionKey, {
+      ...sectionSettings,
+      [key]: value
+    });
+  };
+
+  const content = (
+    <div style={{ width: '280px', padding: '8px' }}>
+      <Title level={5} style={{ margin: '0 0 16px', fontSize: '14px' }}>
+        🎨 {sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)} Settings
+      </Title>
+      
+      {/* Template Selection */}
+      <div style={{ marginBottom: '16px' }}>
+        <Text style={{ fontSize: '12px', color: '#666', marginBottom: '8px', display: 'block' }}>
+          Template Style:
+        </Text>
+        <Select
+          value={sectionSettings.template}
+          onChange={(value) => updateSetting('template', value)}
+          style={{ width: '100%' }}
+          size="small"
+        >
+          {templateOptions.map(option => (
+            <Option key={option.value} value={option.value}>
+              {option.label}
+            </Option>
+          ))}
+        </Select>
+      </div>
+
+      {/* Color Selection */}
+      <div style={{ marginBottom: '16px' }}>
+        <Text style={{ fontSize: '12px', color: '#666', marginBottom: '8px', display: 'block' }}>
+          Section Color:
+        </Text>
+        <Row gutter={[6, 6]}>
+          {colorSchemes.map(scheme => (
+            <Col span={8} key={scheme.value}>
+              <div
+                onClick={() => updateSetting('color', scheme.value)}
+                style={{
+                  padding: '8px',
+                  border: `2px solid ${sectionSettings.color === scheme.value ? scheme.color : '#f0f0f0'}`,
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  background: sectionSettings.color === scheme.value ? `${scheme.color}15` : 'white',
+                  transition: 'all 0.2s',
+                  textAlign: 'center',
+                  fontSize: '10px'
+                }}
+              >
+                {scheme.label}
+              </div>
+            </Col>
+          ))}
+        </Row>
+      </div>
+
+      {/* Quick Actions */}
+      <div style={{ 
+        paddingTop: '12px', 
+        borderTop: '1px solid #f0f0f0',
+        display: 'flex',
+        gap: '8px'
+      }}>
+        <Button size="small" style={{ fontSize: '10px' }}>
+          🔄 Reset
+        </Button>
+        <Button size="small" style={{ fontSize: '10px' }}>
+          📋 Copy Style
+        </Button>
+        <Button size="small" type="primary" style={{ fontSize: '10px' }}>
+          ✨ Preview
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <Popover
+      content={content}
+      title={null}
+      trigger="click"
+      placement="bottomRight"
+      overlayStyle={{ zIndex: 1050 }}
+    >
+      <Button
+        type="primary"
+        size="small"
+        icon={<SettingOutlined />}
+        style={{
+          position: 'absolute',
+          top: '16px',
+          right: '16px',
+          zIndex: 1000,
+          background: '#1890ff',
+          backdropFilter: 'blur(8px)',
+          border: 'none',
+          borderRadius: '8px',
+          width: '32px',
+          height: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 12px rgba(24, 144, 255, 0.4)',
+          transition: 'all 0.3s ease'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.15)';
+          e.currentTarget.style.boxShadow = '0 6px 20px rgba(24, 144, 255, 0.6)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.4)';
+        }}
+      />
+    </Popover>
+  );
+};
 
 // Live Customize Panel - Real-time settings with instant preview
 const LiveCustomizePanel: React.FC<{ settings: any, onSettingsChange: (settings: any) => void }> = ({ 
@@ -2193,12 +2960,58 @@ const PersonalPage: React.FC = () => {
   // Real-time settings state (local state that updates immediately)
   const [liveSettings, setLiveSettings] = useState(settings);
   
+  // Per-section settings state
+  const [sectionSettings, setSectionSettings] = useState<Record<string, any>>({
+    personal: { template: 'hero', color: 'blue' },
+    education: { template: 'academic', color: 'blue' },
+    jobs: { template: 'career', color: 'blue' },
+    projects: { template: 'portfolio', color: 'blue' },
+    hobbies: { template: 'creative', color: 'blue' }
+  });
+  
   // Sync live settings when main settings change
   React.useEffect(() => {
     if (settings) {
       setLiveSettings(settings);
+      // Initialize per-section settings from main settings
+      if (settings.sectionTemplates || settings.colorScheme) {
+        setSectionSettings(prev => ({
+          ...prev,
+          personal: { 
+            template: settings.sectionTemplates?.personal || 'hero', 
+            color: settings.colorScheme || 'blue' 
+          },
+          education: { 
+            template: settings.sectionTemplates?.education || 'academic', 
+            color: settings.colorScheme || 'blue' 
+          },
+          jobs: { 
+            template: settings.sectionTemplates?.jobs || 'career', 
+            color: settings.colorScheme || 'blue' 
+          },
+          projects: { 
+            template: settings.sectionTemplates?.projects || 'portfolio', 
+            color: settings.colorScheme || 'blue' 
+          },
+          hobbies: { 
+            template: settings.sectionTemplates?.hobbies || 'creative', 
+            color: settings.colorScheme || 'blue' 
+          }
+        }));
+      }
     }
   }, [settings]);
+
+  // Handle per-section settings changes
+  const handleSectionSettingsChange = (sectionKey: string, newSettings: any) => {
+    setSectionSettings(prev => ({
+      ...prev,
+      [sectionKey]: newSettings
+    }));
+    
+    // TODO: Add persistence for per-section settings
+    // For now, just update local state for immediate visual feedback
+  };
 
   const handleTogglePublic = async (checked: boolean): Promise<void> => {
     try {
@@ -2301,7 +3114,11 @@ const PersonalPage: React.FC = () => {
       <div className="personal-page__content" style={{ display: 'flex', gap: '24px', position: 'relative' }}>
         {/* Main content - always visible */}
         <div style={{ flex: 1 }}>
-          <PersonalPageView settings={liveSettings || settings} />
+          <PersonalPageView 
+            settings={liveSettings || settings}
+            sectionSettings={sectionSettings}
+            onSectionSettingsChange={handleSectionSettingsChange}
+          />
         </div>
         
         {/* Floating Customize Panel */}

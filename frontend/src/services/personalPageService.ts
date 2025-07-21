@@ -9,6 +9,7 @@ export interface PersonalPageSettings {
   sectionVisibility: Record<string, boolean>;
   sectionTemplates: Record<string, string>;
   theme: string;
+  colorScheme: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -20,10 +21,11 @@ export interface UpdatePersonalPageSettings {
   sectionVisibility?: Record<string, boolean>;
   sectionTemplates?: Record<string, string>;
   theme?: string;
+  colorScheme?: string;
 }
 
 export interface PublicPersonalPage {
-  user: any; // UserProfile type
+  user: any; 
   educations: any[];
   jobs: any[];
   hobbies: any[];
