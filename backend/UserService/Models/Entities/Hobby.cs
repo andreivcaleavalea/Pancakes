@@ -8,14 +8,15 @@ namespace UserService.Models.Entities
         [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
         
-        [Required]
-        [MaxLength(255)]
+        [Required(ErrorMessage = "Hobby name is required")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "Hobby name must be between 2 and 255 characters")]
         public string Name { get; set; } = string.Empty;
         
-        [MaxLength(1000)]
+        [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
         public string Description { get; set; } = string.Empty;
         
-        [MaxLength(50)]
+        [Required(ErrorMessage = "Skill level is required")]
+        [RegularExpression(@"^(Beginner|Intermediate|Advanced)$", ErrorMessage = "Level must be Beginner, Intermediate, or Advanced")]
         public string Level { get; set; } = string.Empty; // Beginner, Intermediate, Advanced
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

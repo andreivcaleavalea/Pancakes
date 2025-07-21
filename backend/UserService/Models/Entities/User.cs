@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace UserService.Models.Entities
 {
@@ -7,8 +8,9 @@ namespace UserService.Models.Entities
         [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
         
-        [Required]
-        [MaxLength(255)]
+        [Required(ErrorMessage = "Name is required")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 255 characters")]
+        [RegularExpression(@"^[a-zA-Z\s\-\.]+$", ErrorMessage = "Name can only contain letters, spaces, hyphens, and periods")]
         public string Name { get; set; } = string.Empty;
         
         [Required]
@@ -27,10 +29,11 @@ namespace UserService.Models.Entities
         [MaxLength(255)]
         public string ProviderUserId { get; set; } = string.Empty;
         
-        [MaxLength(1000)]
+        [StringLength(1000, ErrorMessage = "Bio cannot exceed 1000 characters")]
         public string Bio { get; set; } = string.Empty;
         
-        [MaxLength(20)]
+        [StringLength(20, ErrorMessage = "Phone number cannot exceed 20 characters")]
+        [RegularExpression(@"^[\+]?[0-9][\d]{0,15}$", ErrorMessage = "Please enter a valid phone number")]
         public string PhoneNumber { get; set; } = string.Empty;
         
         public DateTime? DateOfBirth { get; set; }

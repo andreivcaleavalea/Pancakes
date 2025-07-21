@@ -21,19 +21,31 @@ namespace UserService.Mappings
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             // Education mappings
-            CreateMap<Education, EducationDto>().ReverseMap()
+            CreateMap<Education, EducationDto>();
+            CreateMap<EducationDto, Education>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore()) 
+                .ForMember(dest => dest.UserId, opt => opt.Ignore()) 
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             // Job mappings
-            CreateMap<Job, JobDto>().ReverseMap()
+            CreateMap<Job, JobDto>();
+            CreateMap<JobDto, Job>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore()) 
+                .ForMember(dest => dest.UserId, opt => opt.Ignore()) 
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             // Hobby mappings
-            CreateMap<Hobby, HobbyDto>().ReverseMap()
+            CreateMap<Hobby, HobbyDto>();
+            CreateMap<HobbyDto, Hobby>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore()) 
+                .ForMember(dest => dest.UserId, opt => opt.Ignore()) 
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
 
             // Project mappings
-            CreateMap<Project, ProjectDto>().ReverseMap()
+            CreateMap<Project, ProjectDto>();
+            CreateMap<ProjectDto, Project>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore()) 
+                .ForMember(dest => dest.UserId, opt => opt.Ignore()) 
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
         }
     }

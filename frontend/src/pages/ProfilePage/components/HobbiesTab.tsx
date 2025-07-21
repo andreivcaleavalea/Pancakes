@@ -146,31 +146,40 @@ const HobbiesTab: React.FC = () => {
           <Form.Item
             label="Hobby Name"
             name="name"
-            rules={[{ required: true, message: 'Please enter the hobby name' }]}
+            rules={[
+              { required: true, message: 'Hobby name is required' },
+              { min: 2, message: 'Hobby name must be at least 2 characters' },
+              { max: 255, message: 'Hobby name cannot exceed 255 characters' }
+            ]}
           >
-            <Input placeholder="e.g., Photography, Cooking, Reading" />
+            <Input placeholder="e.g., Photography, Cooking, Reading" maxLength={255} />
           </Form.Item>
 
           <Form.Item
             label="Skill Level"
             name="level"
+            rules={[
+              { required: true, message: 'Skill level is required' }
+            ]}
           >
             <Select placeholder="Select your skill level">
               <Option value="Beginner">Beginner</Option>
               <Option value="Intermediate">Intermediate</Option>
               <Option value="Advanced">Advanced</Option>
-              <Option value="Expert">Expert</Option>
             </Select>
           </Form.Item>
 
           <Form.Item
             label="Description"
             name="description"
+            rules={[
+              { max: 1000, message: 'Description cannot exceed 1000 characters' }
+            ]}
           >
             <TextArea
               rows={3}
               placeholder="Tell us more about this hobby..."
-              maxLength={200}
+              maxLength={1000}
               showCount
             />
           </Form.Item>

@@ -21,15 +21,22 @@ const UserInfoTab: React.FC = () => {
   const handleSubmit = async (values: Record<string, any>) => {
     try {
       setLoading(true);
+      // Only send fields that can be updated (exclude email and handle avatar properly)
       const updatedData: Partial<UserProfile> = {
-        ...values,
+        name: values.name,
+        bio: values.bio || '',
+        phoneNumber: values.phoneNumber || '',
         dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : undefined
       };
       
+      console.log('Form values received:', values);
+      console.log('Submitting profile update:', updatedData);
       await updateUserProfile(updatedData);
       message.success('Profile updated successfully!');
-    } catch {
-      message.error('Failed to update profile');
+    } catch (error) {
+      console.error('Profile update failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -77,9 +84,14 @@ const UserInfoTab: React.FC = () => {
                 <Form.Item
                   label="Full Name"
                   name="name"
-                  rules={[{ required: true, message: 'Please enter your name' }]}
+                  rules={[
+                    { required: true, message: 'Name is required' },
+                    { min: 2, message: 'Name must be at least 2 characters' },
+                    { max: 255, message: 'Name cannot exceed 255 characters' },
+                    { pattern: /^[a-zA-Z\s\-\.]+$/, message: 'Name can only contain letters, spaces, hyphens, and periods' }
+                  ]}
                 >
-                  <Input placeholder="Enter your full name" />
+                  <Input placeholder="Enter your full name" maxLength={255} />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
@@ -91,7 +103,7 @@ const UserInfoTab: React.FC = () => {
                     { type: 'email', message: 'Please enter a valid email' }
                   ]}
                 >
-                  <Input placeholder="Enter your email" />
+                  <Input placeholder="Enter your email" disabled />
                 </Form.Item>
               </Col>
             </Row>
@@ -101,8 +113,12 @@ const UserInfoTab: React.FC = () => {
                 <Form.Item
                   label="Phone Number"
                   name="phoneNumber"
+                  rules={[
+                    { max: 20, message: 'Phone number cannot exceed 20 characters' },
+                    { pattern: /^[\+]?[0-9][\d]{0,15}$/, message: 'Please enter a valid phone number' }
+                  ]}
                 >
-                  <Input placeholder="Enter your phone number" />
+                  <Input placeholder="Enter your phone number (e.g., +1234567890)" maxLength={20} />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
@@ -122,11 +138,14 @@ const UserInfoTab: React.FC = () => {
             <Form.Item
               label="Bio"
               name="bio"
+              rules={[
+                { max: 1000, message: 'Bio cannot exceed 1000 characters' }
+              ]}
             >
               <TextArea
                 rows={4}
                 placeholder="Tell us about yourself..."
-                maxLength={500}
+                maxLength={1000}
                 showCount
               />
             </Form.Item>
