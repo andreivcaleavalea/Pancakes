@@ -174,25 +174,37 @@ const EducationTab: React.FC = () => {
           <Form.Item
             label="Institution"
             name="institution"
-            rules={[{ required: true, message: 'Please enter the institution name' }]}
+            rules={[
+              { required: true, message: 'Institution name is required' },
+              { min: 2, message: 'Institution name must be at least 2 characters' },
+              { max: 255, message: 'Institution name cannot exceed 255 characters' }
+            ]}
           >
-            <Input placeholder="e.g., Universitatea Politehnica București" />
+            <Input placeholder="e.g., Universitatea Politehnica București" maxLength={255} />
           </Form.Item>
 
           <Form.Item
             label="Specialization"
             name="specialization"
-            rules={[{ required: true, message: 'Please enter your specialization' }]}
+            rules={[
+              { required: true, message: 'Specialization is required' },
+              { min: 2, message: 'Specialization must be at least 2 characters' },
+              { max: 255, message: 'Specialization cannot exceed 255 characters' }
+            ]}
           >
-            <Input placeholder="e.g., Computer Science" />
+            <Input placeholder="e.g., Computer Science" maxLength={255} />
           </Form.Item>
 
           <Form.Item
             label="Degree"
             name="degree"
-            rules={[{ required: true, message: 'Please enter the degree' }]}
+            rules={[
+              { required: true, message: 'Degree is required' },
+              { min: 2, message: 'Degree must be at least 2 characters' },
+              { max: 100, message: 'Degree cannot exceed 100 characters' }
+            ]}
           >
-            <Input placeholder="e.g., Bachelor of Science" />
+            <Input placeholder="e.g., Bachelor of Science" maxLength={100} />
           </Form.Item>
 
           <Row gutter={16}>
@@ -228,11 +240,14 @@ const EducationTab: React.FC = () => {
           <Form.Item
             label="Description"
             name="description"
+            rules={[
+              { max: 1000, message: 'Description cannot exceed 1000 characters' }
+            ]}
           >
             <TextArea
               rows={3}
               placeholder="Additional details about your education..."
-              maxLength={300}
+              maxLength={1000}
               showCount
             />
           </Form.Item>

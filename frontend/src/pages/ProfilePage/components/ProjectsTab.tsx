@@ -16,11 +16,7 @@ const ProjectsTab: React.FC = () => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
 
-  const statusColors = {
-    'In Progress': 'processing',
-    'Completed': 'success',
-    'On Hold': 'warning'
-  };
+  // Status functionality removed as backend doesn't support it
 
   const showModal = (project?: Project) => {
     setEditingProject(project || null);
@@ -28,10 +24,13 @@ const ProjectsTab: React.FC = () => {
     
     if (project) {
       form.setFieldsValue({
-        ...project,
+        name: project.name,
+        description: project.description,
+        technologies: project.technologies,
+        link: project.projectUrl,
+        repositoryUrl: project.githubUrl,
         startDate: dayjs(project.startDate),
-        endDate: project.endDate ? dayjs(project.endDate) : undefined,
-        technologies: project.technologies.join(', ')
+        endDate: project.endDate ? dayjs(project.endDate) : undefined
       });
     } else {
       form.resetFields();
@@ -52,17 +51,15 @@ const ProjectsTab: React.FC = () => {
     endDate?: Dayjs;
     link?: string;
     repositoryUrl?: string;
-    status: 'In Progress' | 'Completed' | 'On Hold';
   }) => {
     try {
       setSubmitting(true);
       const projectData = {
         name: values.name,
         description: values.description,
-        technologies: values.technologies.split(',').map(tech => tech.trim()).filter(tech => tech),
-        link: values.link,
-        repositoryUrl: values.repositoryUrl,
-        status: values.status,
+        technologies: values.technologies.split(',').map(tech => tech.trim()).filter(tech => tech).join(', '),
+        projectUrl: values.link || '',
+        githubUrl: values.repositoryUrl || '',
         startDate: values.startDate.format('YYYY-MM'),
         endDate: values.endDate ? values.endDate.format('YYYY-MM') : undefined
       };
@@ -147,29 +144,26 @@ const ProjectsTab: React.FC = () => {
               title={
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <Text strong>{project.name}</Text>
-                  <Tag color={statusColors[project.status]}>
-                    {project.status}
-                  </Tag>
-                  {(project.link || project.repositoryUrl) && (
+                  {(project.projectUrl || project.githubUrl) && (
                     <Space size="small">
-                      {project.link && (
+                      {project.projectUrl && (
                         <Button
                           type="link"
                           size="small"
                           icon={<LinkOutlined />}
-                          href={project.link}
+                          href={project.projectUrl}
                           target="_blank"
                           style={{ padding: 0, height: 'auto' }}
                         >
                           Demo
                         </Button>
                       )}
-                      {project.repositoryUrl && (
+                      {project.githubUrl && (
                         <Button
                           type="link"
                           size="small"
                           icon={<GithubOutlined />}
-                          href={project.repositoryUrl}
+                          href={project.githubUrl}
                           target="_blank"
                           style={{ padding: 0, height: 'auto' }}
                         >
@@ -187,9 +181,9 @@ const ProjectsTab: React.FC = () => {
                   <Text type="secondary">{getPeriod(project.startDate, project.endDate)}</Text>
                   <br />
                   <div style={{ marginTop: '8px' }}>
-                    {project.technologies.map((tech, index) => (
+                    {project.technologies.split(',').map((tech, index) => (
                       <Tag key={index} style={{ marginBottom: '4px' }}>
-                        {tech}
+                        {tech.trim()}
                       </Tag>
                     ))}
                   </div>
@@ -216,20 +210,28 @@ const ProjectsTab: React.FC = () => {
           <Form.Item
             label="Project Name"
             name="name"
-            rules={[{ required: true, message: 'Please enter the project name' }]}
+            rules={[
+              { required: true, message: 'Project name is required' },
+              { min: 2, message: 'Project name must be at least 2 characters' },
+              { max: 255, message: 'Project name cannot exceed 255 characters' }
+            ]}
           >
-            <Input placeholder="e.g., Pancakes Blog Platform" />
+            <Input placeholder="e.g., Pancakes Blog Platform" maxLength={255} />
           </Form.Item>
 
           <Form.Item
             label="Description"
             name="description"
-            rules={[{ required: true, message: 'Please enter project description' }]}
+            rules={[
+              { required: true, message: 'Project description is required' },
+              { min: 10, message: 'Description must be at least 10 characters' },
+              { max: 1000, message: 'Description cannot exceed 1000 characters' }
+            ]}
           >
             <TextArea
               rows={3}
               placeholder="Describe what this project does..."
-              maxLength={300}
+              maxLength={1000}
               showCount
             />
           </Form.Item>
@@ -237,10 +239,14 @@ const ProjectsTab: React.FC = () => {
           <Form.Item
             label="Technologies"
             name="technologies"
-            rules={[{ required: true, message: 'Please enter technologies used' }]}
+            rules={[
+              { required: true, message: 'Technologies are required' },
+              { min: 2, message: 'Technologies must be at least 2 characters' },
+              { max: 500, message: 'Technologies cannot exceed 500 characters' }
+            ]}
             extra="Separate technologies with commas (e.g., React, TypeScript, Node.js)"
           >
-            <Input placeholder="React, TypeScript, Node.js, PostgreSQL" />
+            <Input placeholder="React, TypeScript, Node.js, PostgreSQL" maxLength={500} />
           </Form.Item>
 
           <Row gutter={16}>
@@ -273,33 +279,31 @@ const ProjectsTab: React.FC = () => {
             </Col>
           </Row>
 
-          <Form.Item
-            label="Status"
-            name="status"
-            rules={[{ required: true, message: 'Please select project status' }]}
-          >
-            <Select placeholder="Select project status">
-              <Option value="In Progress">In Progress</Option>
-              <Option value="Completed">Completed</Option>
-              <Option value="On Hold">On Hold</Option>
-            </Select>
-          </Form.Item>
+
 
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Demo Link"
                 name="link"
+                rules={[
+                  { type: 'url', message: 'Please enter a valid URL' },
+                  { max: 500, message: 'URL cannot exceed 500 characters' }
+                ]}
               >
-                <Input placeholder="https://your-project-demo.com" />
+                <Input placeholder="https://your-project-demo.com" maxLength={500} />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
                 label="Repository URL"
                 name="repositoryUrl"
+                rules={[
+                  { type: 'url', message: 'Please enter a valid GitHub URL' },
+                  { max: 500, message: 'URL cannot exceed 500 characters' }
+                ]}
               >
-                <Input placeholder="https://github.com/user/project" />
+                <Input placeholder="https://github.com/user/project" maxLength={500} />
               </Form.Item>
             </Col>
           </Row>

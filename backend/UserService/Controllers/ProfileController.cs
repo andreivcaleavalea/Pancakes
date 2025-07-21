@@ -61,8 +61,13 @@ namespace UserService.Controllers
 
         // Update user profile
         [HttpPut("user")]
-        public async Task<ActionResult<UserProfileDto>> UpdateUserProfile([FromBody] UserProfileDto userProfileDto)
+        public async Task<ActionResult<UserProfileDto>> UpdateUserProfile([FromBody] UpdateUserProfileDto updateUserProfileDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
@@ -75,13 +80,21 @@ namespace UserService.Controllers
                 return NotFound();
             }
 
-            // Update user fields
-            user.Name = userProfileDto.Name;
-            user.Bio = userProfileDto.Bio;
-            user.PhoneNumber = userProfileDto.PhoneNumber;
-            if (!string.IsNullOrEmpty(userProfileDto.DateOfBirth))
+            // Update user fields (email is never updated for security)
+            user.Name = updateUserProfileDto.Name;
+            user.Bio = updateUserProfileDto.Bio;
+            user.PhoneNumber = updateUserProfileDto.PhoneNumber;
+            if (!string.IsNullOrEmpty(updateUserProfileDto.DateOfBirth))
             {
-                user.DateOfBirth = DateTime.Parse(userProfileDto.DateOfBirth);
+                if (DateTime.TryParse(updateUserProfileDto.DateOfBirth, out DateTime parsedDate))
+                {
+                    // Convert to UTC for PostgreSQL compatibility
+                    user.DateOfBirth = DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
+                }
+            }
+            else
+            {
+                user.DateOfBirth = null; 
             }
             user.UpdatedAt = DateTime.UtcNow;
 
@@ -110,6 +123,11 @@ namespace UserService.Controllers
         [HttpPost("educations")]
         public async Task<ActionResult<EducationDto>> AddEducation([FromBody] EducationDto educationDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
@@ -129,6 +147,11 @@ namespace UserService.Controllers
         [HttpPut("educations/{id}")]
         public async Task<ActionResult<EducationDto>> UpdateEducation(string id, [FromBody] EducationDto educationDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
@@ -194,6 +217,11 @@ namespace UserService.Controllers
         [HttpPost("jobs")]
         public async Task<ActionResult<JobDto>> AddJob([FromBody] JobDto jobDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
@@ -213,6 +241,11 @@ namespace UserService.Controllers
         [HttpPut("jobs/{id}")]
         public async Task<ActionResult<JobDto>> UpdateJob(string id, [FromBody] JobDto jobDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
@@ -278,6 +311,11 @@ namespace UserService.Controllers
         [HttpPost("hobbies")]
         public async Task<ActionResult<HobbyDto>> AddHobby([FromBody] HobbyDto hobbyDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
@@ -297,6 +335,11 @@ namespace UserService.Controllers
         [HttpPut("hobbies/{id}")]
         public async Task<ActionResult<HobbyDto>> UpdateHobby(string id, [FromBody] HobbyDto hobbyDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
@@ -362,6 +405,11 @@ namespace UserService.Controllers
         [HttpPost("projects")]
         public async Task<ActionResult<ProjectDto>> AddProject([FromBody] ProjectDto projectDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
@@ -381,6 +429,11 @@ namespace UserService.Controllers
         [HttpPut("projects/{id}")]
         public async Task<ActionResult<ProjectDto>> UpdateProject(string id, [FromBody] ProjectDto projectDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
