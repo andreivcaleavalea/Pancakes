@@ -67,13 +67,13 @@ namespace UserService.Controllers
             {
                 Console.WriteLine($"OAuth callback received for {provider}");
                 
-                var frontendUrl = $"http://localhost:3000/auth/callback?code={code}&state={state}&provider={provider}";
+                var frontendUrl = $"http://localhost:5173/auth/callback?code={code}&state={state}&provider={provider}";
                 return Redirect(frontendUrl);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"OAuth callback error: {ex.Message}");
-                return Redirect("http://localhost:3000/login?error=callback_failed");
+                return Redirect("http://localhost:5173/login?error=callback_failed");
             }
         }
 

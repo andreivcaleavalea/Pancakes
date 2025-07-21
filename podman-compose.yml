@@ -1,41 +1,13 @@
-version: '3.8'
+version: "3.8"
 services:
-  frontend:
-    build: ./frontend
-    ports:
-      - "${FRONTEND_PORT:-3000}:5173"
-    env_file:
-      - .env
-    depends_on:
-      - blogservice
-      - userservice
-
-  blogservice:
-    build: ./backend/BlogService
-    ports:
-      - "${BLOG_SERVICE_PORT:-5001}:80"
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-
-  userservice:
-    build: ./backend/UserService
-    ports:
-      - "${USER_SERVICE_PORT:-5141}:80"
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-
   postgres:
     image: postgres:15
     env_file:
       - .env
     environment:
-      - POSTGRES_DB=${POSTGRES_DATABASE}
-      - POSTGRES_USER=${POSTGRES_USERNAME}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=PancakesBlogDB
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres123
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:

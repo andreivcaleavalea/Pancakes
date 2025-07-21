@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { BlogService } from '@/services/blogService';
-import type { BlogPost, FeaturedPost } from '@/types/blog';
+import { useState, useEffect, useCallback } from "react";
+import { BlogService } from "@/services/blogService";
+import type { BlogPost, FeaturedPost } from "@/types/blog";
 
 /**
  * Custom hook for managing blog data on the home page
@@ -13,7 +13,7 @@ export const useBlogData = () => {
   }>({
     featuredPosts: [],
     horizontalPosts: [],
-    gridPosts: []
+    gridPosts: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export const useBlogData = () => {
       const blogData = await BlogService.getHomePageData();
       setData(blogData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load blog data');
+      setError(err instanceof Error ? err.message : "Failed to load blog data");
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export const usePaginatedPosts = (page: number, pageSize: number) => {
     totalPages: 0,
     totalItems: 0,
     hasNextPage: false,
-    hasPreviousPage: false
+    hasPreviousPage: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +62,7 @@ export const usePaginatedPosts = (page: number, pageSize: number) => {
       setData(result.data);
       setPagination(result.pagination);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load posts');
+      setError(err instanceof Error ? err.message : "Failed to load posts");
     } finally {
       setLoading(false);
     }
@@ -89,11 +89,48 @@ export const useResponsive = (breakpoint: number = 768) => {
     // Set initial value
     handleResize();
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [breakpoint]);
 
   return isMobile;
+};
+
+/**
+ * Custom hook for fetching a single blog post by ID
+ */
+export const useBlogPost = (id: string | undefined) => {
+  const [data, setData] = useState<BlogPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPost = useCallback(async () => {
+    if (!id) {
+      setError("No blog ID provided");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const post = await BlogService.getPostById(id);
+      setData(post);
+      if (!post) {
+        setError("Blog post not found");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load blog post");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchPost();
+  }, [fetchPost]);
+
+  return { data, loading, error, refetch: fetchPost };
 };
 
 /**
@@ -113,7 +150,7 @@ export const useFavorite = (postId: string, initialState: boolean = false) => {
       }
       return false;
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      console.error("Error toggling favorite:", error);
       return false;
     } finally {
       setLoading(false);
