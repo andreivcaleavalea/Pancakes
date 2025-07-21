@@ -29,8 +29,6 @@ const UserInfoTab: React.FC = () => {
         dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : undefined
       };
       
-      console.log('Form values received:', values);
-      console.log('Submitting profile update:', updatedData);
       await updateUserProfile(updatedData);
       message.success('Profile updated successfully!');
     } catch (error) {

@@ -98,14 +98,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error("Error calling logout endpoint:", error);
-      // Don't throw error - logout should succeed even if backend call fails
     } finally {
-      // Clear frontend session - this is the actual logout in a stateless system
       setSession(null);
       localStorage.removeItem("auth-session");
       sessionStorage.removeItem("oauth-provider");
       sessionStorage.removeItem("oauth-state");
-      console.log("User signed out successfully");
     }
   };
 

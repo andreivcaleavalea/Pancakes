@@ -1,67 +1,73 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using AutoMapper;
-using UserService.Data;
 using UserService.Models.DTOs;
-using UserService.Models.Entities;
+using UserService.Services.Interfaces;
 using UserService.Services;
 
-namespace UserService.Controllers
+namespace UserService.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class ProfileController : ControllerBase
 {
-    [ApiController]
-    [Route("api/profile")]
-    [Authorize] // Temporarily disabled for testing
-    public class ProfileController : ControllerBase
+    private readonly IProfileService _profileService;
+    private readonly IEducationService _educationService;
+    private readonly IJobService _jobService;
+    private readonly IHobbyService _hobbyService;
+    private readonly IProjectService _projectService;
+    private readonly CurrentUserService _currentUserService;
+    private readonly ILogger<ProfileController> _logger;
+
+    public ProfileController(
+        IProfileService profileService,
+        IEducationService educationService,
+        IJobService jobService,
+        IHobbyService hobbyService,
+        IProjectService projectService,
+        CurrentUserService currentUserService,
+        ILogger<ProfileController> logger)
     {
-        private readonly UserDbContext _context;
-        private readonly IMapper _mapper;
-        private readonly CurrentUserService _currentUserService;
+        _profileService = profileService;
+        _educationService = educationService;
+        _jobService = jobService;
+        _hobbyService = hobbyService;
+        _projectService = projectService;
+        _currentUserService = currentUserService;
+        _logger = logger;
+    }
 
-        public ProfileController(UserDbContext context, IMapper mapper, CurrentUserService currentUserService)
-        {
-            _context = context;
-            _mapper = mapper;
-            _currentUserService = currentUserService;
-        }
-
-        // Get complete profile data
-        [HttpGet]
-        public async Task<ActionResult<ProfileDataDto>> GetProfile()
+    // Profile endpoints
+    [HttpGet]
+    public async Task<IActionResult> GetProfile()
+    {
+        try
         {
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var user = await _context.Users
-                .Include(u => u.Educations)
-                .Include(u => u.Jobs)
-                .Include(u => u.Hobbies)
-                .Include(u => u.Projects)
-                .FirstOrDefaultAsync(u => u.Id == currentUserId);
-
-            if (user == null)
+            var profileData = await _profileService.GetProfileDataAsync(currentUserId);
+            if (profileData == null)
             {
-                return NotFound();
+                return NotFound("Profile not found");
             }
-
-            var profileData = new ProfileDataDto
-            {
-                User = _mapper.Map<UserProfileDto>(user),
-                Educations = _mapper.Map<List<EducationDto>>(user.Educations),
-                Jobs = _mapper.Map<List<JobDto>>(user.Jobs),
-                Hobbies = _mapper.Map<List<HobbyDto>>(user.Hobbies),
-                Projects = _mapper.Map<List<ProjectDto>>(user.Projects)
-            };
 
             return Ok(profileData);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting profile for user");
+            return StatusCode(500, "An error occurred while getting the profile");
+        }
+    }
 
-        // Update user profile
-        [HttpPut("user")]
-        public async Task<ActionResult<UserProfileDto>> UpdateUserProfile([FromBody] UpdateUserProfileDto updateUserProfileDto)
+    [HttpPut("user")]
+    public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileDto updateDto)
+    {
+        try
         {
             if (!ModelState.IsValid)
             {
@@ -71,57 +77,50 @@ namespace UserService.Controllers
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var user = await _context.Users.FindAsync(currentUserId);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            // Update user fields (email is never updated for security)
-            user.Name = updateUserProfileDto.Name;
-            user.Bio = updateUserProfileDto.Bio;
-            user.PhoneNumber = updateUserProfileDto.PhoneNumber;
-            if (!string.IsNullOrEmpty(updateUserProfileDto.DateOfBirth))
-            {
-                if (DateTime.TryParse(updateUserProfileDto.DateOfBirth, out DateTime parsedDate))
-                {
-                    // Convert to UTC for PostgreSQL compatibility
-                    user.DateOfBirth = DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
-                }
-            }
-            else
-            {
-                user.DateOfBirth = null; 
-            }
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(_mapper.Map<UserProfileDto>(user));
+            var updatedProfile = await _profileService.UpdateUserProfileAsync(currentUserId, updateDto);
+            return Ok(updatedProfile);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for updating user profile");
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user profile");
+            return StatusCode(500, "An error occurred while updating the profile");
+        }
+    }
 
-        // Education endpoints
-        [HttpGet("educations")]
-        public async Task<ActionResult<List<EducationDto>>> GetEducations()
+    // Education endpoints
+    [HttpGet("educations")]
+    public async Task<IActionResult> GetEducations()
+    {
+        try
         {
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var educations = await _context.Educations
-                .Where(e => e.UserId == currentUserId)
-                .ToListAsync();
-
-            return Ok(_mapper.Map<List<EducationDto>>(educations));
+            var educations = await _educationService.GetUserEducationsAsync(currentUserId);
+            return Ok(educations);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting educations for user");
+            return StatusCode(500, "An error occurred while getting educations");
+        }
+    }
 
-        [HttpPost("educations")]
-        public async Task<ActionResult<EducationDto>> AddEducation([FromBody] EducationDto educationDto)
+    [HttpPost("educations")]
+    public async Task<IActionResult> AddEducation([FromBody] EducationDto educationDto)
+    {
+        try
         {
             if (!ModelState.IsValid)
             {
@@ -131,21 +130,28 @@ namespace UserService.Controllers
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var education = _mapper.Map<Education>(educationDto);
-            education.UserId = currentUserId;
-            education.Id = Guid.NewGuid().ToString();
-
-            _context.Educations.Add(education);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetEducations), _mapper.Map<EducationDto>(education));
+            var createdEducation = await _educationService.CreateAsync(currentUserId, educationDto);
+            return CreatedAtAction(nameof(GetEducations), createdEducation);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for creating education");
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating education");
+            return StatusCode(500, "An error occurred while creating the education");
+        }
+    }
 
-        [HttpPut("educations/{id}")]
-        public async Task<ActionResult<EducationDto>> UpdateEducation(string id, [FromBody] EducationDto educationDto)
+    [HttpPut("educations/{id}")]
+    public async Task<IActionResult> UpdateEducation(string id, [FromBody] EducationDto educationDto)
+    {
+        try
         {
             if (!ModelState.IsValid)
             {
@@ -155,67 +161,76 @@ namespace UserService.Controllers
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var education = await _context.Educations
-                .FirstOrDefaultAsync(e => e.Id == id && e.UserId == currentUserId);
-
-            if (education == null)
-            {
-                return NotFound();
-            }
-
-            _mapper.Map(educationDto, education);
-            education.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(_mapper.Map<EducationDto>(education));
+            var updatedEducation = await _educationService.UpdateAsync(currentUserId, id, educationDto);
+            return Ok(updatedEducation);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for updating education with ID {EducationId}", id);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating education with ID {EducationId}", id);
+            return StatusCode(500, "An error occurred while updating the education");
+        }
+    }
 
-        [HttpDelete("educations/{id}")]
-        public async Task<IActionResult> DeleteEducation(string id)
+    [HttpDelete("educations/{id}")]
+    public async Task<IActionResult> DeleteEducation(string id)
+    {
+        try
         {
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var education = await _context.Educations
-                .FirstOrDefaultAsync(e => e.Id == id && e.UserId == currentUserId);
-
-            if (education == null)
-            {
-                return NotFound();
-            }
-
-            _context.Educations.Remove(education);
-            await _context.SaveChangesAsync();
-
+            await _educationService.DeleteAsync(currentUserId, id);
             return NoContent();
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for deleting education with ID {EducationId}", id);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting education with ID {EducationId}", id);
+            return StatusCode(500, "An error occurred while deleting the education");
+        }
+    }
 
-        // Job endpoints
-        [HttpGet("jobs")]
-        public async Task<ActionResult<List<JobDto>>> GetJobs()
+    // Job endpoints
+    [HttpGet("jobs")]
+    public async Task<IActionResult> GetJobs()
+    {
+        try
         {
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var jobs = await _context.Jobs
-                .Where(j => j.UserId == currentUserId)
-                .ToListAsync();
-
-            return Ok(_mapper.Map<List<JobDto>>(jobs));
+            var jobs = await _jobService.GetUserJobsAsync(currentUserId);
+            return Ok(jobs);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting jobs for user");
+            return StatusCode(500, "An error occurred while getting jobs");
+        }
+    }
 
-        [HttpPost("jobs")]
-        public async Task<ActionResult<JobDto>> AddJob([FromBody] JobDto jobDto)
+    [HttpPost("jobs")]
+    public async Task<IActionResult> AddJob([FromBody] JobDto jobDto)
+    {
+        try
         {
             if (!ModelState.IsValid)
             {
@@ -225,21 +240,28 @@ namespace UserService.Controllers
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var job = _mapper.Map<Job>(jobDto);
-            job.UserId = currentUserId;
-            job.Id = Guid.NewGuid().ToString();
-
-            _context.Jobs.Add(job);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetJobs), _mapper.Map<JobDto>(job));
+            var createdJob = await _jobService.CreateAsync(currentUserId, jobDto);
+            return CreatedAtAction(nameof(GetJobs), createdJob);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for creating job");
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating job");
+            return StatusCode(500, "An error occurred while creating the job");
+        }
+    }
 
-        [HttpPut("jobs/{id}")]
-        public async Task<ActionResult<JobDto>> UpdateJob(string id, [FromBody] JobDto jobDto)
+    [HttpPut("jobs/{id}")]
+    public async Task<IActionResult> UpdateJob(string id, [FromBody] JobDto jobDto)
+    {
+        try
         {
             if (!ModelState.IsValid)
             {
@@ -249,67 +271,76 @@ namespace UserService.Controllers
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var job = await _context.Jobs
-                .FirstOrDefaultAsync(j => j.Id == id && j.UserId == currentUserId);
-
-            if (job == null)
-            {
-                return NotFound();
-            }
-
-            _mapper.Map(jobDto, job);
-            job.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(_mapper.Map<JobDto>(job));
+            var updatedJob = await _jobService.UpdateAsync(currentUserId, id, jobDto);
+            return Ok(updatedJob);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for updating job with ID {JobId}", id);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating job with ID {JobId}", id);
+            return StatusCode(500, "An error occurred while updating the job");
+        }
+    }
 
-        [HttpDelete("jobs/{id}")]
-        public async Task<IActionResult> DeleteJob(string id)
+    [HttpDelete("jobs/{id}")]
+    public async Task<IActionResult> DeleteJob(string id)
+    {
+        try
         {
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var job = await _context.Jobs
-                .FirstOrDefaultAsync(j => j.Id == id && j.UserId == currentUserId);
-
-            if (job == null)
-            {
-                return NotFound();
-            }
-
-            _context.Jobs.Remove(job);
-            await _context.SaveChangesAsync();
-
+            await _jobService.DeleteAsync(currentUserId, id);
             return NoContent();
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for deleting job with ID {JobId}", id);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting job with ID {JobId}", id);
+            return StatusCode(500, "An error occurred while deleting the job");
+        }
+    }
 
-        // Hobby endpoints
-        [HttpGet("hobbies")]
-        public async Task<ActionResult<List<HobbyDto>>> GetHobbies()
+    // Hobby endpoints
+    [HttpGet("hobbies")]
+    public async Task<IActionResult> GetHobbies()
+    {
+        try
         {
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var hobbies = await _context.Hobbies
-                .Where(h => h.UserId == currentUserId)
-                .ToListAsync();
-
-            return Ok(_mapper.Map<List<HobbyDto>>(hobbies));
+            var hobbies = await _hobbyService.GetUserHobbiesAsync(currentUserId);
+            return Ok(hobbies);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting hobbies for user");
+            return StatusCode(500, "An error occurred while getting hobbies");
+        }
+    }
 
-        [HttpPost("hobbies")]
-        public async Task<ActionResult<HobbyDto>> AddHobby([FromBody] HobbyDto hobbyDto)
+    [HttpPost("hobbies")]
+    public async Task<IActionResult> AddHobby([FromBody] HobbyDto hobbyDto)
+    {
+        try
         {
             if (!ModelState.IsValid)
             {
@@ -319,21 +350,28 @@ namespace UserService.Controllers
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var hobby = _mapper.Map<Hobby>(hobbyDto);
-            hobby.UserId = currentUserId;
-            hobby.Id = Guid.NewGuid().ToString();
-
-            _context.Hobbies.Add(hobby);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetHobbies), _mapper.Map<HobbyDto>(hobby));
+            var createdHobby = await _hobbyService.CreateAsync(currentUserId, hobbyDto);
+            return CreatedAtAction(nameof(GetHobbies), createdHobby);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for creating hobby");
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating hobby");
+            return StatusCode(500, "An error occurred while creating the hobby");
+        }
+    }
 
-        [HttpPut("hobbies/{id}")]
-        public async Task<ActionResult<HobbyDto>> UpdateHobby(string id, [FromBody] HobbyDto hobbyDto)
+    [HttpPut("hobbies/{id}")]
+    public async Task<IActionResult> UpdateHobby(string id, [FromBody] HobbyDto hobbyDto)
+    {
+        try
         {
             if (!ModelState.IsValid)
             {
@@ -343,67 +381,76 @@ namespace UserService.Controllers
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var hobby = await _context.Hobbies
-                .FirstOrDefaultAsync(h => h.Id == id && h.UserId == currentUserId);
-
-            if (hobby == null)
-            {
-                return NotFound();
-            }
-
-            _mapper.Map(hobbyDto, hobby);
-            hobby.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(_mapper.Map<HobbyDto>(hobby));
+            var updatedHobby = await _hobbyService.UpdateAsync(currentUserId, id, hobbyDto);
+            return Ok(updatedHobby);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for updating hobby with ID {HobbyId}", id);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating hobby with ID {HobbyId}", id);
+            return StatusCode(500, "An error occurred while updating the hobby");
+        }
+    }
 
-        [HttpDelete("hobbies/{id}")]
-        public async Task<IActionResult> DeleteHobby(string id)
+    [HttpDelete("hobbies/{id}")]
+    public async Task<IActionResult> DeleteHobby(string id)
+    {
+        try
         {
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var hobby = await _context.Hobbies
-                .FirstOrDefaultAsync(h => h.Id == id && h.UserId == currentUserId);
-
-            if (hobby == null)
-            {
-                return NotFound();
-            }
-
-            _context.Hobbies.Remove(hobby);
-            await _context.SaveChangesAsync();
-
+            await _hobbyService.DeleteAsync(currentUserId, id);
             return NoContent();
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for deleting hobby with ID {HobbyId}", id);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting hobby with ID {HobbyId}", id);
+            return StatusCode(500, "An error occurred while deleting the hobby");
+        }
+    }
 
-        // Project endpoints
-        [HttpGet("projects")]
-        public async Task<ActionResult<List<ProjectDto>>> GetProjects()
+    // Project endpoints
+    [HttpGet("projects")]
+    public async Task<IActionResult> GetProjects()
+    {
+        try
         {
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var projects = await _context.Projects
-                .Where(p => p.UserId == currentUserId)
-                .ToListAsync();
-
-            return Ok(_mapper.Map<List<ProjectDto>>(projects));
+            var projects = await _projectService.GetUserProjectsAsync(currentUserId);
+            return Ok(projects);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting projects for user");
+            return StatusCode(500, "An error occurred while getting projects");
+        }
+    }
 
-        [HttpPost("projects")]
-        public async Task<ActionResult<ProjectDto>> AddProject([FromBody] ProjectDto projectDto)
+    [HttpPost("projects")]
+    public async Task<IActionResult> AddProject([FromBody] ProjectDto projectDto)
+    {
+        try
         {
             if (!ModelState.IsValid)
             {
@@ -413,21 +460,28 @@ namespace UserService.Controllers
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var project = _mapper.Map<Project>(projectDto);
-            project.UserId = currentUserId;
-            project.Id = Guid.NewGuid().ToString();
-
-            _context.Projects.Add(project);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetProjects), _mapper.Map<ProjectDto>(project));
+            var createdProject = await _projectService.CreateAsync(currentUserId, projectDto);
+            return CreatedAtAction(nameof(GetProjects), createdProject);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for creating project");
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating project");
+            return StatusCode(500, "An error occurred while creating the project");
+        }
+    }
 
-        [HttpPut("projects/{id}")]
-        public async Task<ActionResult<ProjectDto>> UpdateProject(string id, [FromBody] ProjectDto projectDto)
+    [HttpPut("projects/{id}")]
+    public async Task<IActionResult> UpdateProject(string id, [FromBody] ProjectDto projectDto)
+    {
+        try
         {
             if (!ModelState.IsValid)
             {
@@ -437,46 +491,47 @@ namespace UserService.Controllers
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == currentUserId);
-
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            _mapper.Map(projectDto, project);
-            project.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(_mapper.Map<ProjectDto>(project));
+            var updatedProject = await _projectService.UpdateAsync(currentUserId, id, projectDto);
+            return Ok(updatedProject);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for updating project with ID {ProjectId}", id);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating project with ID {ProjectId}", id);
+            return StatusCode(500, "An error occurred while updating the project");
+        }
+    }
 
-        [HttpDelete("projects/{id}")]
-        public async Task<IActionResult> DeleteProject(string id)
+    [HttpDelete("projects/{id}")]
+    public async Task<IActionResult> DeleteProject(string id)
+    {
+        try
         {
             var currentUserId = _currentUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(currentUserId))
             {
-                return Unauthorized();
+                return Unauthorized("User not authenticated");
             }
 
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == currentUserId);
-
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            _context.Projects.Remove(project);
-            await _context.SaveChangesAsync();
-
+            await _projectService.DeleteAsync(currentUserId, id);
             return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid request for deleting project with ID {ProjectId}", id);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting project with ID {ProjectId}", id);
+            return StatusCode(500, "An error occurred while deleting the project");
         }
     }
 } 
