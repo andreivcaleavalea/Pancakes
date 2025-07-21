@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Card, Tabs, Spin, Alert, Avatar, Typography, Row, Col, Button } from 'antd';
-import { UserOutlined, EditOutlined } from '@ant-design/icons';
+import { Card, Tabs, Spin, Alert, Avatar, Typography, Row, Col, Button, Space } from 'antd';
+import { UserOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { useProfile } from '../../hooks/useProfile';
+import { useRouter } from '../../router/RouterProvider';
 import { getProfilePictureUrl } from '../../utils/imageUtils';
 import UserInfoTab from './components/UserInfoTab';
 import EducationTab from './components/EducationTab';
@@ -14,6 +15,7 @@ const { Title, Text } = Typography;
 
 const ProfilePage: React.FC = () => {
   const { profileData, loading, error } = useProfile();
+  const { navigate } = useRouter();
   const [activeTab, setActiveTab] = useState('userInfo');
 
 
@@ -111,13 +113,21 @@ const ProfilePage: React.FC = () => {
               </div>
             </Col>
             <Col>
-              <Button 
-                type="primary" 
-                icon={<EditOutlined />}
-                onClick={() => setActiveTab('userInfo')}
-              >
-                Edit Profile
-              </Button>
+              <Space>
+                <Button 
+                  icon={<EyeOutlined />}
+                  onClick={() => navigate('personal-page')}
+                >
+                  See Personal Page
+                </Button>
+                <Button 
+                  type="primary" 
+                  icon={<EditOutlined />}
+                  onClick={() => setActiveTab('userInfo')}
+                >
+                  Edit Profile
+                </Button>
+              </Space>
             </Col>
           </Row>
         </Card>

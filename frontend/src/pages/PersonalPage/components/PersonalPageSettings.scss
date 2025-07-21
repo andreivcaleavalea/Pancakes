@@ -1,0 +1,75 @@
+.personal-page-settings {
+  &__card {
+    .ant-card-body {
+      padding: 24px;
+    }
+  }
+
+  &__sections {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  &__section-item {
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #fafafa;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #1890ff;
+      background: #fff;
+    }
+  }
+
+  &__section-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__section-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  &__drag-handle {
+    color: #bfbfbf;
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &__section-label {
+    font-weight: 500;
+    flex: 1;
+  }
+
+  &__actions {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    &__section-content {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    &__section-info {
+      justify-content: center;
+    }
+  }
+} 

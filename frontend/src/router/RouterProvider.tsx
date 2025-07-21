@@ -6,7 +6,7 @@ import React, {
   type ReactNode,
 } from "react";
 
-export type PageType = "home" | "login" | "profile";
+export type PageType = "home" | "login" | "profile" | "personal-page";
 export type LoginMode = "signin" | "register";
 
 interface RouterContextType {
@@ -45,6 +45,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       setCurrentPage("login");
     } else if (path === "/profile") {
       setCurrentPage("profile");
+    } else if (path === "/personal-page") {
+      setCurrentPage("personal-page");
     } else {
       setCurrentPage("home");
     }
@@ -73,18 +75,24 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
   }, []);
 
   const navigate = (page: PageType, mode?: LoginMode) => {
-    setCurrentPage(page);
-    if (mode) {
-      setLoginMode(mode);
-    }
-
-    // Update URL
+    // Update URL first
     let url = `/${page === "home" ? "" : page}`;
     if (page === "login" && mode) {
       url += `?mode=${mode}`;
     }
 
     window.history.pushState({}, "", url);
+    
+    // Then update state and trigger route detection
+    setCurrentPage(page);
+    if (mode) {
+      setLoginMode(mode);
+    }
+    
+    // Force route detection to run
+    setTimeout(() => {
+      updatePageFromPath();
+    }, 0);
   };
 
   return (

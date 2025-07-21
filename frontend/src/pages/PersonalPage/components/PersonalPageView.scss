@@ -1,0 +1,112 @@
+.personal-page-view {
+  max-width: 100%;
+
+  &__empty {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__section {
+    .ant-card-body {
+      padding: 24px;
+    }
+
+    &:not(:last-child) {
+      margin-bottom: 24px;
+    }
+  }
+
+  &__hero {
+    text-align: center;
+
+    @media (min-width: 576px) {
+      text-align: left;
+    }
+  }
+
+  &__avatar-container {
+    display: flex;
+    justify-content: center;
+
+    @media (min-width: 576px) {
+      justify-content: flex-start;
+    }
+  }
+
+  &__avatar {
+    border: 4px solid #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  &__intro {
+    text-align: center;
+
+    @media (min-width: 576px) {
+      text-align: left;
+    }
+  }
+
+  &__name {
+    margin-bottom: 8px !important;
+    color: #1890ff;
+  }
+
+  &__email {
+    font-size: 16px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  &__bio {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  &__project-card {
+    height: 100%;
+    
+    .ant-card-body {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ant-card-actions {
+      margin-top: auto;
+    }
+  }
+
+  // Timeline customizations
+  .ant-timeline {
+    margin-top: 16px;
+
+    .ant-timeline-item-content {
+      margin-left: 16px;
+    }
+  }
+
+  // Card grid spacing
+  .ant-col {
+    margin-bottom: 16px;
+  }
+
+  // Tag styling
+  .ant-tag {
+    margin-bottom: 8px;
+  }
+
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    &__section .ant-card-body {
+      padding: 16px;
+    }
+
+    &__name {
+      font-size: 24px !important;
+    }
+  }
+} 
