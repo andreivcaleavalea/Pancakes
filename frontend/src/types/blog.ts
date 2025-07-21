@@ -2,10 +2,10 @@
 export const PostStatus = {
   Draft: 0,
   Published: 1,
-  Archived: 2
+  Archived: 2,
 } as const;
 
-export type PostStatus = typeof PostStatus[keyof typeof PostStatus];
+export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus];
 
 // Core interfaces matching BlogService DTOs
 export interface BlogPost {
@@ -54,7 +54,7 @@ export interface BlogPostQueryParams {
   isFeatured?: boolean;
   isPopular?: boolean;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   dateFrom?: string;
   dateTo?: string;
 }
@@ -62,18 +62,16 @@ export interface BlogPostQueryParams {
 export interface CreateBlogPostDto {
   title: string;
   content: string;
-  excerpt?: string;
   featuredImage?: string;
   status: PostStatus;
   authorId: string;
-  isFeatured?: boolean;
   publishedAt?: string;
 }
 
 // UI Props types
 export interface BlogCardProps {
   post: BlogPost;
-  variant?: 'default' | 'horizontal' | 'featured';
+  variant?: "default" | "horizontal" | "featured";
   onClick?: (post: BlogPost) => void;
 }
 
