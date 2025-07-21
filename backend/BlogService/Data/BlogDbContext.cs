@@ -9,6 +9,8 @@ public class BlogDbContext : DbContext
 
     public DbSet<BlogPost> BlogPosts { get; set; }
     public DbSet<Comment> Comments { get; set; }
+    public DbSet<PostRating> PostRatings { get; set; }
+    public DbSet<CommentLike> CommentLikes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +27,30 @@ public class BlogDbContext : DbContext
             .WithMany(c => c.Replies)
             .HasForeignKey(c => c.ParentCommentId)
             .OnDelete(DeleteBehavior.Restrict); // Prevent cascading deletes for replies
+
+        // Configure PostRating relationships
+        modelBuilder.Entity<PostRating>()
+            .HasOne(pr => pr.BlogPost)
+            .WithMany()
+            .HasForeignKey(pr => pr.BlogPostId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Ensure one rating per user per post
+        modelBuilder.Entity<PostRating>()
+            .HasIndex(pr => new { pr.BlogPostId, pr.UserIdentifier })
+            .IsUnique();
+
+        // Configure CommentLike relationships
+        modelBuilder.Entity<CommentLike>()
+            .HasOne(cl => cl.Comment)
+            .WithMany()
+            .HasForeignKey(cl => cl.CommentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Ensure one like/dislike per user per comment
+        modelBuilder.Entity<CommentLike>()
+            .HasIndex(cl => new { cl.CommentId, cl.UserIdentifier })
+            .IsUnique();
 
         base.OnModelCreating(modelBuilder);
     }

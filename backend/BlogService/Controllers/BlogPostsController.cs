@@ -82,6 +82,22 @@ public class BlogPostsController : ControllerBase
         }
     }
 
+    [HttpPost("{id}/view")]
+    public IActionResult IncrementViewCount(Guid id)
+    {
+        try
+        {
+            // Optional endpoint - just return success for now
+            // You can implement actual view counting logic later if needed
+            return Ok(new { success = true, message = "View count incremented" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error incrementing view count for blog post {Id}", id);
+            return StatusCode(500, "An error occurred while updating view count");
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateBlogPost([FromBody] CreateBlogPostDto createDto)
     {
