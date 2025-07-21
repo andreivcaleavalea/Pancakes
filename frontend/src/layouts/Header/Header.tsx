@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "../../router/RouterProvider";
+import { getProfilePictureUrl } from "../../utils/imageUtils";
 import "./Header.scss";
 
 const { Header: AntHeader } = Layout;
@@ -30,7 +31,7 @@ const Header: React.FC = () => {
       case 'blogs':
       case 'saved':
       case 'friends':
-        // These pages don't exist yet, so we'll just log for now
+        // These pages don't exist yet
         break;
       default:
         break;
@@ -98,7 +99,7 @@ const Header: React.FC = () => {
           >
             <div className="header__user-profile">
               <Avatar
-                src={user.image}
+                src={getProfilePictureUrl(user.image)}
                 alt={user.name}
                 size="default"
                 icon={<UserOutlined />}
@@ -135,7 +136,7 @@ const Header: React.FC = () => {
         <div className="header__mobile-user">
           <div className="header__user-profile">
             <Avatar
-              src={user.image}
+              src={getProfilePictureUrl(user.image)}
               alt={user.name}
               size="default"
               icon={<UserOutlined />}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, Tabs, Spin, Alert, Avatar, Typography, Row, Col, Button } from 'antd';
 import { UserOutlined, EditOutlined } from '@ant-design/icons';
 import { useProfile } from '../../hooks/useProfile';
+import { getProfilePictureUrl } from '../../utils/imageUtils';
 import UserInfoTab from './components/UserInfoTab';
 import EducationTab from './components/EducationTab';
 import JobsTab from './components/JobsTab';
@@ -89,7 +90,7 @@ const ProfilePage: React.FC = () => {
             <Col>
               <Avatar
                 size={120}
-                src={user.avatar}
+                src={getProfilePictureUrl(user.avatar)}
                 icon={<UserOutlined />}
                 className="profile-page__avatar"
               />

@@ -27,7 +27,14 @@ namespace UserService.Services
                 // Update existing user's last login and potentially other info
                 existingUser.LastLoginAt = DateTime.UtcNow;
                 existingUser.Name = oauthInfo.Name; // Update name in case it changed
-                existingUser.Image = oauthInfo.Picture; // Update profile picture
+                
+                // Custom uploaded pictures start with "assets/profile-pictures/"
+                if (string.IsNullOrEmpty(existingUser.Image) || 
+                    !existingUser.Image.StartsWith("assets/profile-pictures/"))
+                {
+                    existingUser.Image = oauthInfo.Picture;
+                }
+                
                 existingUser.UpdatedAt = DateTime.UtcNow;
                 
                 await _context.SaveChangesAsync();

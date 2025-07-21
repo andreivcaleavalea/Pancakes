@@ -95,6 +95,37 @@ public class ProfileController : ControllerBase
         }
     }
 
+    [HttpPost("user/profile-picture")]
+    public async Task<IActionResult> UpdateProfilePicture(IFormFile profilePicture)
+    {
+        try
+        {
+            if (profilePicture == null)
+            {
+                return BadRequest("No file provided");
+            }
+
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var updatedProfile = await _profileService.UpdateProfilePictureAsync(currentUserId, profilePicture);
+            return Ok(updatedProfile);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Invalid file provided for profile picture upload");
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating profile picture");
+            return StatusCode(500, "An error occurred while updating the profile picture");
+        }
+    }
+
     // Education endpoints
     [HttpGet("educations")]
     public async Task<IActionResult> GetEducations()

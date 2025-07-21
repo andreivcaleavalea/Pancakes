@@ -13,6 +13,7 @@ public class ProfileService : IProfileService
     private readonly IJobRepository _jobRepository;
     private readonly IHobbyRepository _hobbyRepository;
     private readonly IProjectRepository _projectRepository;
+    private readonly IFileService _fileService;
     private readonly IMapper _mapper;
 
     public ProfileService(
@@ -21,6 +22,7 @@ public class ProfileService : IProfileService
         IJobRepository jobRepository,
         IHobbyRepository hobbyRepository,
         IProjectRepository projectRepository,
+        IFileService fileService,
         IMapper mapper)
     {
         _userRepository = userRepository;
@@ -28,6 +30,7 @@ public class ProfileService : IProfileService
         _jobRepository = jobRepository;
         _hobbyRepository = hobbyRepository;
         _projectRepository = projectRepository;
+        _fileService = fileService;
         _mapper = mapper;
     }
 
@@ -86,5 +89,23 @@ public class ProfileService : IProfileService
             throw new ArgumentException($"User with ID {userId} not found.");
         }
         return user;
+    }
+
+    public async Task<UserProfileDto> UpdateProfilePictureAsync(string userId, IFormFile profilePicture)
+    {
+        var user = await GetUserByIdOrThrowAsync(userId);
+        
+        // Delete old profile picture if exists
+        if (!string.IsNullOrEmpty(user.Image))
+        {
+            await _fileService.DeleteProfilePictureAsync(user.Image);
+        }
+        
+        // Save new profile picture
+        var newImagePath = await _fileService.SaveProfilePictureAsync(profilePicture, userId);
+        user.Image = newImagePath;
+        
+        var updatedUser = await _userRepository.UpdateAsync(user);
+        return _mapper.Map<UserProfileDto>(updatedUser);
     }
 } 

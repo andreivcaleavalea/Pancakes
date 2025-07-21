@@ -2,15 +2,19 @@ import React, { useState } from 'react';
 import { Form, Input, Button, DatePicker, Avatar, Upload, Row, Col, message } from 'antd';
 import { UserOutlined, UploadOutlined, SaveOutlined } from '@ant-design/icons';
 import { useProfile } from '../../../hooks/useProfile';
+import { useAuth } from '../../../contexts/AuthContext';
 import type { UserProfile } from '../../../types/profile';
+import { getProfilePictureUrl, validateProfilePicture } from '../../../utils/imageUtils';
 import dayjs from 'dayjs';
 
 const { TextArea } = Input;
 
 const UserInfoTab: React.FC = () => {
-  const { profileData, updateUserProfile } = useProfile();
+  const { profileData, updateUserProfile, uploadProfilePicture } = useProfile();
+  const { updateUser } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   if (!profileData) {
     return <div>No profile data available</div>;
@@ -29,7 +33,12 @@ const UserInfoTab: React.FC = () => {
         dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : undefined
       };
       
-      await updateUserProfile(updatedData);
+      const updatedProfile = await updateUserProfile(updatedData);
+      
+      updateUser({ 
+        name: updatedProfile.name,
+      });
+      
       message.success('Profile updated successfully!');
     } catch (error) {
       console.error('Profile update failed:', error);
@@ -38,6 +47,35 @@ const UserInfoTab: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    try {
+      setUploading(true);
+      const updatedProfile = await uploadProfilePicture(file);
+      
+      updateUser({ image: updatedProfile.avatar });
+      
+      message.success('Profile picture updated successfully!');
+    } catch (error) {
+      console.error('Profile picture upload failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload profile picture';
+      message.error(errorMessage);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const beforeUpload = (file: File) => {
+    const validation = validateProfilePicture(file);
+    
+    if (!validation.isValid) {
+      message.error(validation.error!);
+      return false;
+    }
+
+    handleAvatarUpload(file);
+    return false;
   };
 
   const initialValues = {
@@ -52,19 +90,22 @@ const UserInfoTab: React.FC = () => {
           <div className="user-info-tab__avatar-section">
             <Avatar
               size={120}
-              src={user.avatar}
+              src={getProfilePictureUrl(user.avatar)}
               icon={<UserOutlined />}
               className="user-info-tab__avatar"
             />
             <Upload
               showUploadList={false}
-              beforeUpload={() => {
-                message.info('Avatar upload will be implemented soon');
-                return false;
-              }}
+              beforeUpload={beforeUpload}
+              accept="image/*"
+              disabled={uploading}
             >
-              <Button icon={<UploadOutlined />} className="user-info-tab__upload-btn">
-                Change Avatar
+              <Button 
+                icon={<UploadOutlined />} 
+                className="user-info-tab__upload-btn"
+                loading={uploading}
+              >
+                {uploading ? 'Uploading...' : 'Change Avatar'}
               </Button>
             </Upload>
           </div>

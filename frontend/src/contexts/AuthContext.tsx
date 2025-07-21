@@ -29,6 +29,7 @@ interface AuthContextType {
   signIn: (provider: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateSession: (session: Session) => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -111,6 +112,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem("auth-session", JSON.stringify(newSession));
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (session) {
+      const updatedUser = { ...session.user, ...userData };
+      const updatedSession = { ...session, user: updatedUser };
+      setSession(updatedSession);
+      localStorage.setItem("auth-session", JSON.stringify(updatedSession));
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -121,6 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         signIn,
         signOut,
         updateSession,
+        updateUser,
       }}
     >
       {children}
