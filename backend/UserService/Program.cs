@@ -6,7 +6,7 @@ using UserService.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Load environment variables from .env file
-DotNetEnv.Env.Load();
+DotNetEnv.Env.Load("../../.env");
 
 // Add services to the container.
 builder.Services.AddControllers();

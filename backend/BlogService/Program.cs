@@ -12,7 +12,7 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-DotNetEnv.Env.Load();
+DotNetEnv.Env.Load(".env");
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
@@ -40,8 +40,10 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
@@ -67,7 +69,7 @@ if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
     app.Urls.Clear();
     app.Urls.Add("http://0.0.0.0:80");
 }
-else if (app.Environment.IsDevelopment())
+else
 {
     app.Urls.Clear();
     app.Urls.Add($"http://localhost:{port}");
@@ -82,18 +84,21 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// Always run migrations and seeding (not just in development)
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
+    await context.Database.MigrateAsync();
+    
+    if (app.Environment.IsDevelopment())
+    {
+        await BlogDataSeeder.SeedAsync(context);
+    }
+}
+
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
-
-if (app.Environment.IsDevelopment())
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
-    await context.Database.MigrateAsync();
-    
-    await BlogDataSeeder.SeedAsync(context);
-}
 
 app.Run();
