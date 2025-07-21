@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import type { CommentItemProps, CreateCommentDto } from "@/types/comment";
 import CommentForm from "../CommentForm/CommentForm";
+import CommentLikeButtons from "../CommentLikeButtons/CommentLikeButtons";
 import "./CommentItem.scss";
 
 const { Text, Paragraph } = Typography;
@@ -92,6 +93,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
             </div>
 
             <div className="comment-item__actions">
+              <CommentLikeButtons commentId={comment.id} size="small" />
               {onReply &&
                 depth < 3 && ( // Allow up to 3 levels for better threading
                   <Button

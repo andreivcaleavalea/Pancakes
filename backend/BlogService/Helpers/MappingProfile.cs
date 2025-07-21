@@ -14,5 +14,11 @@ public class MappingProfile : Profile
         
         CreateMap<Comment, CommentDto>();
         CreateMap<CreateCommentDto, Comment>();
+        
+        CreateMap<PostRating, PostRatingDto>();
+        CreateMap<CreatePostRatingDto, PostRating>();
+        
+        CreateMap<CommentLike, CommentLikeDto>();
+        CreateMap<CreateCommentLikeDto, CommentLike>();
     }
 }

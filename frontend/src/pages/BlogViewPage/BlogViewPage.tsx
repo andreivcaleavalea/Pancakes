@@ -7,7 +7,8 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "@/router/RouterProvider";
 import { useBlogPost, useFavorite } from "@/hooks/useBlog";
-import { CommentSection } from "@/components/common";
+import { usePostRating } from "@/hooks/useRating";
+import { CommentSection, GlazeMeter } from "@/components/common";
 import { DEFAULTS } from "@/utils/constants";
 import "./BlogViewPage.scss";
 
@@ -18,11 +19,13 @@ const BlogViewPage: React.FC = () => {
 
   // Use the real data hooks
   const { data: blog, loading, error } = useBlogPost(blogId);
+
   const {
     isFavorite,
     loading: favoriteLoading,
     toggleFavorite,
   } = useFavorite(blogId || "", blog?.isFeatured || false);
+  const { stats: ratingStats, submitRating } = usePostRating(blogId || "");
 
   const handleBack = () => {
     navigate("home");
@@ -145,6 +148,17 @@ const BlogViewPage: React.FC = () => {
 
         <div className="blog-view__content">
           <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+        </div>
+
+        {/* Glaze Meter Rating System */}
+        <div className="blog-view__rating">
+          <GlazeMeter
+            blogPostId={blogId || ""}
+            averageRating={ratingStats?.averageRating || 0}
+            totalRatings={ratingStats?.totalRatings || 0}
+            userRating={ratingStats?.userRating}
+            onRate={submitRating}
+          />
         </div>
 
         <div className="blog-view__stats">

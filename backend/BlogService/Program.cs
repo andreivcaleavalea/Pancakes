@@ -41,9 +41,13 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IPostRatingRepository, PostRatingRepository>();
+builder.Services.AddScoped<ICommentLikeRepository, CommentLikeRepository>();
 
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IPostRatingService, PostRatingService>();
+builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
