@@ -1,0 +1,87 @@
+.personal-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+
+  &__loading,
+  &__error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+  }
+
+  &__header {
+    margin-bottom: 24px;
+  }
+
+  &__header-card {
+    .ant-card-body {
+      padding: 16px 24px;
+    }
+  }
+
+  &__header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  &__header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+  }
+
+  &__back-btn {
+    border-color: #d9d9d9;
+  }
+
+  &__title-section {
+    flex: 1;
+  }
+
+  &__title {
+    margin: 0 !important;
+    font-size: 24px;
+  }
+
+  &__header-right {
+    display: flex;
+    align-items: center;
+  }
+
+  &__visibility {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__content {
+    min-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .personal-page {
+    padding: 16px;
+
+    &__header-content {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__header-left {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    &__header-right {
+      justify-content: space-between;
+    }
+  }
+} 

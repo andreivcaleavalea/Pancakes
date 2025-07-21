@@ -38,6 +38,7 @@ builder.Services.AddScoped<IEducationRepository, EducationRepository>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IHobbyRepository, HobbyRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IPersonalPageSettingsRepository, PersonalPageSettingsRepository>();
 
 // Register Services
 builder.Services.AddScoped<IProfileService, ProfileService>();
@@ -46,6 +47,7 @@ builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IHobbyService, HobbyService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IPersonalPageService, PersonalPageService>();
 
 // Auth Services (keeping existing for now)
 builder.Services.AddScoped<OAuthService>();
