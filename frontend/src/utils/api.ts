@@ -1,15 +1,5 @@
 import { API_CONFIG, ERROR_MESSAGES } from './constants';
 
-// Debug environment variables
-console.log('🔍 DEBUG - Environment variables:', {
-  VITE_BLOG_API_URL: import.meta.env.VITE_BLOG_API_URL,
-  MODE: import.meta.env.MODE,
-  DEV: import.meta.env.DEV,
-  all_env: import.meta.env
-});
-
-console.log('🔍 DEBUG - API_CONFIG:', API_CONFIG);
-
 // API Error handling
 export class ApiError extends Error {
   public status: number;
@@ -34,9 +24,6 @@ export const apiRequest = async <T>(
 ): Promise<T> => {
   const url = `${API_CONFIG.BLOG_API_URL}${endpoint}`;
   
-  console.log('🚀 Making API request to:', url);
-  console.log('🔧 BLOG_API_URL used:', API_CONFIG.BLOG_API_URL);
-  console.log('🔧 Endpoint:', endpoint);
   
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);

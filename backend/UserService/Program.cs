@@ -4,6 +4,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using UserService.Data;
 using UserService.Services;
+using UserService.Repositories.Interfaces;
+using UserService.Repositories.Implementations;
+using UserService.Services.Interfaces;
+using UserService.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +23,7 @@ builder.Services.AddDbContext<UserDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // Add AutoMapper
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(typeof(UserService.Helpers.MappingProfile));
 
 // Add HttpContextAccessor for current user service
 builder.Services.AddHttpContextAccessor();
@@ -27,7 +31,21 @@ builder.Services.AddHttpContextAccessor();
 // Add HttpClient for OAuth service
 builder.Services.AddHttpClient<OAuthService>();
 
-// Add custom services
+// Register Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEducationRepository, EducationRepository>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();
+builder.Services.AddScoped<IHobbyRepository, HobbyRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+
+// Register Services
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IEducationService, EducationService>();
+builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<IHobbyService, HobbyService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+
+// Auth Services (keeping existing for now)
 builder.Services.AddScoped<OAuthService>();
 builder.Services.AddScoped<UserManagementService>();
 builder.Services.AddScoped<JwtService>();
