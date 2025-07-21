@@ -6,7 +6,7 @@ import React, {
   type ReactNode,
 } from "react";
 
-export type PageType = "home" | "login";
+export type PageType = "home" | "login" | "create-blog";
 export type LoginMode = "signin" | "register";
 
 interface RouterContextType {
@@ -43,6 +43,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
 
     if (path === "/login") {
       setCurrentPage("login");
+    } else if (path === "/create-blog") {
+      setCurrentPage("create-blog");
     } else {
       setCurrentPage("home");
     }

@@ -1,0 +1,176 @@
+.create-blog-page {
+  min-height: calc(100vh - 140px);
+  background: var(--color-bg-secondary);
+  padding: 24px;
+
+  &__container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  &__header {
+    margin-bottom: 32px;
+  }
+
+  &__back-button {
+    color: var(--color-primary);
+    font-weight: 500;
+    margin-bottom: 16px;
+
+    &:hover {
+      color: var(--color-secondary);
+      background: rgba(233, 131, 58, 0.1);
+    }
+
+    .anticon {
+      margin-right: 8px;
+    }
+  }
+
+  &__title {
+    color: var(--color-text);
+    margin: 0 !important;
+    font-size: 28px !important;
+    font-weight: 600;
+
+    @media (max-width: 768px) {
+      font-size: 24px !important;
+    }
+  }
+
+  &__form-card {
+    background: var(--color-bg-card);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow-light);
+    border: 1px solid var(--color-border-light);
+
+    .ant-card-body {
+      padding: 32px;
+
+      @media (max-width: 768px) {
+        padding: 24px;
+      }
+    }
+  }
+
+  &__form {
+    .ant-form-item {
+      margin-bottom: 24px;
+    }
+
+    .ant-form-item-label > label {
+      color: var(--color-text);
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .ant-form-item-required::before {
+      color: var(--color-error) !important;
+    }
+  }
+
+  &__input {
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    padding: 10px 12px;
+    font-size: 14px;
+
+    &:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(233, 131, 58, 0.1);
+    }
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+  }
+
+  &__textarea {
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    padding: 12px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 200px;
+
+    &:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(233, 131, 58, 0.1);
+    }
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+  }
+
+  &__submit-section {
+    margin-top: 32px;
+    margin-bottom: 0;
+    text-align: right;
+
+    @media (max-width: 768px) {
+      text-align: center;
+    }
+  }
+
+  &__submit-button {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 8px 24px;
+    height: auto;
+
+    &:hover {
+      background: var(--color-secondary);
+      border-color: var(--color-secondary);
+      transform: translateY(-1px);
+    }
+
+    &:focus {
+      background: var(--color-secondary);
+      border-color: var(--color-secondary);
+      box-shadow: 0 0 0 2px rgba(233, 131, 58, 0.1);
+    }
+  }
+}
+
+// Override Ant Design form styles
+.create-blog-page {
+  .ant-input {
+    border-radius: 8px;
+
+    &:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(233, 131, 58, 0.1);
+    }
+  }
+
+  .ant-input.ant-input-status-error {
+    border-color: var(--color-error);
+  }
+
+  .ant-form-item-explain-error {
+    color: var(--color-error);
+  }
+
+  .ant-btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+  }
+
+  .ant-btn-default {
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+
+    &:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+  }
+}
