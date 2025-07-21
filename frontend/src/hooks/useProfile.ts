@@ -34,12 +34,23 @@ export const useProfile = () => {
     }
   };
 
+  const uploadProfilePicture = async (file: File) => {
+    try {
+      const updatedProfile = await ProfileService.uploadProfilePicture(file);
+      setProfileData(prev => prev ? { ...prev, user: updatedProfile } : null);
+      return updatedProfile;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Failed to upload profile picture');
+    }
+  };
+
   return {
     profileData,
     loading,
     error,
     refetch: fetchProfileData,
-    updateUserProfile
+    updateUserProfile,
+    uploadProfilePicture
   };
 };
 

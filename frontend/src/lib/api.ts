@@ -39,7 +39,11 @@ export async function authenticatedFetch<T = unknown>(
 
   // Prepare headers
   const headers = new Headers(options.headers);
-  headers.set("Content-Type", "application/json");
+  
+  // Only set Content-Type to application/json if body is not FormData
+  if (!(options.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
 
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
