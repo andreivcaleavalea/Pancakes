@@ -1,7 +1,162 @@
-// UniversityTemplate - Most styles are dynamic in TSX
-// This file contains only static styles that don't change
-
 .university-template {
-  // Any static overrides or non-dynamic styles can go here
-  // Currently all styles are handled dynamically in the TSX component
+  margin-bottom: 32px;
+  border-radius: 20px;
+  position: relative;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: none;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+
+  &__header {
+    padding: 32px;
+    text-align: center;
+    border-radius: 20px 20px 0 0;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.3;
+    }
+
+    .university-template__title {
+      color: white;
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+    }
+
+    .university-template__subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 16px;
+      margin-top: 8px;
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  &__content {
+    padding: 32px;
+  }
+
+  &__item {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+
+    &:not(:last-child) {
+      margin-bottom: 24px;
+    }
+  }
+
+  &__badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  &__institution {
+    margin-bottom: 8px;
+    font-size: 20px;
+  }
+
+  &__degree-card {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+
+    .university-template__degree {
+      font-size: 15px;
+      color: #333;
+    }
+
+    .university-template__specialization {
+      font-size: 13px;
+      font-weight: 500;
+    }
+  }
+
+  &__description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  &__icon-container {
+    text-align: center;
+  }
+
+  &__icon {
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 24px;
+  }
+
+  &__date-badge {
+    padding: 8px 12px;
+    border-radius: 20px;
+    display: inline-block;
+
+    .university-template__date-text {
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .university-template {
+    border-radius: 16px;
+
+    &__header {
+      padding: 24px;
+      border-radius: 16px 16px 0 0;
+
+      .university-template__title {
+        font-size: 24px;
+      }
+
+      .university-template__subtitle {
+        font-size: 14px;
+      }
+    }
+
+    &__content {
+      padding: 24px;
+    }
+
+    &__item {
+      padding: 20px;
+    }
+
+    &__institution {
+      font-size: 18px;
+    }
+
+    &__icon {
+      width: 60px;
+      height: 60px;
+      font-size: 20px;
+    }
+  }
 } 

@@ -1,7 +1,31 @@
-// TimelineTemplate - Most styles are dynamic in TSX
-// This file contains only static styles that don't change
-
+// TimelineTemplate static styles
 .timeline-template {
-  // Any static overrides or non-dynamic styles can go here
-  // Currently all styles are handled dynamically in the TSX component
+  margin-bottom: 24px;
+  position: relative;
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__item {
+    padding: 16px 0;
+
+    .timeline-template__institution {
+      font-size: 16px;
+    }
+
+    .timeline-template__degree {
+      // Dynamic styling in TSX
+    }
+
+    .timeline-template__dates {
+      // Dynamic styling in TSX
+    }
+
+    .timeline-template__description {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+  }
 } 

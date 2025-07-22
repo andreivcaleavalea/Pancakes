@@ -23,7 +23,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="projects" style={{ marginBottom: '24px', position: 'relative' }}>
+    <Card key="projects" className="minimal-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -31,13 +31,15 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor }}>📝 Simple List</Title>
+      <Title level={2} className="minimal-template__title" style={{ color: sectionPrimaryColor }}>
+        📝 Simple List
+      </Title>
        
       {projects.map((project: any, index: number) => (
-        <div key={index} style={{ marginBottom: '8px' }}>
-          <Text strong>{project.name}</Text>
+        <div key={index} className="minimal-template__project-item">
+          <Text strong className="minimal-template__project-name">{project.name}</Text>
           {project.technologies && (
-            <Text type="secondary" style={{ marginLeft: '8px' }}>
+            <Text type="secondary" className="minimal-template__project-tech">
               ({project.technologies.split(',')[0]?.trim()})
             </Text>
           )}

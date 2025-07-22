@@ -23,7 +23,7 @@ const TagsTemplate: React.FC<TagsTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="hobbies" style={{ marginBottom: '24px', position: 'relative' }}>
+    <Card key="hobbies" className="tags-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -31,20 +31,16 @@ const TagsTemplate: React.FC<TagsTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor, marginBottom: '20px' }}>
+      <Title level={2} className="tags-template__title" style={{ color: sectionPrimaryColor }}>
         🏷️ Tag Cloud
       </Title>
        
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+      <div className="tags-template__container">
         {hobbies.map((hobby: any, index: number) => (
           <Tag 
             key={index} 
             color={sectionPrimaryColor}
-            style={{ 
-              fontSize: '14px',
-              padding: '4px 12px',
-              borderRadius: '16px'
-            }}
+            className="tags-template__tag"
           >
             {hobby.name}
           </Tag>

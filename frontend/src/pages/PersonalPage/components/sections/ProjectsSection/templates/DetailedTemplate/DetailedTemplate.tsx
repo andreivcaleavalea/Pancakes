@@ -23,7 +23,7 @@ const DetailedTemplate: React.FC<DetailedTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="projects" style={{ marginBottom: '24px', position: 'relative' }}>
+    <Card key="projects" className="detailed-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -31,36 +31,47 @@ const DetailedTemplate: React.FC<DetailedTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor }}>📋 Detailed View</Title>
+      <Title level={2} className="detailed-template__title" style={{ color: sectionPrimaryColor }}>
+        📋 Detailed View
+      </Title>
        
       {projects.map((project: any, index: number) => (
-        <div key={index} style={{ 
-          padding: '20px',
-          marginBottom: '16px',
-          border: `1px solid ${sectionPrimaryColor}20`,
-          borderRadius: '8px'
-        }}>
+        <div 
+          key={index} 
+          className="detailed-template__project-item"
+          style={{ 
+            border: `1px solid ${sectionPrimaryColor}20`
+          }}
+        >
           <Row gutter={[16, 16]}>
             <Col xs={24} md={16}>
-              <Title level={4} style={{ color: sectionPrimaryColor }}>{project.name}</Title>
+              <Title level={4} className="detailed-template__project-name" style={{ color: sectionPrimaryColor }}>
+                {project.name}
+              </Title>
               {project.description && (
-                <Paragraph>{project.description}</Paragraph>
+                <Paragraph className="detailed-template__project-description">
+                  {project.description}
+                </Paragraph>
               )}
               {project.technologies && (
-                <Text type="secondary">Technologies: {project.technologies}</Text>
+                <Text type="secondary" className="detailed-template__project-tech">
+                  Technologies: {project.technologies}
+                </Text>
               )}
             </Col>
             <Col xs={24} md={8}>
-              {project.demoUrl && (
-                <div style={{ marginBottom: '8px' }}>
-                  <Text strong>🔗 Demo Available</Text>
-                </div>
-              )}
-              {project.sourceUrl && (
-                <div>
-                  <Text strong>💻 Source Code</Text>
-                </div>
-              )}
+              <div className="detailed-template__links-container">
+                {project.demoUrl && (
+                  <div className="detailed-template__demo-link">
+                    <Text strong>🔗 Demo Available</Text>
+                  </div>
+                )}
+                {project.sourceUrl && (
+                  <div className="detailed-template__source-link">
+                    <Text strong>💻 Source Code</Text>
+                  </div>
+                )}
+              </div>
             </Col>
           </Row>
         </div>

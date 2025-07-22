@@ -1,4 +1,36 @@
-// CreativeTemplate - Most styles are dynamic in TSX
 .creative-template {
-  // Static styles here
+  margin-bottom: 24px;
+  position: relative;
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  &__hobby-card {
+    padding: 8px 16px;
+    border-radius: 20px;
+
+    .creative-template__hobby-name {
+      font-weight: 500;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .creative-template {
+    &__container {
+      gap: 8px;
+    }
+
+    &__hobby-card {
+      padding: 6px 12px;
+    }
+  }
 } 

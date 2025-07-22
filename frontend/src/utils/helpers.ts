@@ -50,6 +50,7 @@ export const formatRelativeTime = (date: string): string => {
   }
 };
 
+
 /**
  * Truncates text to a specified length with ellipsis
  */

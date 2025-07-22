@@ -23,14 +23,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="personal" style={{ 
-      marginBottom: '32px',
-      position: 'relative',
-      background: '#fff',
-      borderRadius: '20px',
-      boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-      overflow: 'hidden'
-    }}>
+    <Card key="personal" className="professional-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -39,73 +32,54 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
       />
       
       {/* Professional Header */}
-      <div style={{
-        background: `linear-gradient(135deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}dd)`,
-        height: '120px',
-        position: 'relative'
-      }}>
-        <div style={{
-          position: 'absolute',
-          bottom: '-40px',
-          left: '40px'
-        }}>
+      <div 
+        className="professional-template__header"
+        style={{
+          background: `linear-gradient(135deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}dd)`,
+        }}
+      >
+        <div className="professional-template__avatar-wrapper">
           <Avatar
             size={80}
             src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
-            style={{ 
-              border: '4px solid white',
-              boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
-            }}
+            className="professional-template__avatar"
           />
         </div>
       </div>
       
-      <div style={{ padding: '50px 40px 40px' }}>
-        <Title level={2} style={{ 
-          color: '#2c3e50', 
-          marginBottom: '8px',
-          fontWeight: '600'
-        }}>
+      <div className="professional-template__content">
+        <Title level={2} className="professional-template__name">
           {user.name}
         </Title>
         
-        <Text style={{ 
-          fontSize: '16px', 
-          color: sectionPrimaryColor,
-          fontWeight: '500',
-          display: 'block',
-          marginBottom: '20px'
-        }}>
+        <Text 
+          className="professional-template__title"
+          style={{ color: sectionPrimaryColor }}
+        >
           {user.title || 'Professional'}
         </Text>
         
         <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              marginBottom: '12px' 
-            }}>
-              <span style={{ 
-                fontSize: '16px', 
-                marginRight: '12px',
-                color: sectionPrimaryColor
-              }}>📧</span>
+            <div className="professional-template__contact-item">
+              <span 
+                className="professional-template__contact-icon"
+                style={{ color: sectionPrimaryColor }}
+              >
+                📧
+              </span>
               <Text>{user.email}</Text>
             </div>
           </Col>
           {user.phoneNumber && (
             <Col xs={24} sm={12}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                marginBottom: '12px' 
-              }}>
-                <span style={{ 
-                  fontSize: '16px', 
-                  marginRight: '12px',
-                  color: sectionPrimaryColor
-                }}>📞</span>
+              <div className="professional-template__contact-item">
+                <span 
+                  className="professional-template__contact-icon"
+                  style={{ color: sectionPrimaryColor }}
+                >
+                  📞
+                </span>
                 <Text>{user.phoneNumber}</Text>
               </div>
             </Col>
@@ -113,19 +87,11 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
         </Row>
         
         {user.bio && (
-          <div style={{ 
-            marginTop: '24px',
-            padding: '20px',
-            background: '#f8f9fa',
-            borderRadius: '12px',
-            borderLeft: `4px solid ${sectionPrimaryColor}`
-          }}>
-            <Paragraph style={{ 
-              fontSize: '15px', 
-              lineHeight: 1.7,
-              color: '#555',
-              margin: 0
-            }}>
+          <div 
+            className="professional-template__bio"
+            style={{ borderLeft: `4px solid ${sectionPrimaryColor}` }}
+          >
+            <Paragraph className="professional-template__bio-text">
               {user.bio}
             </Paragraph>
           </div>

@@ -23,7 +23,7 @@ const CardsTemplate: React.FC<CardsTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="projects" style={{ marginBottom: '24px', position: 'relative' }}>
+    <Card key="projects" className="cards-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -31,26 +31,28 @@ const CardsTemplate: React.FC<CardsTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor }}>🃏 Project Cards</Title>
+      <Title level={2} className="cards-template__title" style={{ color: sectionPrimaryColor }}>
+        🃏 Project Cards
+      </Title>
        
       <Row gutter={[16, 16]}>
         {projects.map((project: any, index: number) => (
           <Col key={index} xs={24} sm={12} md={8}>
-            <div style={{ 
-              padding: '16px',
-              border: `1px solid ${sectionPrimaryColor}20`,
-              borderRadius: '8px',
-              height: '100%'
-            }}>
-              <Text strong style={{ fontSize: '16px' }}>{project.name}</Text>
+            <div 
+              className="cards-template__project-card"
+              style={{ 
+                border: `1px solid ${sectionPrimaryColor}20`
+              }}
+            >
+              <Text strong className="cards-template__project-name">{project.name}</Text>
               <br />
               {project.description && (
-                <Paragraph style={{ marginTop: '8px', fontSize: '14px', color: '#666' }}>
+                <Paragraph className="cards-template__project-description">
                   {project.description}
                 </Paragraph>
               )}
               {project.technologies && (
-                <Text type="secondary" style={{ fontSize: '12px' }}>
+                <Text type="secondary" className="cards-template__project-tech">
                   Tech: {project.technologies}
                 </Text>
               )}

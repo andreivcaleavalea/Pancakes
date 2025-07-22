@@ -1,7 +1,40 @@
-// CardTemplate - Most styles are dynamic in TSX
-// This file contains only static styles that don't change
-
+// CardTemplate static styles
 .card-template {
-  // Any static overrides or non-dynamic styles can go here
-  // Currently all styles are handled dynamically in the TSX component
+  margin-bottom: 24px;
+  text-align: center;
+  padding: 32px;
+  position: relative;
+  border-radius: 12px;
+
+  &__avatar {
+    margin-bottom: 20px;
+  }
+
+  &__name {
+    margin: 20px 0 8px;
+  }
+
+  &__email {
+    font-size: 16px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  &__phone {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  &__bio {
+    margin-top: 20px;
+    font-size: 14px;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .card-template {
+    padding: 24px;
+  }
 } 

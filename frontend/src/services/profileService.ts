@@ -35,23 +35,6 @@ export class ProfileService {
     return response.data!;
   }
 
-  // Upload profile picture
-  static async uploadProfilePicture(file: File): Promise<UserProfile> {
-    const formData = new FormData();
-    formData.append('profilePicture', file);
-
-    const response = await authenticatedFetch<UserProfile>('api/profile/user/profile-picture', {
-      method: 'POST',
-      body: formData
-    });
-    
-    if (response.error) {
-      throw new Error(response.error);
-    }
-
-    return response.data!;
-  }
-
   // Education APIs
   static async getEducations(): Promise<Education[]> {
     const response = await authenticatedFetch<Education[]>('api/profile/educations');
@@ -239,4 +222,23 @@ export class ProfileService {
       throw new Error(response.error);
     }
   }
+
+  // Profile Picture Upload
+  static async uploadProfilePicture(file: File): Promise<UserProfile> {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    const response = await authenticatedFetch<UserProfile>('api/profile/user/profile-picture', {
+      method: 'POST',
+      body: formData 
+    });
+    
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return response.data!;
+  }
+
+
 }

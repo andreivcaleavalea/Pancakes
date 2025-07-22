@@ -1,4 +1,12 @@
-// MinimalTemplate - Most styles are dynamic in TSX
 .minimal-template {
-  // Static styles here
+  margin-bottom: 24px;
+  position: relative;
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__container {
+    margin-top: 16px;
+  }
 } 

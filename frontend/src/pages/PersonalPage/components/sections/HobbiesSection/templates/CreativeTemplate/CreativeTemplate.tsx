@@ -23,7 +23,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="hobbies" style={{ marginBottom: '24px', position: 'relative' }}>
+    <Card key="hobbies" className="creative-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -31,17 +31,21 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor }}>🎨 Creative Layout</Title>
+      <Title level={2} className="creative-template__title" style={{ color: sectionPrimaryColor }}>
+        🎨 Creative Layout
+      </Title>
        
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '16px' }}>
+      <div className="creative-template__container">
         {hobbies.map((hobby: any, index: number) => (
-          <div key={index} style={{
-            background: `${sectionPrimaryColor}15`,
-            padding: '8px 16px',
-            borderRadius: '20px',
-            border: `2px solid ${sectionPrimaryColor}30`
-          }}>
-            <Text style={{ color: sectionPrimaryColor, fontWeight: '500' }}>
+          <div 
+            key={index} 
+            className="creative-template__hobby-card"
+            style={{
+              background: `${sectionPrimaryColor}15`,
+              border: `2px solid ${sectionPrimaryColor}30`
+            }}
+          >
+            <Text className="creative-template__hobby-name" style={{ color: sectionPrimaryColor }}>
               {hobby.name}
             </Text>
           </div>

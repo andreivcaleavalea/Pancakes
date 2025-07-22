@@ -23,7 +23,7 @@ const InterestsTemplate: React.FC<InterestsTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="hobbies" style={{ marginBottom: '24px', position: 'relative' }}>
+    <Card key="hobbies" className="interests-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -31,19 +31,21 @@ const InterestsTemplate: React.FC<InterestsTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor }}>🎯 Interest Cards</Title>
+      <Title level={2} className="interests-template__title" style={{ color: sectionPrimaryColor }}>
+        🎯 Interest Cards
+      </Title>
        
-      <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
+      <Row gutter={[16, 16]} className="interests-template__grid">
         {hobbies.map((hobby: any, index: number) => (
           <Col key={index} xs={12} sm={8} md={6}>
-            <div style={{
-              background: `${sectionPrimaryColor}10`,
-              padding: '12px',
-              borderRadius: '8px',
-              textAlign: 'center',
-              border: `1px solid ${sectionPrimaryColor}20`
-            }}>
-              <Text style={{ fontSize: '14px', color: sectionPrimaryColor, fontWeight: '500' }}>
+            <div 
+              className="interests-template__interest-card"
+              style={{
+                background: `${sectionPrimaryColor}10`,
+                border: `1px solid ${sectionPrimaryColor}20`
+              }}
+            >
+              <Text className="interests-template__interest-name" style={{ color: sectionPrimaryColor }}>
                 {hobby.name}
               </Text>
             </div>

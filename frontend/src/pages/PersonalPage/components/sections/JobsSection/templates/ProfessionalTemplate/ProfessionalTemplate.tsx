@@ -23,14 +23,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="jobs" style={{ 
-      marginBottom: '32px',
-      position: 'relative',
-      background: '#fff',
-      borderRadius: '20px',
-      boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-      overflow: 'hidden'
-    }}>
+    <Card key="jobs" className="professional-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -39,76 +32,52 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
       />
       
       {/* Professional Header */}
-      <div style={{
-        background: `linear-gradient(135deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}dd)`,
-        height: '120px',
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <Title level={2} style={{ color: 'white', margin: 0, fontSize: '24px', fontWeight: '600' }}>
+      <div 
+        className="professional-template__header"
+        style={{
+          background: `linear-gradient(135deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}dd)`
+        }}
+      >
+        <Title level={2} className="professional-template__title">
           👔 Professional Showcase
         </Title>
       </div>
       
-      <div style={{ padding: '40px' }}>
+      <div className="professional-template__content">
         {jobs.map((job: any, index: number) => (
-          <div key={index} style={{
-            marginBottom: index < jobs.length - 1 ? '32px' : 0,
-            paddingBottom: index < jobs.length - 1 ? '32px' : 0,
-            borderBottom: index < jobs.length - 1 ? `1px solid ${sectionPrimaryColor}15` : 'none'
-          }}>
+          <div 
+            key={index} 
+            className="professional-template__job-item"
+            style={{
+              borderBottom: index < jobs.length - 1 ? `1px solid ${sectionPrimaryColor}15` : 'none'
+            }}
+          >
             <Row gutter={[24, 16]}>
               <Col xs={24} sm={18}>
                 <div>
-                  <Title level={3} style={{ 
-                    color: sectionPrimaryColor, 
-                    marginBottom: '8px',
-                    fontWeight: '600'
-                  }}>
+                  <Title level={3} className="professional-template__job-position" style={{ color: sectionPrimaryColor }}>
                     {job.position}
                   </Title>
                   
-                  <Text style={{ 
-                    fontSize: '16px', 
-                    color: sectionPrimaryColor,
-                    fontWeight: '500',
-                    display: 'block',
-                    marginBottom: '12px'
-                  }}>
+                  <Text className="professional-template__company" style={{ color: sectionPrimaryColor }}>
                     {job.company}
                   </Text>
                   
                   {job.location && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      marginBottom: '12px' 
-                    }}>
-                      <span style={{ 
-                        fontSize: '16px', 
-                        marginRight: '12px',
-                        color: sectionPrimaryColor
-                      }}>📍</span>
+                    <div className="professional-template__location-container">
+                      <span className="professional-template__location-icon" style={{ color: sectionPrimaryColor }}>📍</span>
                       <Text>{job.location}</Text>
                     </div>
                   )}
                   
                   {job.description && (
-                    <div style={{ 
-                      marginTop: '16px',
-                      padding: '20px',
-                      background: '#f8f9fa',
-                      borderRadius: '12px',
-                      borderLeft: `4px solid ${sectionPrimaryColor}`
-                    }}>
-                      <Paragraph style={{ 
-                        fontSize: '15px', 
-                        lineHeight: 1.7,
-                        color: '#555',
-                        margin: 0
-                      }}>
+                    <div 
+                      className="professional-template__description-card"
+                      style={{
+                        borderLeft: `4px solid ${sectionPrimaryColor}`
+                      }}
+                    >
+                      <Paragraph className="professional-template__description">
                         {job.description}
                       </Paragraph>
                     </div>
@@ -117,27 +86,22 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
               </Col>
               
               <Col xs={24} sm={6}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    background: `linear-gradient(135deg, ${sectionPrimaryColor}15, ${sectionPrimaryColor}25)`,
-                    borderRadius: '50%',
-                    width: '80px',
-                    height: '80px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 16px',
-                    fontSize: '28px'
-                  }}>
+                <div className="professional-template__icon-container">
+                  <div 
+                    className="professional-template__icon"
+                    style={{
+                      background: `linear-gradient(135deg, ${sectionPrimaryColor}15, ${sectionPrimaryColor}25)`
+                    }}
+                  >
                     👔
                   </div>
-                  <div style={{
-                    background: `${sectionPrimaryColor}10`,
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    display: 'inline-block'
-                  }}>
-                    <Text style={{ fontSize: '12px', color: sectionPrimaryColor, fontWeight: '600' }}>
+                  <div 
+                    className="professional-template__date-badge"
+                    style={{
+                      background: `${sectionPrimaryColor}10`
+                    }}
+                  >
+                    <Text className="professional-template__date-text" style={{ color: sectionPrimaryColor }}>
                       {job.startDate} - {job.endDate || 'Present'}
                     </Text>
                   </div>

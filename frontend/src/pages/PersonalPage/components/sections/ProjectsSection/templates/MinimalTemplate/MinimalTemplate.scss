@@ -1,4 +1,34 @@
-// MinimalTemplate - Most styles are dynamic in TSX
 .minimal-template {
-  // Static styles here
+  margin-bottom: 24px;
+  position: relative;
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__project-item {
+    margin-bottom: 8px;
+
+    .minimal-template__project-name {
+      // Default text styling
+    }
+
+    .minimal-template__project-tech {
+      margin-left: 8px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .minimal-template {
+    &__project-item {
+      margin-bottom: 6px;
+
+      .minimal-template__project-tech {
+        margin-left: 0;
+        display: block;
+        margin-top: 4px;
+      }
+    }
+  }
 } 

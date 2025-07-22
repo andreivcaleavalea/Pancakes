@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, DatePicker, Avatar, Upload, Row, Col, message } from 'antd';
+import { Form, Input, Button, DatePicker, Avatar, Upload, Row, Col, App } from 'antd';
 import { UserOutlined, UploadOutlined, SaveOutlined } from '@ant-design/icons';
 import { useProfile } from '../../../hooks/useProfile';
 import { useAuth } from '../../../contexts/AuthContext';
-import type { UserProfile } from '../../../types/profile';
+import { ProfileService } from '../../../services/profileService';
 import { getProfilePictureUrl, validateProfilePicture } from '../../../utils/imageUtils';
+import type { UserProfile } from '../../../types/profile';
 import dayjs from 'dayjs';
 
 const { TextArea } = Input;
 
-const UserInfoTab: React.FC = () => {
-  const { profileData, updateUserProfile, uploadProfilePicture } = useProfile();
+interface UserInfoTabProps {
+  onProfileUpdate?: () => Promise<void>;
+}
+
+const UserInfoTab: React.FC<UserInfoTabProps> = ({ onProfileUpdate }) => {
+  const { profileData, updateUserProfile, refetch } = useProfile();
   const { updateUser } = useAuth();
+  const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -25,25 +31,21 @@ const UserInfoTab: React.FC = () => {
   const handleSubmit = async (values: Record<string, any>) => {
     try {
       setLoading(true);
-      // Only send fields that can be updated (exclude email and handle avatar properly)
       const updatedData: Partial<UserProfile> = {
-        name: values.name,
-        bio: values.bio || '',
-        phoneNumber: values.phoneNumber || '',
+        ...values,
         dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format('YYYY-MM-DD') : undefined
       };
       
-      const updatedProfile = await updateUserProfile(updatedData);
+      await updateUserProfile(updatedData);
       
-      updateUser({ 
-        name: updatedProfile.name,
-      });
+      // Update auth context if name changed
+      if (values.name && values.name !== user.name) {
+        updateUser({ name: values.name });
+      }
       
       message.success('Profile updated successfully!');
-    } catch (error) {
-      console.error('Profile update failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
-      message.error(errorMessage);
+    } catch {
+      message.error('Failed to update profile');
     } finally {
       setLoading(false);
     }
@@ -52,9 +54,18 @@ const UserInfoTab: React.FC = () => {
   const handleAvatarUpload = async (file: File) => {
     try {
       setUploading(true);
-      const updatedProfile = await uploadProfilePicture(file);
+      const updatedProfile = await ProfileService.uploadProfilePicture(file);
       
+      // Update auth context so header and other components get the new image
       updateUser({ image: updatedProfile.avatar });
+      
+      // Refresh profile data so UserInfoTab gets the new image
+      await refetch();
+      
+      // Notify parent ProfilePage to refresh its data too
+      if (onProfileUpdate) {
+        await onProfileUpdate();
+      }
       
       message.success('Profile picture updated successfully!');
     } catch (error) {
@@ -68,14 +79,13 @@ const UserInfoTab: React.FC = () => {
 
   const beforeUpload = (file: File) => {
     const validation = validateProfilePicture(file);
-    
     if (!validation.isValid) {
       message.error(validation.error!);
       return false;
     }
-
+    
     handleAvatarUpload(file);
-    return false;
+    return false; // Prevent automatic upload
   };
 
   const initialValues = {
@@ -98,7 +108,6 @@ const UserInfoTab: React.FC = () => {
               showUploadList={false}
               beforeUpload={beforeUpload}
               accept="image/*"
-              disabled={uploading}
             >
               <Button 
                 icon={<UploadOutlined />} 
@@ -123,14 +132,9 @@ const UserInfoTab: React.FC = () => {
                 <Form.Item
                   label="Full Name"
                   name="name"
-                  rules={[
-                    { required: true, message: 'Name is required' },
-                    { min: 2, message: 'Name must be at least 2 characters' },
-                    { max: 255, message: 'Name cannot exceed 255 characters' },
-                    { pattern: /^[a-zA-Z\s\-\.]+$/, message: 'Name can only contain letters, spaces, hyphens, and periods' }
-                  ]}
+                  rules={[{ required: true, message: 'Please enter your name' }]}
                 >
-                  <Input placeholder="Enter your full name" maxLength={255} />
+                  <Input placeholder="Enter your full name" />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
@@ -142,7 +146,7 @@ const UserInfoTab: React.FC = () => {
                     { type: 'email', message: 'Please enter a valid email' }
                   ]}
                 >
-                  <Input placeholder="Enter your email" disabled />
+                  <Input placeholder="Enter your email" />
                 </Form.Item>
               </Col>
             </Row>
@@ -152,12 +156,8 @@ const UserInfoTab: React.FC = () => {
                 <Form.Item
                   label="Phone Number"
                   name="phoneNumber"
-                  rules={[
-                    { max: 20, message: 'Phone number cannot exceed 20 characters' },
-                    { pattern: /^[\+]?[0-9][\d]{0,15}$/, message: 'Please enter a valid phone number' }
-                  ]}
                 >
-                  <Input placeholder="Enter your phone number (e.g., +1234567890)" maxLength={20} />
+                  <Input placeholder="Enter your phone number" />
                 </Form.Item>
               </Col>
               <Col xs={24} md={12}>
@@ -177,14 +177,11 @@ const UserInfoTab: React.FC = () => {
             <Form.Item
               label="Bio"
               name="bio"
-              rules={[
-                { max: 1000, message: 'Bio cannot exceed 1000 characters' }
-              ]}
             >
               <TextArea
                 rows={4}
                 placeholder="Tell us about yourself..."
-                maxLength={1000}
+                maxLength={500}
                 showCount
               />
             </Form.Item>
@@ -207,4 +204,11 @@ const UserInfoTab: React.FC = () => {
   );
 };
 
-export default UserInfoTab;
+// Wrap with App provider for message API
+const UserInfoTabWithApp: React.FC<UserInfoTabProps> = (props) => (
+  <App>
+    <UserInfoTab {...props} />
+  </App>
+);
+
+export default UserInfoTabWithApp;
