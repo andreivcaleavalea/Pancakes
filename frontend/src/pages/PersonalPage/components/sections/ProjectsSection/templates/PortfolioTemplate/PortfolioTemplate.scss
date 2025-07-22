@@ -1,4 +1,203 @@
-// PortfolioTemplate - Most styles are dynamic in TSX
+// PortfolioTemplate static styles
 .portfolio-template {
-  // Static styles here
+  margin-bottom: 32px;
+  position: relative;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: none;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+
+  &__header {
+    padding: 40px;
+    text-align: center;
+    border-radius: 20px 20px 0 0;
+    position: relative;
+
+    .portfolio-template__bg-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.3;
+    }
+
+    .portfolio-template__title {
+      color: white;
+      margin: 0;
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .portfolio-template__subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 18px;
+      margin-top: 12px;
+      display: block;
+    }
+  }
+
+  &__content {
+    padding: 40px;
+  }
+
+  &__project-card {
+    position: relative;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+
+    .portfolio-template__project-image {
+      height: 200px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .portfolio-template__project-icon {
+        font-size: 48px;
+        opacity: 0.8;
+      }
+
+      .portfolio-template__project-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: rgba(255,255,255,0.9);
+        padding: 6px 12px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+
+        .portfolio-template__badge-text {
+          font-size: 11px;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .portfolio-template__project-content {
+      padding: 24px;
+
+      .portfolio-template__project-title {
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
+
+      .portfolio-template__project-description {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+
+      .portfolio-template__tech-stack {
+        margin-bottom: 16px;
+
+        .portfolio-template__tech-label {
+          font-size: 12px;
+          color: #999;
+          margin-bottom: 8px;
+          display: block;
+        }
+
+        .portfolio-template__tech-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+
+          .portfolio-template__tech-tag {
+            font-size: 10px;
+          }
+
+          .portfolio-template__tech-more {
+            font-size: 10px;
+            color: #999;
+          }
+        }
+      }
+
+      .portfolio-template__project-links {
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        align-items: center;
+
+        .portfolio-template__project-date {
+          font-size: 11px;
+          color: #999;
+        }
+
+        .portfolio-template__links-container {
+          display: flex;
+          gap: 8px;
+
+          .portfolio-template__link-demo {
+            padding: 4px 8px;
+            border-radius: 6px;
+
+            .portfolio-template__link-text {
+              font-size: 10px;
+              font-weight: 600;
+            }
+          }
+
+          .portfolio-template__link-code {
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 6px;
+
+            .portfolio-template__link-text {
+              font-size: 10px;
+              color: white;
+              font-weight: 600;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .portfolio-template {
+    &__header {
+      padding: 30px 20px;
+
+      .portfolio-template__title {
+        font-size: 28px;
+      }
+
+      .portfolio-template__subtitle {
+        font-size: 16px;
+      }
+    }
+
+    &__content {
+      padding: 30px 20px;
+    }
+
+    &__project-card {
+      .portfolio-template__project-image {
+        height: 160px;
+
+        .portfolio-template__project-icon {
+          font-size: 36px;
+        }
+      }
+
+      .portfolio-template__project-content {
+        padding: 20px;
+      }
+    }
+  }
 } 

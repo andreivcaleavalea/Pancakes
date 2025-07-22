@@ -178,35 +178,24 @@ const JobsTab: React.FC = () => {
           <Form.Item
             label="Company"
             name="company"
-            rules={[
-              { required: true, message: 'Company name is required' },
-              { min: 2, message: 'Company name must be at least 2 characters' },
-              { max: 255, message: 'Company name cannot exceed 255 characters' }
-            ]}
+            rules={[{ required: true, message: 'Please enter the company name' }]}
           >
-            <Input placeholder="e.g., TechCorp SRL" maxLength={255} />
+            <Input placeholder="e.g., TechCorp SRL" />
           </Form.Item>
 
           <Form.Item
             label="Position"
             name="position"
-            rules={[
-              { required: true, message: 'Position is required' },
-              { min: 2, message: 'Position must be at least 2 characters' },
-              { max: 255, message: 'Position cannot exceed 255 characters' }
-            ]}
+            rules={[{ required: true, message: 'Please enter your position' }]}
           >
-            <Input placeholder="e.g., Full-Stack Developer" maxLength={255} />
+            <Input placeholder="e.g., Full-Stack Developer" />
           </Form.Item>
 
           <Form.Item
             label="Location"
             name="location"
-            rules={[
-              { max: 255, message: 'Location cannot exceed 255 characters' }
-            ]}
           >
-            <Input placeholder="e.g., București, România" maxLength={255} />
+            <Input placeholder="e.g., București, România" />
           </Form.Item>
 
           <Row gutter={16}>
@@ -242,14 +231,11 @@ const JobsTab: React.FC = () => {
           <Form.Item
             label="Job Description"
             name="description"
-            rules={[
-              { max: 1000, message: 'Description cannot exceed 1000 characters' }
-            ]}
           >
             <TextArea
               rows={4}
               placeholder="Describe your responsibilities and achievements..."
-              maxLength={1000}
+              maxLength={500}
               showCount
             />
           </Form.Item>

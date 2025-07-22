@@ -1,7 +1,115 @@
-// JourneyTemplate - Most styles are dynamic in TSX
-// This file contains only static styles that don't change
-
 .journey-template {
-  // Any static overrides or non-dynamic styles can go here
-  // Currently all styles are handled dynamically in the TSX component
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+
+  &__title {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  &__container {
+    position: relative;
+    padding: 20px;
+  }
+
+  &__item {
+    position: relative;
+    margin-bottom: 40px;
+  }
+
+  &__line {
+    position: absolute;
+    left: 50%;
+    top: 80px;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 60px;
+    border-radius: 2px;
+    z-index: 1;
+  }
+
+  &__card {
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  }
+
+  &__date-badge {
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    fontSize: 12px;
+    font-weight: 600;
+    color: white;
+  }
+
+  &__institution {
+    margin-top: 10px;
+    margin-bottom: 8px;
+  }
+
+  &__degree {
+    font-size: 16px;
+    color: #333;
+  }
+
+  &__specialization {
+    font-size: 14px;
+    color: #666;
+  }
+
+  &__description {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+  }
+
+  &__icon-col {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    position: relative;
+    z-index: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .journey-template {
+    &__container {
+      padding: 16px;
+    }
+
+    &__card {
+      padding: 20px;
+    }
+
+    &__icon {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+    }
+
+    &__line {
+      height: 40px;
+      top: 60px;
+    }
+  }
 } 

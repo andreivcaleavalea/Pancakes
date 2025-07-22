@@ -1,6 +1,18 @@
 export function getProfilePictureUrl(imagePath?: string): string | undefined {
   if (!imagePath) return undefined;
   
+  // If it's already a full URL (OAuth provider), return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // If it's a custom uploaded image (starts with assets/), prepend the API URL
+  if (imagePath.startsWith('assets/')) {
+    const baseUrl = import.meta.env.VITE_USER_API_URL || 'http://localhost:5141';
+    return `${baseUrl}/${imagePath}`;
+  }
+  
+  // For any other case, assume it's a relative path from the API
   const baseUrl = import.meta.env.VITE_USER_API_URL || 'http://localhost:5141';
   return `${baseUrl}/${imagePath}`;
 }

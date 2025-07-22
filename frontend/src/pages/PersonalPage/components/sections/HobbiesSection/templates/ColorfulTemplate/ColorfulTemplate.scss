@@ -1,4 +1,51 @@
-// ColorfulTemplate - Most styles are dynamic in TSX
 .colorful-template {
-  // Static styles here
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+
+  &__title {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  &__hobby-card {
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    .colorful-template__icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .colorful-template__hobby-name {
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .colorful-template {
+    &__hobby-card {
+      padding: 12px;
+
+      .colorful-template__icon {
+        font-size: 20px;
+        margin-bottom: 6px;
+      }
+
+      .colorful-template__hobby-name {
+        font-size: 11px;
+      }
+    }
+  }
 } 

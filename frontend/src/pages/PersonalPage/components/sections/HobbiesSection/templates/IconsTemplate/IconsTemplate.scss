@@ -1,7 +1,45 @@
-// IconsTemplate - Most styles are dynamic in TSX
-// This file contains only static styles that don't change
-
 .icons-template {
-  // Any static overrides or non-dynamic styles can go here
-  // Currently all styles are handled dynamically in the TSX component
+  margin-bottom: 24px;
+  position: relative;
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__grid {
+    margin-top: 16px;
+  }
+
+  &__hobby-card {
+    text-align: center;
+    padding: 16px;
+    border-radius: 12px;
+
+    .icons-template__icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .icons-template__hobby-name {
+      font-size: 12px;
+      font-weight: 500;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .icons-template {
+    &__hobby-card {
+      padding: 12px;
+
+      .icons-template__icon {
+        font-size: 28px;
+        margin-bottom: 6px;
+      }
+
+      .icons-template__hobby-name {
+        font-size: 11px;
+      }
+    }
+  }
 } 

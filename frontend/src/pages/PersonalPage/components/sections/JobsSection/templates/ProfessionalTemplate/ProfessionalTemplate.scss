@@ -1,4 +1,124 @@
-// ProfessionalTemplate - Most styles are dynamic in TSX
 .professional-template {
-  // Static styles here
+  margin-bottom: 32px;
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+
+  &__header {
+    height: 120px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .professional-template__title {
+      color: white;
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+  }
+
+  &__content {
+    padding: 40px;
+  }
+
+  &__job-item {
+    &:not(:last-child) {
+      margin-bottom: 32px;
+      padding-bottom: 32px;
+    }
+  }
+
+  &__job-position {
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  &__company {
+    font-size: 16px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  &__location-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+
+    .professional-template__location-icon {
+      font-size: 16px;
+      margin-right: 12px;
+    }
+  }
+
+  &__description-card {
+    margin-top: 16px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+
+    .professional-template__description {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #555;
+      margin: 0;
+    }
+  }
+
+  &__icon-container {
+    text-align: center;
+
+    .professional-template__icon {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+    }
+
+    .professional-template__date-badge {
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: inline-block;
+
+      .professional-template__date-text {
+        font-size: 12px;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .professional-template {
+    &__header {
+      height: 100px;
+
+      .professional-template__title {
+        font-size: 20px;
+      }
+    }
+
+    &__content {
+      padding: 24px;
+    }
+
+    &__job-item:not(:last-child) {
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+    }
+
+    &__icon-container .professional-template__icon {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+    }
+  }
 } 

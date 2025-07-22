@@ -23,11 +23,7 @@ const CareerTemplate: React.FC<CareerTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="jobs" style={{ 
-      marginBottom: '32px', 
-      borderRadius: '16px',
-      position: 'relative'
-    }}>
+    <Card key="jobs" className="career-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -35,91 +31,63 @@ const CareerTemplate: React.FC<CareerTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor, textAlign: 'center', marginBottom: '32px' }}>
+      <Title level={2} className="career-template__title" style={{ color: sectionPrimaryColor }}>
         🚀 Career Journey
       </Title>
       
-      <div style={{ position: 'relative' }}>
+      <div className="career-template__timeline">
         {/* Career timeline line */}
-        <div style={{
-          position: 'absolute',
-          left: '24px',
-          top: '20px',
-          bottom: '20px',
-          width: '2px',
-          background: `linear-gradient(to bottom, ${sectionPrimaryColor}, ${sectionPrimaryColor}50)`,
-          zIndex: 1
-        }} />
+        <div 
+          className="career-template__timeline-line"
+          style={{
+            background: `linear-gradient(to bottom, ${sectionPrimaryColor}, ${sectionPrimaryColor}50)`
+          }}
+        />
 
         {jobs.map((job: any, index: number) => (
-          <div key={index} style={{ 
-            position: 'relative',
-            marginBottom: '24px',
-            paddingLeft: '60px'
-          }}>
+          <div key={index} className="career-template__job-item">
             {/* Career milestone */}
-            <div style={{
-              position: 'absolute',
-              left: '16px',
-              top: '16px',
-              width: '16px',
-              height: '16px',
-              background: sectionPrimaryColor,
-              borderRadius: '50%',
-              border: '3px solid white',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              zIndex: 2
-            }} />
+            <div 
+              className="career-template__milestone"
+              style={{ background: sectionPrimaryColor }}
+            />
 
-            <div style={{
-              background: '#fff',
-              borderRadius: '12px',
-              padding: '20px',
-              border: `1px solid ${sectionPrimaryColor}20`,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-            }}>
+            <div 
+              className="career-template__job-card"
+              style={{
+                border: `1px solid ${sectionPrimaryColor}20`
+              }}
+            >
               <Row gutter={[16, 12]}>
                 <Col xs={24} sm={18}>
-                  <Title level={4} style={{ 
-                    color: sectionPrimaryColor, 
-                    marginBottom: '4px' 
-                  }}>
+                  <Title level={4} className="career-template__job-title" style={{ color: sectionPrimaryColor }}>
                     {job.position}
                   </Title>
-                  <Text strong style={{ fontSize: '16px' }}>{job.company}</Text>
+                  <Text strong className="career-template__company">{job.company}</Text>
                   <br />
                   {job.location && (
                     <>
-                      <Text style={{ fontSize: '14px', color: '#666' }}>📍 {job.location}</Text>
+                      <Text className="career-template__location">📍 {job.location}</Text>
                       <br />
                     </>
                   )}
-                  <Text type="secondary" style={{ fontSize: '14px' }}>
+                  <Text type="secondary" className="career-template__dates">
                     {job.startDate} - {job.endDate || 'Present'}
                   </Text>
                   {job.description && (
-                    <Paragraph style={{ 
-                      marginTop: '8px', 
-                      fontSize: '14px', 
-                      color: '#666' 
-                    }}>
+                    <Paragraph className="career-template__description">
                       {job.description}
                     </Paragraph>
                   )}
                 </Col>
                 <Col xs={24} sm={6}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{
-                      background: `${sectionPrimaryColor}15`,
-                      borderRadius: '8px',
-                      width: '50px',
-                      height: '50px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto',
-                      fontSize: '20px'
-                    }}>
+                  <div className="career-template__icon-container">
+                    <div 
+                      className="career-template__icon"
+                      style={{
+                        background: `${sectionPrimaryColor}15`
+                      }}
+                    >
                       💼
                     </div>
                   </div>

@@ -1,4 +1,42 @@
-// ShowcaseTemplate - Most styles are dynamic in TSX
 .showcase-template {
-  // Static styles here
+  margin-bottom: 24px;
+  position: relative;
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__project-item {
+    padding: 16px 0;
+
+    .showcase-template__project-name {
+      font-size: 16px;
+    }
+
+    .showcase-template__project-description {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .showcase-template__project-tech {
+      // Default text styling
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .showcase-template {
+    &__project-item {
+      padding: 12px 0;
+
+      .showcase-template__project-name {
+        font-size: 15px;
+      }
+
+      .showcase-template__project-description {
+        font-size: 13px;
+      }
+    }
+  }
 } 

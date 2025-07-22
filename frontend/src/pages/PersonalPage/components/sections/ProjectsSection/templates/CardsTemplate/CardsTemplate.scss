@@ -1,4 +1,44 @@
-// CardsTemplate - Most styles are dynamic in TSX
 .cards-template {
-  // Static styles here
+  margin-bottom: 24px;
+  position: relative;
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__project-card {
+    padding: 16px;
+    border-radius: 8px;
+    height: 100%;
+
+    .cards-template__project-name {
+      font-size: 16px;
+    }
+
+    .cards-template__project-description {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .cards-template__project-tech {
+      font-size: 12px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .cards-template {
+    &__project-card {
+      padding: 14px;
+
+      .cards-template__project-name {
+        font-size: 15px;
+      }
+
+      .cards-template__project-description {
+        font-size: 13px;
+      }
+    }
+  }
 } 

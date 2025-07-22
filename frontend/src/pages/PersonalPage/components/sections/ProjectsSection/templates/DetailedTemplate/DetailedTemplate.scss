@@ -1,4 +1,44 @@
-// DetailedTemplate - Most styles are dynamic in TSX
 .detailed-template {
-  // Static styles here
+  margin-bottom: 24px;
+  position: relative;
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__project-item {
+    padding: 20px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+
+    .detailed-template__project-name {
+      // Dynamic color in TSX
+    }
+
+    .detailed-template__project-description {
+      // Default paragraph styling
+    }
+
+    .detailed-template__project-tech {
+      // Default text styling
+    }
+  }
+
+  &__links-container {
+    .detailed-template__demo-link {
+      margin-bottom: 8px;
+    }
+
+    .detailed-template__source-link {
+      // Default styling
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .detailed-template {
+    &__project-item {
+      padding: 16px;
+    }
+  }
 } 

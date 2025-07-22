@@ -23,7 +23,7 @@ const IconsTemplate: React.FC<IconsTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="hobbies" style={{ marginBottom: '24px', position: 'relative' }}>
+    <Card key="hobbies" className="icons-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -31,30 +31,25 @@ const IconsTemplate: React.FC<IconsTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor }}>🎪 Icon Gallery</Title>
+      <Title level={2} className="icons-template__title" style={{ color: sectionPrimaryColor }}>
+        🎪 Icon Gallery
+      </Title>
        
-      <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
+      <Row gutter={[16, 16]} className="icons-template__grid">
         {hobbies.map((hobby: any, index: number) => (
           <Col key={index} xs={8} sm={6} md={4}>
-            <div style={{
-              textAlign: 'center',
-              padding: '16px',
-              borderRadius: '12px',
-              background: `${sectionPrimaryColor}05`,
-              border: `1px solid ${sectionPrimaryColor}15`
-            }}>
-              <div style={{
-                fontSize: '32px',
-                marginBottom: '8px'
-              }}>
+            <div 
+              className="icons-template__hobby-card"
+              style={{
+                background: `${sectionPrimaryColor}05`,
+                border: `1px solid ${sectionPrimaryColor}15`
+              }}
+            >
+              <div className="icons-template__icon">
                 {index === 0 ? '🎨' : index === 1 ? '🎵' : index === 2 ? '🎮' : 
                  index === 3 ? '📚' : index === 4 ? '⚽' : index === 5 ? '🍳' : '🎯'}
               </div>
-              <Text style={{ 
-                fontSize: '12px', 
-                color: sectionPrimaryColor,
-                fontWeight: '500'
-              }}>
+              <Text className="icons-template__hobby-name" style={{ color: sectionPrimaryColor }}>
                 {hobby.name}
               </Text>
             </div>

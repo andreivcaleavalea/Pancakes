@@ -1,4 +1,35 @@
-// InterestsTemplate - Most styles are dynamic in TSX
 .interests-template {
-  // Static styles here
+  margin-bottom: 24px;
+  position: relative;
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__grid {
+    margin-top: 16px;
+  }
+
+  &__interest-card {
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+
+    .interests-template__interest-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .interests-template {
+    &__interest-card {
+      padding: 10px;
+
+      .interests-template__interest-name {
+        font-size: 13px;
+      }
+    }
+  }
 } 

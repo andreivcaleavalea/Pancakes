@@ -31,7 +31,8 @@ const Header: React.FC = () => {
       case 'blogs':
       case 'saved':
       case 'friends':
-        // These pages don't exist yet
+        // These pages don't exist yet, so we'll just log for now
+        console.log(`Navigate to ${key} - not implemented yet`);
         break;
       default:
         break;

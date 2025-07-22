@@ -23,7 +23,7 @@ const ShowcaseTemplate: React.FC<ShowcaseTemplateProps> = ({
   templateOptions,
 }) => {
   return (
-    <Card key="projects" style={{ marginBottom: '24px', position: 'relative' }}>
+    <Card key="projects" className="showcase-template">
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -31,22 +31,29 @@ const ShowcaseTemplate: React.FC<ShowcaseTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor }}>🚀 Project Showcase</Title>
+      <Title level={2} className="showcase-template__title" style={{ color: sectionPrimaryColor }}>
+        🚀 Project Showcase
+      </Title>
        
       {projects.map((project: any, index: number) => (
-        <div key={index} style={{ 
-          padding: '16px 0', 
-          borderBottom: index < projects.length - 1 ? `1px solid ${sectionPrimaryColor}20` : 'none' 
-        }}>
-          <Text strong style={{ fontSize: '16px' }}>{project.name}</Text>
+        <div 
+          key={index} 
+          className="showcase-template__project-item"
+          style={{ 
+            borderBottom: index < projects.length - 1 ? `1px solid ${sectionPrimaryColor}20` : 'none' 
+          }}
+        >
+          <Text strong className="showcase-template__project-name">{project.name}</Text>
           <br />
           {project.description && (
-            <Paragraph style={{ marginTop: '8px', fontSize: '14px', color: '#666' }}>
+            <Paragraph className="showcase-template__project-description">
               {project.description}
             </Paragraph>
           )}
           {project.technologies && (
-            <Text type="secondary">{project.technologies}</Text>
+            <Text type="secondary" className="showcase-template__project-tech">
+              {project.technologies}
+            </Text>
           )}
         </div>
       ))}

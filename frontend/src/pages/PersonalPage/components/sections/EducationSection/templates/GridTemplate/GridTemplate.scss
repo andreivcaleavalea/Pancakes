@@ -1,7 +1,93 @@
-// GridTemplate - Most styles are dynamic in TSX
-// This file contains only static styles that don't change
-
 .grid-template {
-  // Any static overrides or non-dynamic styles can go here
-  // Currently all styles are handled dynamically in the TSX component
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+
+  &__title {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  &__card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    height: 100%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  &__icon-container {
+    text-align: center;
+    margin-bottom: 16px;
+
+    .grid-template__icon {
+      border-radius: 8px;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      font-size: 20px;
+    }
+  }
+
+  &__institution {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+
+  &__degree {
+    display: block;
+    text-align: center;
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+
+  &__specialization {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 12px;
+  }
+
+  &__dates {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  &__description {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+    margin: 0;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-template {
+    &__card {
+      padding: 16px;
+    }
+
+    &__institution {
+      font-size: 15px;
+    }
+
+    &__degree {
+      font-size: 13px;
+    }
+
+    &__specialization {
+      font-size: 11px;
+    }
+  }
 } 

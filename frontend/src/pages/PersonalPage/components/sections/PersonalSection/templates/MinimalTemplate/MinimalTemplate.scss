@@ -1,7 +1,29 @@
-// MinimalTemplate - Most styles are dynamic in TSX
-// This file contains only static styles that don't change
-
 .minimal-template {
-  // Any static overrides or non-dynamic styles can go here
-  // Currently all styles are handled dynamically in the TSX component
+  margin-bottom: 24px;
+  text-align: center;
+  padding: 32px;
+  position: relative;
+
+  &__avatar {
+    margin-bottom: 16px;
+  }
+
+  &__name {
+    margin: 16px 0 8px;
+  }
+
+  &__email {
+    font-size: 16px;
+  }
+
+  &__bio {
+    margin-top: 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .minimal-template {
+    padding: 24px;
+  }
 } 
