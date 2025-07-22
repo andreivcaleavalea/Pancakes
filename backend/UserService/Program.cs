@@ -1,7 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 using UserService.Services;
+using UserService.Services.Implementations;
+using UserService.Services.Interfaces;
+using UserService.Data;
+using UserService.Repositories.Interfaces;
+using UserService.Repositories.Implementations;
+using UserService.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +25,25 @@ builder.Services.AddHttpContextAccessor();
 // Add HttpClient for OAuth service
 builder.Services.AddHttpClient<OAuthService>();
 
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Add Entity Framework
+var connectionString = Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING") 
+    ?? throw new InvalidOperationException("POSTGRES_CONNECTION_STRING must be set in environment variables");
+
+builder.Services.AddDbContext<UserDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// Add repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 // Add custom services
 builder.Services.AddScoped<OAuthService>();
 builder.Services.AddScoped<UserManagementService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<CurrentUserService>();
+builder.Services.AddScoped<IUserService, UserService.Services.Implementations.UserService>();
 
 // Add CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
@@ -89,5 +110,12 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Run migrations on startup (similar to BlogService)
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+    await context.Database.MigrateAsync();
+}
 
 app.Run();
