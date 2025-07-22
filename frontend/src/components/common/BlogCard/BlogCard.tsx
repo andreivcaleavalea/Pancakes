@@ -13,6 +13,7 @@ interface BlogPostWithDisplay extends BlogPost {
 import { useFavorite } from "@/hooks/useBlog";
 import { useRouter } from "@/router/RouterProvider";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULTS } from "@/utils/constants";
+import { UserRatingDisplay } from "@/components/common";
 import "./BlogCard.scss";
 
 const { Title, Text, Paragraph } = Typography;
@@ -20,9 +21,14 @@ const { Title, Text, Paragraph } = Typography;
 interface BlogCardProps {
   post: BlogPostWithDisplay;
   variant?: "default" | "horizontal" | "featured";
+  userRating?: number;
 }
 
-const BlogCard: React.FC<BlogCardProps> = ({ post, variant = "default" }) => {
+const BlogCard: React.FC<BlogCardProps> = ({
+  post,
+  variant = "default",
+  userRating,
+}) => {
   const {
     isFavorite,
     loading: isLoading,
@@ -98,6 +104,11 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, variant = "default" }) => {
                 <Text className="blog-card__author">By {post.author}</Text>
               </div>
             )}
+            {userRating && (
+              <div className="blog-card__user-rating">
+                <UserRatingDisplay rating={userRating} size="small" />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -154,6 +165,11 @@ const BlogCard: React.FC<BlogCardProps> = ({ post, variant = "default" }) => {
             <Paragraph className="blog-card__description">
               {post.description}
             </Paragraph>
+          )}
+          {userRating && (
+            <div className="blog-card__user-rating">
+              <UserRatingDisplay rating={userRating} size="small" />
+            </div>
           )}
         </div>
       </div>

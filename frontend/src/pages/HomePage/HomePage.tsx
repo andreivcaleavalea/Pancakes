@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Typography, Row, Col, Spin, Alert } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { BlogCard } from "@common/BlogCard";
 import { FloatingActionButton } from "@common/FloatingActionButton";
 import Pagination from "@components/Pagination/Pagination";
 import { useBlogData, usePaginatedPosts, useResponsive } from "@/hooks/useBlog";
+import { useUserRatings } from "@/hooks/useUserRatings";
 import { useRouter } from "@/router/RouterProvider";
 import { PAGINATION, BREAKPOINTS } from "@/utils/constants";
 import "./HomePage.scss";
@@ -28,6 +29,19 @@ const HomePage: React.FC = () => {
   } = usePaginatedPosts(currentPage, PAGINATION.DEFAULT_PAGE_SIZE);
   const isMobile = useResponsive(BREAKPOINTS.MOBILE);
   const { navigate } = useRouter();
+
+  // Get all blog post IDs for user ratings - memoized to prevent constant recreation
+  const allBlogPostIds = useMemo(
+    () => [
+      ...(blogData?.featuredPosts || []).map((post) => post.id),
+      ...(blogData?.horizontalPosts || []).map((post) => post.id),
+      ...currentPosts.map((post) => post.id),
+    ],
+    [blogData?.featuredPosts, blogData?.horizontalPosts, currentPosts]
+  );
+
+  // Fetch user ratings for all displayed posts
+  const { userRatings } = useUserRatings(allBlogPostIds);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -81,7 +95,11 @@ const HomePage: React.FC = () => {
 
         {featuredPosts.length > 0 && (
           <div className="home-page__featured">
-            <BlogCard post={featuredPosts[0]} variant="featured" />
+            <BlogCard
+              post={featuredPosts[0]}
+              variant="featured"
+              userRating={userRatings[featuredPosts[0].id]}
+            />
           </div>
         )}
       </section>
@@ -100,7 +118,12 @@ const HomePage: React.FC = () => {
 
           <div className="home-page__horizontal-list">
             {horizontalPosts.map((post) => (
-              <BlogCard key={post.id} post={post} variant="horizontal" />
+              <BlogCard
+                key={post.id}
+                post={post}
+                variant="horizontal"
+                userRating={userRatings[post.id]}
+              />
             ))}
           </div>
         </section>
@@ -135,7 +158,7 @@ const HomePage: React.FC = () => {
                 <Row gutter={[12, 24]}>
                   {currentPosts.map((post) => (
                     <Col key={post.id} xs={24} sm={24} md={12} lg={8} xl={8}>
-                      <BlogCard post={post} />
+                      <BlogCard post={post} userRating={userRatings[post.id]} />
                     </Col>
                   ))}
                 </Row>
