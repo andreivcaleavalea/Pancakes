@@ -9,11 +9,16 @@ namespace BlogService.Controllers;
 public class PostRatingsController : ControllerBase
 {
     private readonly IPostRatingService _ratingService;
+    private readonly IJwtUserService _jwtUserService;
     private readonly ILogger<PostRatingsController> _logger;
 
-    public PostRatingsController(IPostRatingService ratingService, ILogger<PostRatingsController> logger)
+    public PostRatingsController(
+        IPostRatingService ratingService, 
+        IJwtUserService jwtUserService,
+        ILogger<PostRatingsController> logger)
     {
         _ratingService = ratingService;
+        _jwtUserService = jwtUserService;
         _logger = logger;
     }
 
@@ -97,13 +102,14 @@ public class PostRatingsController : ControllerBase
 
     private string GetUserIdentifier()
     {
-        // For now, use IP address as user identifier
-        // In a real app, this would be user ID from authentication
-        var userIP = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
-        
-        // Create a simple hash of IP + UserAgent for better uniqueness
-        var combined = $"{userIP}_{userAgent}";
-        return combined.Length > 100 ? combined.Substring(0, 100) : combined;
+        // Try to get user ID from JWT token first
+        var userId = _jwtUserService.GetCurrentUserId();
+        if (!string.IsNullOrEmpty(userId))
+        {
+            return userId;
+        }
+
+        // If no JWT token, require authentication for rating operations
+        throw new UnauthorizedAccessException("Authentication required for rating operations. Please log in to rate blog posts.");
     }
 } 

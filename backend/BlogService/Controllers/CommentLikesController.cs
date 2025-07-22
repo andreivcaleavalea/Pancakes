@@ -9,11 +9,16 @@ namespace BlogService.Controllers;
 public class CommentLikesController : ControllerBase
 {
     private readonly ICommentLikeService _likeService;
+    private readonly IJwtUserService _jwtUserService;
     private readonly ILogger<CommentLikesController> _logger;
 
-    public CommentLikesController(ICommentLikeService likeService, ILogger<CommentLikesController> logger)
+    public CommentLikesController(
+        ICommentLikeService likeService, 
+        IJwtUserService jwtUserService,
+        ILogger<CommentLikesController> logger)
     {
         _likeService = likeService;
+        _jwtUserService = jwtUserService;
         _logger = logger;
     }
 
@@ -82,13 +87,19 @@ public class CommentLikesController : ControllerBase
 
     private string GetUserIdentifier()
     {
-        // For now, use IP address as user identifier
-        // In a real app, this would be user ID from authentication
+        // Try to get user ID from JWT token first
+        var userId = _jwtUserService.GetCurrentUserId();
+        if (!string.IsNullOrEmpty(userId))
+        {
+            return userId;
+        }
+
+        // Fallback to IP address + UserAgent for anonymous users
         var userIP = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
         
         // Create a simple hash of IP + UserAgent for better uniqueness
-        var combined = $"{userIP}_{userAgent}";
+        var combined = $"anonymous_{userIP}_{userAgent}";
         return combined.Length > 100 ? combined.Substring(0, 100) : combined;
     }
 } 
