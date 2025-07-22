@@ -27,7 +27,7 @@ public class BlogPostRepository : IBlogPostRepository
         {
             query = query.Where(bp => bp.Title.Contains(parameters.Search) || bp.Content.Contains(parameters.Search));
         }
-        if (parameters.AuthorId.HasValue)
+        if (!string.IsNullOrEmpty(parameters.AuthorId))
         {
             query = query.Where(bp => bp.AuthorId == parameters.AuthorId);
         }
@@ -92,7 +92,8 @@ public class BlogPostRepository : IBlogPostRepository
 
     public async Task<IEnumerable<BlogPost>> GetByAuthorAsync(Guid authorId, int page = 1, int pageSize = 10)
     {
-        return await _context.BlogPosts.Where(bp => bp.AuthorId == authorId)
+        var authorIdString = authorId.ToString(); // Convert Guid to string for comparison
+        return await _context.BlogPosts.Where(bp => bp.AuthorId == authorIdString)
             .OrderByDescending(bp => bp.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

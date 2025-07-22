@@ -7,7 +7,6 @@ namespace UserService.Controllers;
 
 [ApiController]
 [Route("users")]
-[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -38,6 +37,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("email/{email}")]
+    [Authorize]
     public async Task<IActionResult> GetByEmail(string email)
     {
         try
@@ -58,6 +58,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         try
@@ -73,6 +74,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateUserDto createDto)
     {
         try
@@ -92,6 +94,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateUserDto updateDto)
     {
         try
@@ -111,6 +114,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Delete(string id)
     {
         try

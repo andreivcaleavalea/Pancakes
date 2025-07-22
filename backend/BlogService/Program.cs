@@ -25,6 +25,9 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// Add HttpContextAccessor for accessing HTTP context in services
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddDbContext<BlogDbContext>(options =>
 {
     var host = Environment.GetEnvironmentVariable("POSTGRES_HOST");
@@ -48,6 +51,10 @@ builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IPostRatingService, PostRatingService>();
 builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
+
+// Add HttpClient for UserService communication
+builder.Services.AddHttpClient<IUserServiceClient, UserServiceClient>();
+builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 

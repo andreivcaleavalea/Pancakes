@@ -14,7 +14,9 @@ public static class BlogDataSeeder
         if (context.BlogPosts.Any())
             return;
 
-        var authorId = Guid.NewGuid();
+        // For demo purposes, use a predictable GUID that we'll handle gracefully in the service layer
+        // This represents a "default demo author" - the service should handle when this user doesn't exist
+        var authorId = "DEMO-AUTHOR-0000-0000-000000000000"; // Use a clearly identifiable demo ID
         var now = DateTime.UtcNow;
         
         var itPosts = new List<(string title, string content, string featuredImage)>

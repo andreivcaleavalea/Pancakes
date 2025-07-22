@@ -18,7 +18,7 @@ public class CreateBlogPostDto
     public PostStatus Status { get; set; } = PostStatus.Draft;
     
     [Required]
-    public Guid AuthorId { get; set; }
+    public string AuthorId { get; set; } = string.Empty;
     
     public DateTime? PublishedAt { get; set; }
 }

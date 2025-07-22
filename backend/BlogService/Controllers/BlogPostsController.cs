@@ -10,11 +10,13 @@ namespace BlogService.Controllers;
 public class BlogPostsController : ControllerBase
 {
     private readonly IBlogPostService _blogPostService;
+    private readonly IUserServiceClient _userServiceClient;
     private readonly ILogger<BlogPostsController> _logger;
 
-    public BlogPostsController(IBlogPostService blogPostService, ILogger<BlogPostsController> logger)
+    public BlogPostsController(IBlogPostService blogPostService, IUserServiceClient userServiceClient, ILogger<BlogPostsController> logger)
     {
         _blogPostService = blogPostService;
+        _userServiceClient = userServiceClient;
         _logger = logger;
     }
 
@@ -103,16 +105,54 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("Received blog post creation request: Title={Title}, AuthorId={AuthorId}", 
+                createDto?.Title ?? "null", createDto?.AuthorId ?? "null");
+
             if (!ModelState.IsValid)
             {
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .Select(x => $"{x.Key}: {string.Join(", ", x.Value.Errors.Select(e => e.ErrorMessage))}")
+                    .ToArray();
+                
+                _logger.LogWarning("Model state invalid: {Errors}", string.Join("; ", errors));
                 return BadRequest(ModelState);
             }
 
+            // Extract the JWT token from Authorization header
+            var authHeader = Request.Headers.Authorization.FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                _logger.LogWarning("Missing or invalid authorization header");
+                return Unauthorized("Authorization token is required");
+            }
+
+            var token = authHeader.Substring("Bearer ".Length);
+            _logger.LogInformation("Extracted token length: {TokenLength}", token.Length);
+            
+            // Get current user from UserService
+            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
+            if (currentUser == null)
+            {
+                _logger.LogWarning("Failed to get current user from UserService");
+                return Unauthorized("Invalid or expired token");
+            }
+
+            _logger.LogInformation("Current user retrieved: Id={UserId}, Name={UserName}", 
+                currentUser.Id, currentUser.Name);
+
+            // Override AuthorId with current user's ID to ensure security
+            createDto.AuthorId = currentUser.Id;
+            _logger.LogInformation("Updated createDto.AuthorId to: {AuthorId}", createDto.AuthorId);
+
             var blogPost = await _blogPostService.CreateAsync(createDto);
+            _logger.LogInformation("Blog post created successfully with ID: {BlogPostId}", blogPost.Id);
+            
             return CreatedAtAction(nameof(GetBlogPost), new { id = blogPost.Id }, blogPost);
         }
         catch (ArgumentException ex)
         {
+            _logger.LogError(ex, "Validation error creating blog post");
             return BadRequest(ex.Message);
         }
         catch (Exception ex)

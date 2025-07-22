@@ -5,7 +5,7 @@ import { BlogCard } from "@common/BlogCard";
 import { FloatingActionButton } from "@common/FloatingActionButton";
 import Pagination from "@components/Pagination/Pagination";
 import { useBlogData, usePaginatedPosts, useResponsive } from "@/hooks/useBlog";
-import { useUserRatings } from "@/hooks/useUserRatings";
+import { useAverageRatings } from "@/hooks/useAverageRatings";
 import { useRouter } from "@/router/RouterProvider";
 import { PAGINATION, BREAKPOINTS } from "@/utils/constants";
 import "./HomePage.scss";
@@ -40,8 +40,8 @@ const HomePage: React.FC = () => {
     [blogData?.featuredPosts, blogData?.horizontalPosts, currentPosts]
   );
 
-  // Fetch user ratings for all displayed posts
-  const { userRatings } = useUserRatings(allBlogPostIds);
+  // Fetch average ratings for all displayed posts
+  const { averageRatings } = useAverageRatings(allBlogPostIds);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -98,7 +98,7 @@ const HomePage: React.FC = () => {
             <BlogCard
               post={featuredPosts[0]}
               variant="featured"
-              userRating={userRatings[featuredPosts[0].id]}
+              averageRating={averageRatings[featuredPosts[0].id]}
             />
           </div>
         )}
@@ -122,7 +122,7 @@ const HomePage: React.FC = () => {
                 key={post.id}
                 post={post}
                 variant="horizontal"
-                userRating={userRatings[post.id]}
+                averageRating={averageRatings[post.id]}
               />
             ))}
           </div>
@@ -158,7 +158,10 @@ const HomePage: React.FC = () => {
                 <Row gutter={[12, 24]}>
                   {currentPosts.map((post) => (
                     <Col key={post.id} xs={24} sm={24} md={12} lg={8} xl={8}>
-                      <BlogCard post={post} userRating={userRatings[post.id]} />
+                      <BlogCard
+                        post={post}
+                        averageRating={averageRatings[post.id]}
+                      />
                     </Col>
                   ))}
                 </Row>

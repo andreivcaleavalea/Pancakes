@@ -17,6 +17,8 @@ export interface BlogPost {
   featuredImage?: string;
   status: PostStatus;
   authorId: string;
+  authorName: string;
+  authorImage: string;
   viewCount: number;
   isFeatured: boolean;
   isPopular: boolean;
@@ -64,7 +66,7 @@ export interface CreateBlogPostDto {
   content: string;
   featuredImage?: string;
   status: PostStatus;
-  authorId: string;
+  authorId: string; // GUID string - will be overridden by backend with current user's ID
   publishedAt?: string;
 }
 

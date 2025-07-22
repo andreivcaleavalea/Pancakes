@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Form, Input, Button, Card, Typography, Space, message } from "antd";
 import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
 import { useRouter } from "@/router/RouterProvider";
+import { useAuth } from "@/contexts/AuthContext";
 import { blogPostsApi } from "@/services/blogApi";
 import { PostStatus } from "@/types/blog";
 import type { CreateBlogPostDto } from "@/types/blog";
@@ -20,21 +21,34 @@ const CreateBlogPage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const { navigate } = useRouter();
+  const { user, isAuthenticated } = useAuth();
+
+  // Redirect to login if user is not authenticated
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      message.warning("Please log in to create a blog post");
+      navigate("login");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (values: CreateBlogFormValues) => {
+    // Check if user is authenticated
+    if (!isAuthenticated || !user) {
+      message.error("You must be logged in to create a blog post");
+      navigate("login");
+      return;
+    }
+
     setLoading(true);
     try {
       const currentDate = new Date().toISOString();
-
-      // Generate a proper UUID for author ID (temporary solution)
-      const tempAuthorId = "123e4567-e89b-12d3-a456-426614174000";
 
       const createDto: CreateBlogPostDto = {
         title: values.title,
         content: values.content,
         featuredImage: values.featuredImage || undefined,
         status: PostStatus.Published, // Always set to published (status code 1)
-        authorId: tempAuthorId, // TODO: Get from JWT token
+        authorId: "00000000-0000-0000-0000-000000000000", // Placeholder GUID - backend will override with current user's ID
         publishedAt: currentDate,
       };
 
