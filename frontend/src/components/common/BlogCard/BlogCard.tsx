@@ -13,7 +13,7 @@ interface BlogPostWithDisplay extends BlogPost {
 import { useFavorite } from "@/hooks/useBlog";
 import { useRouter } from "@/router/RouterProvider";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULTS } from "@/utils/constants";
-import { UserRatingDisplay } from "@/components/common";
+import { AverageRatingDisplay } from "@/components/common";
 import "./BlogCard.scss";
 
 const { Title, Text, Paragraph } = Typography;
@@ -21,13 +21,13 @@ const { Title, Text, Paragraph } = Typography;
 interface BlogCardProps {
   post: BlogPostWithDisplay;
   variant?: "default" | "horizontal" | "featured";
-  userRating?: number;
+  averageRating?: { averageRating: number; totalRatings: number };
 }
 
 const BlogCard: React.FC<BlogCardProps> = ({
   post,
   variant = "default",
-  userRating,
+  averageRating,
 }) => {
   const {
     isFavorite,
@@ -104,9 +104,13 @@ const BlogCard: React.FC<BlogCardProps> = ({
                 <Text className="blog-card__author">By {post.author}</Text>
               </div>
             )}
-            {userRating && (
+            {averageRating && (
               <div className="blog-card__user-rating">
-                <UserRatingDisplay rating={userRating} size="small" />
+                <AverageRatingDisplay
+                  averageRating={averageRating.averageRating}
+                  totalRatings={averageRating.totalRatings}
+                  size="small"
+                />
               </div>
             )}
           </div>
@@ -166,9 +170,13 @@ const BlogCard: React.FC<BlogCardProps> = ({
               {post.description}
             </Paragraph>
           )}
-          {userRating && (
+          {averageRating && (
             <div className="blog-card__user-rating">
-              <UserRatingDisplay rating={userRating} size="small" />
+              <AverageRatingDisplay
+                averageRating={averageRating.averageRating}
+                totalRatings={averageRating.totalRatings}
+                size="small"
+              />
             </div>
           )}
         </div>

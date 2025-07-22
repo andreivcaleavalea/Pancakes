@@ -153,7 +153,15 @@ namespace UserService.Services
                 return null;
             }
 
-            return ParseUserInfo(content, provider);
+            var userInfo = ParseUserInfo(content, provider);
+            
+            // For GitHub, get email separately if not provided in user info
+            if (provider.ToLower() == "github" && userInfo != null && string.IsNullOrEmpty(userInfo.Email))
+            {
+                userInfo.Email = await GetGitHubUserEmail(accessToken);
+            }
+
+            return userInfo;
         }
 
         private OAuthUserInfo? ParseUserInfo(string jsonContent, string provider)
@@ -240,13 +248,63 @@ namespace UserService.Services
             return root.GetProperty("picture").GetString() ?? "";
         }
 
-        // Commented out GitHub methods for future implementation
-        /*
-        private async Task<string?> GetGitHubEmail()
+        private async Task<string> GetGitHubUserEmail(string accessToken)
         {
-            // GitHub email implementation would go here
-            return null;
+            try
+            {
+                // Create a new HTTP request for emails endpoint
+                // Note: The authorization header should already be set from the previous call
+                var emailResponse = await _httpClient.GetAsync("https://api.github.com/user/emails");
+                
+                if (!emailResponse.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"Failed to get GitHub user emails: {emailResponse.StatusCode}");
+                    var errorContent = await emailResponse.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error details: {errorContent}");
+                    return "";
+                }
+
+                var emailContent = await emailResponse.Content.ReadAsStringAsync();
+                Console.WriteLine($"GitHub emails response: {emailContent}");
+                
+                var emailJson = JsonDocument.Parse(emailContent);
+
+                // Find the primary email or the first verified email
+                foreach (var emailElement in emailJson.RootElement.EnumerateArray())
+                {
+                    var email = emailElement.GetProperty("email").GetString() ?? "";
+                    var primary = emailElement.TryGetProperty("primary", out var primaryProp) && primaryProp.GetBoolean();
+                    var verified = emailElement.TryGetProperty("verified", out var verifiedProp) && verifiedProp.GetBoolean();
+
+                    // Return primary email if found and verified
+                    if (primary && verified)
+                    {
+                        Console.WriteLine($"Found primary verified email: {email}");
+                        return email;
+                    }
+                }
+
+                // If no primary email, return the first verified email
+                foreach (var emailElement in emailJson.RootElement.EnumerateArray())
+                {
+                    var email = emailElement.GetProperty("email").GetString() ?? "";
+                    var verified = emailElement.TryGetProperty("verified", out var verifiedProp) && verifiedProp.GetBoolean();
+
+                    if (verified && !string.IsNullOrEmpty(email))
+                    {
+                        Console.WriteLine($"Found verified email: {email}");
+                        return email;
+                    }
+                }
+
+                Console.WriteLine("No verified email found for GitHub user");
+                return "";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving GitHub user email: {ex.Message}");
+                return "";
+            }
         }
-        */
     }
 }

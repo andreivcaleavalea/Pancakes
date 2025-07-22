@@ -93,7 +93,7 @@ public class UserService : IUserService
 
     public async Task<UserDto> CreateOrUpdateFromOAuthAsync(OAuthUserInfo oauthInfo, string provider)
     {
-        // Check if user exists by provider and provider user ID
+        // First, check if user exists by provider and provider user ID (exact match)
         var existingUser = await _userRepository.GetByProviderAndProviderUserIdAsync(provider, oauthInfo.Id);
         
         if (existingUser != null)
@@ -105,6 +105,22 @@ public class UserService : IUserService
             existingUser.LastLoginAt = DateTime.UtcNow;
             
             var updatedUser = await _userRepository.UpdateAsync(existingUser);
+            return _mapper.Map<UserDto>(updatedUser);
+        }
+        
+        // If no user found by provider, check if a user exists with this email from another provider
+        var existingUserByEmail = await _userRepository.GetByEmailAsync(oauthInfo.Email);
+        
+        if (existingUserByEmail != null)
+        {
+            // User exists with same email but different provider - link the accounts
+            // Update the existing user to add this provider info and login
+            existingUserByEmail.Name = oauthInfo.Name; // Update name in case it changed
+            existingUserByEmail.Image = oauthInfo.Picture; // Update image
+            existingUserByEmail.LastLoginAt = DateTime.UtcNow;
+            // Note: We keep the original Provider and ProviderUserId but allow login from multiple providers
+            
+            var updatedUser = await _userRepository.UpdateAsync(existingUserByEmail);
             return _mapper.Map<UserDto>(updatedUser);
         }
         else

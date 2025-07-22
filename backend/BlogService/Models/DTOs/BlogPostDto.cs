@@ -9,8 +9,12 @@ public class BlogPostDto
     public string Content { get; set; } = string.Empty;
     public string? FeaturedImage { get; set; }
     public PostStatus Status { get; set; }
-    public Guid AuthorId { get; set; }
+    public string AuthorId { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? PublishedAt { get; set; }
+    
+    // Author information
+    public string AuthorName { get; set; } = string.Empty;
+    public string AuthorImage { get; set; } = string.Empty;
 }
