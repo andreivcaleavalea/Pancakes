@@ -36,7 +36,7 @@ namespace UserService.Services
         /// <param name="provider">OAuth provider</param>
         /// <param name="providerUserId">Provider-specific user ID</param>
         /// <returns>Deterministic unique user ID</returns>
-        private string GenerateUniqueUserId(string provider, string providerUserId)
+        public string GenerateUniqueUserId(string provider, string providerUserId)
         {
             // Create a deterministic ID based on provider and provider user ID
             // This ensures the same user from the same provider always gets the same ID

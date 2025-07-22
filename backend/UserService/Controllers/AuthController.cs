@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using UserService.Services;
+using UserService.Services.Interfaces;
 using UserService.Models;
 
 namespace UserService.Controllers
@@ -13,17 +14,20 @@ namespace UserService.Controllers
         private readonly UserManagementService _userService;
         private readonly JwtService _jwtService;
         private readonly CurrentUserService _currentUserService;
+        private readonly IUserService _persistentUserService;
 
         public AuthController(
             OAuthService oauthService, 
             UserManagementService userService, 
             JwtService jwtService,
-            CurrentUserService currentUserService)
+            CurrentUserService currentUserService,
+            IUserService persistentUserService)
         {
             _oauthService = oauthService;
             _userService = userService;
             _jwtService = jwtService;
             _currentUserService = currentUserService;
+            _persistentUserService = persistentUserService;
         }
 
         [HttpPost("login")]
@@ -39,8 +43,26 @@ namespace UserService.Controllers
                     return BadRequest(new { message = "Failed to get user information" });
                 }
 
-                // Create user object (stateless - no persistence)
-                var user = _userService.CreateUserFromOAuth(userInfo, request.Provider);
+                // Create or update user in database (persistent)
+                var userDto = await _persistentUserService.CreateOrUpdateFromOAuthAsync(userInfo, request.Provider);
+                
+                // Convert DTO back to User entity for JWT token generation
+                var user = new User
+                {
+                    Id = userDto.Id,
+                    Name = userDto.Name,
+                    Email = userDto.Email,
+                    Image = userDto.Image,
+                    Provider = userDto.Provider,
+                    ProviderUserId = userDto.ProviderUserId,
+                    Bio = userDto.Bio,
+                    PhoneNumber = userDto.PhoneNumber,
+                    DateOfBirth = userDto.DateOfBirth,
+                    CreatedAt = userDto.CreatedAt,
+                    LastLoginAt = userDto.LastLoginAt,
+                    UpdatedAt = userDto.UpdatedAt
+                };
+
                 var token = _jwtService.GenerateToken(user);
 
                 var response = new LoginResponse
