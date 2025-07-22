@@ -1,5 +1,6 @@
-export { default as PersonalSection } from './PersonalSection';
-export { default as EducationSection } from './EducationSection';
-export { default as JobsSection } from './JobsSection';
-export { default as ProjectsSection } from './ProjectsSection';
-export { default as HobbiesSection } from './HobbiesSection'; 
+// Export modular section components
+export { default as PersonalSection } from './PersonalSection/PersonalSection';
+export { default as EducationSection } from './EducationSection/EducationSection';
+export { default as JobsSection } from './JobsSection/JobsSection';
+export { default as ProjectsSection } from './ProjectsSection/ProjectsSection';
+export { default as HobbiesSection } from './HobbiesSection/HobbiesSection'; 
