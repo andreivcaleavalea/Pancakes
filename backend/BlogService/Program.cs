@@ -52,6 +52,9 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IPostRatingService, PostRatingService>();
 builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
 
+// Add JWT User Service for extracting user info from tokens
+builder.Services.AddScoped<IJwtUserService, JwtUserService>();
+
 // Add HttpClient for UserService communication
 builder.Services.AddHttpClient<IUserServiceClient, UserServiceClient>();
 builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
