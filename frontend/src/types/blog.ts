@@ -70,6 +70,14 @@ export interface CreateBlogPostDto {
   publishedAt?: string;
 }
 
+export interface UpdateBlogPostDto {
+  title?: string;
+  content?: string;
+  featuredImage?: string;
+  status?: PostStatus;
+  publishedAt?: string;
+}
+
 // UI Props types
 export interface BlogCardProps {
   post: BlogPost;

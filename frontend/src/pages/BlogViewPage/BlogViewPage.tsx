@@ -1,14 +1,27 @@
-import React from "react";
-import { Typography, Avatar, Spin, Alert, Button } from "antd";
+import React, { useState } from "react";
+import {
+  Typography,
+  Avatar,
+  Spin,
+  Alert,
+  Button,
+  Space,
+  message,
+  App,
+} from "antd";
 import {
   ArrowLeftOutlined,
   HeartOutlined,
   HeartFilled,
+  EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "@/router/RouterProvider";
+import { useAuth } from "@/contexts/AuthContext";
 import { useBlogPost, useFavorite } from "@/hooks/useBlog";
 import { usePostRating } from "@/hooks/useRating";
 import { CommentSection, GlazeMeter } from "@/components/common";
+import { blogPostsApi } from "@/services/blogApi";
 import { DEFAULTS } from "@/utils/constants";
 import "./BlogViewPage.scss";
 
@@ -16,6 +29,9 @@ const { Title, Text, Paragraph } = Typography;
 
 const BlogViewPage: React.FC = () => {
   const { blogId, navigate } = useRouter();
+  const { user, isAuthenticated } = useAuth();
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const { modal } = App.useApp();
 
   // Use the real data hooks
   const { data: blog, loading, error } = useBlogPost(blogId);
@@ -30,6 +46,43 @@ const BlogViewPage: React.FC = () => {
   const handleBack = () => {
     navigate("home");
   };
+
+  const handleEdit = () => {
+    if (blogId) {
+      navigate("edit-blog", undefined, blogId);
+    }
+  };
+
+  const handleDelete = () => {
+    if (!blogId) {
+      return;
+    }
+
+    modal.confirm({
+      title: "Delete Blog Post",
+      content:
+        "Are you sure you want to delete this blog post? This action cannot be undone.",
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        try {
+          setDeleteLoading(true);
+          await blogPostsApi.delete(blogId);
+          message.success("Blog post deleted successfully!");
+          navigate("home");
+        } catch (error) {
+          console.error("Error deleting blog post:", error);
+          message.error("Failed to delete blog post. Please try again.");
+        } finally {
+          setDeleteLoading(false);
+        }
+      },
+    });
+  };
+
+  // Check if current user is the author of the blog post
+  const isAuthor = isAuthenticated && user && blog && blog.authorId === user.id;
 
   // Increment view count when blog loads (optional - will fail gracefully if not implemented)
   React.useEffect(() => {
@@ -133,17 +186,42 @@ const BlogViewPage: React.FC = () => {
             </div>
           </div>
 
-          <Button
-            type="text"
-            icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
-            onClick={handleFavoriteToggle}
-            loading={favoriteLoading}
-            className={`blog-view__favorite ${
-              isFavorite ? "blog-view__favorite--active" : ""
-            }`}
-          >
-            {isFavorite ? "Favorited" : "Add to Favorites"}
-          </Button>
+          <div className="blog-view__actions">
+            {isAuthor ? (
+              <Space size="middle">
+                <Button
+                  type="default"
+                  icon={<EditOutlined />}
+                  onClick={handleEdit}
+                  className="blog-view__edit-button"
+                >
+                  Edit
+                </Button>
+                <Button
+                  type="default"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={handleDelete}
+                  loading={deleteLoading}
+                  className="blog-view__delete-button"
+                >
+                  Delete
+                </Button>
+              </Space>
+            ) : (
+              <Button
+                type="text"
+                icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
+                onClick={handleFavoriteToggle}
+                loading={favoriteLoading}
+                className={`blog-view__favorite ${
+                  isFavorite ? "blog-view__favorite--active" : ""
+                }`}
+              >
+                {isFavorite ? "Favorited" : "Add to Favorites"}
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="blog-view__content">

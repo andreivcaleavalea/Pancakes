@@ -49,8 +49,6 @@ export const usePostRating = (blogPostId: string) => {
     async (rating: number) => {
       if (!blogPostId) throw new Error("No blog post ID provided");
 
-      console.log("Submitting rating:", { blogPostId, rating });
-
       if (!blogPostId || blogPostId.trim() === "") {
         throw new Error("BlogPostId is empty or invalid");
       }
@@ -60,7 +58,6 @@ export const usePostRating = (blogPostId: string) => {
           blogPostId: blogPostId.trim(),
           rating,
         };
-        console.log("Request data:", JSON.stringify(requestData));
 
         await postRatingApi.createOrUpdate(requestData);
 
