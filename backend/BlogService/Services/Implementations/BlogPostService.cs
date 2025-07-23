@@ -108,18 +108,47 @@ public class BlogPostService : IBlogPostService
         return blogPostDto;
     }
 
-    public async Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto)
+    public async Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto, string currentUserId)
+    {
+        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
+        
+        // Check if the current user is the author of the blog post
+        if (existingBlogPost.AuthorId != currentUserId)
+        {
+            throw new UnauthorizedAccessException("You can only edit your own blog posts.");
+        }
+        
+        _mapper.Map(updateDto, existingBlogPost);
+        existingBlogPost.UpdatedAt = DateTime.UtcNow;
+        var updatedBlogPost = await _blogPostRepository.UpdateAsync(existingBlogPost);
+        var blogPostDto = _mapper.Map<BlogPostDto>(updatedBlogPost);
+        await PopulateAuthorInfoAsync(blogPostDto);
+        return blogPostDto;
+    }
+
+    public async Task DeleteAsync(Guid id, string currentUserId)
+    {
+        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
+        
+        // Check if the current user is the author of the blog post
+        if (existingBlogPost.AuthorId != currentUserId)
+        {
+            throw new UnauthorizedAccessException("You can only delete your own blog posts.");
+        }
+        
+        await _blogPostRepository.DeleteAsync(id);
+    }
+
+    // Internal methods for backwards compatibility (used by UpdateStatusAsync)
+    private async Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto)
     {
         var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
         _mapper.Map(updateDto, existingBlogPost);
+        existingBlogPost.UpdatedAt = DateTime.UtcNow;
         var updatedBlogPost = await _blogPostRepository.UpdateAsync(existingBlogPost);
-        return _mapper.Map<BlogPostDto>(updatedBlogPost);
-    }
-
-    public async Task DeleteAsync(Guid id)
-    {
-        await GetBlogPostByIdOrThrowAsync(id);
-        await _blogPostRepository.DeleteAsync(id);
+        var blogPostDto = _mapper.Map<BlogPostDto>(updatedBlogPost);
+        await PopulateAuthorInfoAsync(blogPostDto);
+        return blogPostDto;
     }
 
     public async Task<BlogPostDto> UpdateStatusAsync(Guid id, PostStatus status)

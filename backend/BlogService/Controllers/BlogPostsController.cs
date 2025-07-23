@@ -167,17 +167,52 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("Received blog post update request for ID: {Id}", id);
+
             if (!ModelState.IsValid)
             {
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .Select(x => $"{x.Key}: {string.Join(", ", x.Value.Errors.Select(e => e.ErrorMessage))}")
+                    .ToArray();
+                
+                _logger.LogWarning("Model state invalid: {Errors}", string.Join("; ", errors));
                 return BadRequest(ModelState);
             }
 
-            var blogPost = await _blogPostService.UpdateAsync(id, updateDto);
+            // Extract the JWT token from Authorization header
+            var authHeader = Request.Headers.Authorization.FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                _logger.LogWarning("Missing or invalid authorization header");
+                return Unauthorized("Authorization token is required");
+            }
+
+            var token = authHeader.Substring("Bearer ".Length);
+            _logger.LogInformation("Extracted token for update operation");
+            
+            // Get current user from UserService
+            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
+            if (currentUser == null)
+            {
+                _logger.LogWarning("Failed to get current user from UserService");
+                return Unauthorized("Invalid or expired token");
+            }
+
+            _logger.LogInformation("Current user retrieved for update: Id={UserId}, Name={UserName}", 
+                currentUser.Id, currentUser.Name);
+
+            var blogPost = await _blogPostService.UpdateAsync(id, updateDto, currentUser.Id);
             return Ok(blogPost);
         }
         catch (ArgumentException ex)
         {
             return NotFound(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized attempt to update blog post {Id}", id);
+            return Forbid(ex.Message);
         }
         catch (Exception ex)
         {
@@ -191,12 +226,41 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            await _blogPostService.DeleteAsync(id);
+            _logger.LogInformation("Received blog post delete request for ID: {Id}", id);
+
+            // Extract the JWT token from Authorization header
+            var authHeader = Request.Headers.Authorization.FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                _logger.LogWarning("Missing or invalid authorization header");
+                return Unauthorized("Authorization token is required");
+            }
+
+            var token = authHeader.Substring("Bearer ".Length);
+            _logger.LogInformation("Extracted token for delete operation");
+            
+            // Get current user from UserService
+            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
+            if (currentUser == null)
+            {
+                _logger.LogWarning("Failed to get current user from UserService");
+                return Unauthorized("Invalid or expired token");
+            }
+
+            _logger.LogInformation("Current user retrieved for delete: Id={UserId}, Name={UserName}", 
+                currentUser.Id, currentUser.Name);
+
+            await _blogPostService.DeleteAsync(id, currentUser.Id);
             return NoContent();
         }
         catch (ArgumentException ex)
         {
             return NotFound(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized attempt to delete blog post {Id}", id);
+            return Forbid(ex.Message);
         }
         catch (Exception ex)
         {

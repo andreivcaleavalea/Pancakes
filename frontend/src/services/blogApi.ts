@@ -4,6 +4,7 @@ import type {
   PaginatedResult,
   BlogPostQueryParams,
   CreateBlogPostDto,
+  UpdateBlogPostDto,
 } from "@/types/blog";
 
 const ENDPOINTS = {
@@ -80,7 +81,7 @@ export const blogPostsApi = {
   // Update blog post
   update: async (
     id: string,
-    blogPost: Partial<CreateBlogPostDto>
+    blogPost: UpdateBlogPostDto
   ): Promise<BlogPost> => {
     return authenticatedBlogRequest<BlogPost>(`${ENDPOINTS.BLOG_POSTS}/${id}`, {
       method: "PUT",

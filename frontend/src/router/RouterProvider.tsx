@@ -6,7 +6,12 @@ import React, {
   type ReactNode,
 } from "react";
 
-export type PageType = "home" | "login" | "create-blog" | "blog-view";
+export type PageType =
+  | "home"
+  | "login"
+  | "create-blog"
+  | "blog-view"
+  | "edit-blog";
 export type LoginMode = "signin" | "register";
 
 interface RouterContextType {
@@ -48,6 +53,9 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
         setCurrentPage("login");
       } else if (path === "/create-blog") {
         setCurrentPage("create-blog");
+      } else if (path.startsWith("/edit-blog/")) {
+        setCurrentPage("edit-blog");
+        setBlogId(path.replace("/edit-blog/", ""));
       } else if (path.startsWith("/blog/")) {
         setCurrentPage("blog-view");
         setBlogId(path.replace("/blog/", ""));
@@ -92,6 +100,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       url += `?mode=${mode}`;
     } else if (page === "blog-view" && blogIdParam) {
       url = `/blog/${blogIdParam}`;
+    } else if (page === "edit-blog" && blogIdParam) {
+      url = `/edit-blog/${blogIdParam}`;
     }
 
     window.history.pushState({}, "", url);

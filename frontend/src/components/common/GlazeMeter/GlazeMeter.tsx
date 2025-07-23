@@ -17,8 +17,6 @@ const GlazeMeter: React.FC<GlazeMeterProps> = ({
   const [hoverRating, setHoverRating] = useState<number | undefined>();
 
   const handleRateChange = async (value: number) => {
-    console.log("GlazeMeter - Rating value received:", value);
-
     if (!readonly && onRate) {
       if (value > 0) {
         try {
@@ -26,9 +24,6 @@ const GlazeMeter: React.FC<GlazeMeterProps> = ({
         } catch (error) {
           console.error("Failed to submit rating:", error);
         }
-      } else {
-        // User clicked to clear rating - this is normal behavior
-        console.log("GlazeMeter - User cleared rating (value 0)");
       }
     }
   };

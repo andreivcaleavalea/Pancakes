@@ -13,7 +13,7 @@ public interface IBlogPostService
     Task<IEnumerable<BlogPostDto>> GetPopularAsync(int count = 3);
     Task<IEnumerable<BlogPostDto>> GetByAuthorAsync(string authorId, int page = 1, int pageSize = 10);
     Task<BlogPostDto> CreateAsync(CreateBlogPostDto createDto);
-    Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto);
-    Task DeleteAsync(Guid id);
+    Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto, string currentUserId);
+    Task DeleteAsync(Guid id, string currentUserId);
     Task<BlogPostDto> UpdateStatusAsync(Guid id, PostStatus status);
 }

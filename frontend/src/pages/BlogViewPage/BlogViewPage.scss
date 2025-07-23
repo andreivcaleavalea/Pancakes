@@ -114,6 +114,29 @@
     color: #666;
   }
 
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__edit-button {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+
+    &:hover {
+      background-color: var(--color-primary);
+      color: white;
+    }
+  }
+
+  &__delete-button {
+    &:hover {
+      background-color: #ff4d4f;
+      border-color: #ff4d4f;
+    }
+  }
+
   &__favorite {
     display: flex;
     align-items: center;
