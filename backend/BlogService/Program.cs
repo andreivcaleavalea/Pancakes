@@ -51,11 +51,13 @@ builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IPostRatingRepository, PostRatingRepository>();
 builder.Services.AddScoped<ICommentLikeRepository, CommentLikeRepository>();
+builder.Services.AddScoped<ISavedBlogRepository, SavedBlogRepository>();
 
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IPostRatingService, PostRatingService>();
 builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
+builder.Services.AddScoped<ISavedBlogService, SavedBlogService>();
 
 // Add JWT User Service for extracting user info from tokens
 builder.Services.AddScoped<IJwtUserService, JwtUserService>();

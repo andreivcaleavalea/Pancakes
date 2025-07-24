@@ -3,7 +3,8 @@ export { default as FloatingActionButton } from "./FloatingActionButton/Floating
 export { default as CommentForm } from "./CommentForm/CommentForm";
 export { default as CommentItem } from "./CommentItem/CommentItem";
 export { default as CommentSection } from "./CommentSection/CommentSection";
-export { default as GlazeMeter } from "./GlazeMeter/GlazeMeter";
 export { default as CommentLikeButtons } from "./CommentLikeButtons/CommentLikeButtons";
+export { default as GlazeMeter } from "./GlazeMeter/GlazeMeter";
 export { default as UserRatingDisplay } from "./UserRatingDisplay/UserRatingDisplay";
 export { default as AverageRatingDisplay } from "./AverageRatingDisplay/AverageRatingDisplay";
+export { default as CachedAvatar } from "./CachedAvatar/CachedAvatar";

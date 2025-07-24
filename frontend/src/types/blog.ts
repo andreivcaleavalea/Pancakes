@@ -110,3 +110,14 @@ export interface UsePaginatedPostsResult {
   error: string | null;
   refetch: () => Promise<void>;
 }
+
+export interface SavedBlog {
+  userId: string;
+  blogPostId: string;
+  savedAt: string;
+  blogPost?: BlogPost;
+}
+
+export interface CreateSavedBlogDto {
+  blogPostId: string;
+}

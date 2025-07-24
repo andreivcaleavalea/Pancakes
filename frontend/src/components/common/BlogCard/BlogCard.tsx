@@ -13,7 +13,7 @@ interface BlogPostWithDisplay extends BlogPost {
 import { useFavorite } from "@/hooks/useBlog";
 import { useRouter } from "@/router/RouterProvider";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULTS } from "@/utils/constants";
-import { AverageRatingDisplay } from "@/components/common";
+import { AverageRatingDisplay, CachedAvatar } from "@/components/common";
 import "./BlogCard.scss";
 
 const { Title, Text, Paragraph } = Typography;
@@ -40,15 +40,14 @@ const BlogCard: React.FC<BlogCardProps> = ({
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    const success = await toggleFavorite();
-
-    if (success) {
+    try {
+      await toggleFavorite();
       message.success(
         !isFavorite
           ? SUCCESS_MESSAGES.FAVORITE_ADDED
           : SUCCESS_MESSAGES.FAVORITE_REMOVED
       );
-    } else {
+    } catch (error) {
       message.error(ERROR_MESSAGES.FAVORITE_ERROR);
     }
   };
