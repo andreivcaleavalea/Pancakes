@@ -20,5 +20,8 @@ public class MappingProfile : Profile
         
         CreateMap<CommentLike, CommentLikeDto>();
         CreateMap<CreateCommentLikeDto, CommentLike>();
+        
+        CreateMap<SavedBlog, SavedBlogDto>();
+        CreateMap<CreateSavedBlogDto, SavedBlog>();
     }
 }

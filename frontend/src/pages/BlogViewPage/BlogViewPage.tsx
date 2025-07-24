@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  Typography,
-  Avatar,
-  Spin,
-  Alert,
-  Button,
-  Space,
-  message,
-  App,
-} from "antd";
+import { Typography, Spin, Alert, Button, Space, message, App } from "antd";
 import {
   ArrowLeftOutlined,
   HeartOutlined,
@@ -20,7 +11,7 @@ import { useRouter } from "@/router/RouterProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBlogPost, useFavorite } from "@/hooks/useBlog";
 import { usePostRating } from "@/hooks/useRating";
-import { CommentSection, GlazeMeter } from "@/components/common";
+import { CommentSection, GlazeMeter, CachedAvatar } from "@/components/common";
 import { blogPostsApi } from "@/services/blogApi";
 import { DEFAULTS } from "@/utils/constants";
 import "./BlogViewPage.scss";
@@ -171,13 +162,14 @@ const BlogViewPage: React.FC = () => {
 
         <div className="blog-view__meta">
           <div className="blog-view__author">
-            <Avatar
+            <CachedAvatar
               src={blogWithDisplay.authorAvatar}
+              fallbackSrc={DEFAULTS.AVATAR}
               size={48}
               className="blog-view__author-avatar"
             >
               {blogWithDisplay.author.charAt(0)}
-            </Avatar>
+            </CachedAvatar>
             <div className="blog-view__author-info">
               <Text strong className="blog-view__author-name">
                 By {blogWithDisplay.author}

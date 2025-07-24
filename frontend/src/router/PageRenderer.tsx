@@ -5,6 +5,7 @@ import AuthCallback from "../pages/AuthCallback/AuthCallback";
 import CreateBlogPage from "../pages/CreateBlogPage/CreateBlogPage";
 import EditBlogPage from "../pages/EditBlogPage/EditBlogPage";
 import BlogViewPage from "../pages/BlogViewPage/BlogViewPage";
+import SavedBlogsPage from "../pages/SavedBlogsPage/SavedBlogsPage";
 import { useRouter } from "./RouterProvider";
 
 const PageRenderer: React.FC = () => {
@@ -24,6 +25,8 @@ const PageRenderer: React.FC = () => {
       return <EditBlogPage />;
     case "blog-view":
       return <BlogViewPage />;
+    case "saved":
+      return <SavedBlogsPage />;
     case "home":
     default:
       return <HomePage />;

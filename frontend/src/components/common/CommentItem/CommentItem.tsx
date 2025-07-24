@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Avatar, Typography, Button } from "antd";
+import { Typography, Button } from "antd";
 import {
   UserOutlined,
   DeleteOutlined,
@@ -9,6 +9,7 @@ import {
 import type { CommentItemProps, CreateCommentDto } from "@/types/comment";
 import CommentForm from "../CommentForm/CommentForm";
 import CommentLikeButtons from "../CommentLikeButtons/CommentLikeButtons";
+import { CachedAvatar } from "@/components/common";
 import "./CommentItem.scss";
 
 const { Text, Paragraph } = Typography;
@@ -78,10 +79,11 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
       <div className="comment-item__main">
         <div className="comment-item__avatar">
-          <Avatar
+          <CachedAvatar
             size={depth > 0 ? 32 : 40}
-            src={comment.authorImage || undefined}
-            icon={!comment.authorImage ? <UserOutlined /> : undefined}
+            src={comment.authorImage}
+            fallbackSrc="/default-avatar.png"
+            icon={<UserOutlined />}
             alt={comment.authorName}
           />
         </div>

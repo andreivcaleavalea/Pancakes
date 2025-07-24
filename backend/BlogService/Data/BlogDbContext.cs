@@ -11,6 +11,7 @@ public class BlogDbContext : DbContext
     public DbSet<Comment> Comments { get; set; }
     public DbSet<PostRating> PostRatings { get; set; }
     public DbSet<CommentLike> CommentLikes { get; set; }
+    public DbSet<SavedBlog> SavedBlogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,10 +48,20 @@ public class BlogDbContext : DbContext
             .HasForeignKey(cl => cl.CommentId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Ensure one like/dislike per user per comment
+        // Ensure one like per user per comment
         modelBuilder.Entity<CommentLike>()
             .HasIndex(cl => new { cl.CommentId, cl.UserId })
             .IsUnique();
+
+        // Configure SavedBlog relationships
+        modelBuilder.Entity<SavedBlog>()
+            .HasKey(sb => new { sb.UserId, sb.BlogPostId }); // Composite primary key
+
+        modelBuilder.Entity<SavedBlog>()
+            .HasOne(sb => sb.BlogPost)
+            .WithMany()
+            .HasForeignKey(sb => sb.BlogPostId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         base.OnModelCreating(modelBuilder);
     }

@@ -19,12 +19,12 @@ const Header: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const menuItems = [
-    { key: 'home', label: 'Home' },
-    { key: 'explore', label: 'Explore' },
-    { key: 'blogs', label: 'My blogs' },
-    { key: 'saved', label: 'Saved' },
-    { key: 'friends', label: 'Friends' },
-    { key: 'profile', label: 'Profile' },
+    { key: "home", label: "Home" },
+    { key: "explore", label: "Explore" },
+    { key: "blogs", label: "My blogs" },
+    { key: "saved", label: "Saved" },
+    { key: "friends", label: "Friends" },
+    { key: "profile", label: "Profile" },
   ];
 
   useEffect(() => {
@@ -49,6 +49,24 @@ const Header: React.FC = () => {
     navigate("home");
   };
 
+  const handleMenuClick = (key: string) => {
+    switch (key) {
+      case "home":
+        navigate("home");
+        break;
+      case "saved":
+        navigate("saved");
+        break;
+      case "blogs":
+      case "explore":
+      case "friends":
+      case "profile":
+        // TODO: Implement these pages
+        console.log(`Navigate to ${key}`);
+        break;
+    }
+  };
+
   const handleLogout = () => {
     signOut();
     navigate("home");
@@ -67,10 +85,7 @@ const Header: React.FC = () => {
     if (isAuthenticated && user) {
       return (
         <div className="header__user">
-          <Dropdown
-            menu={{ items: userMenuItems }}
-            placement="bottomRight"
-          >
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <div className="header__user-profile">
               <Avatar
                 src={user.image}
@@ -183,6 +198,7 @@ const Header: React.FC = () => {
               className="header__menu"
               selectedKeys={["blogs"]}
               disabledOverflow={true}
+              onClick={({ key }) => handleMenuClick(key)}
             />
           </div>
         )}
@@ -222,7 +238,10 @@ const Header: React.FC = () => {
             mode="vertical"
             items={menuItems}
             className="header__mobile-menu-items"
-            selectedKeys={["blogs"]}
+            onClick={({ key }) => {
+              handleMenuClick(key);
+              setDrawerVisible(false);
+            }}
           />
 
           {renderMobileAuthSection()}

@@ -11,7 +11,8 @@ export type PageType =
   | "login"
   | "create-blog"
   | "blog-view"
-  | "edit-blog";
+  | "edit-blog"
+  | "saved";
 export type LoginMode = "signin" | "register";
 
 interface RouterContextType {

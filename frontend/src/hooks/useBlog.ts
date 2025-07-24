@@ -134,28 +134,57 @@ export const useBlogPost = (id: string | undefined) => {
 };
 
 /**
- * Custom hook for managing favorite status
+ * Custom hook for favorite/save functionality
  */
-export const useFavorite = (postId: string, initialState: boolean = false) => {
-  const [isFavorite, setIsFavorite] = useState(initialState);
+export const useFavorite = (
+  blogId: string,
+  initialIsFavorite: boolean = false
+) => {
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [loading, setLoading] = useState(false);
 
-  const toggleFavorite = async () => {
-    setLoading(true);
+  const toggleFavorite = useCallback(async () => {
     try {
-      const success = await BlogService.toggleFeaturedStatus(postId);
-      if (success) {
-        setIsFavorite(!isFavorite);
-        return true;
+      setLoading(true);
+
+      // Import here to avoid circular dependency
+      const { savedBlogsApi } = await import("../services/savedBlogApi");
+
+      if (isFavorite) {
+        // Unsave the blog
+        await savedBlogsApi.unsave(blogId);
+        setIsFavorite(false);
+      } else {
+        // Save the blog
+        await savedBlogsApi.save({ blogPostId: blogId });
+        setIsFavorite(true);
       }
-      return false;
     } catch (error) {
       console.error("Error toggling favorite:", error);
-      return false;
+      // Re-throw the error so the BlogCard can handle it
+      throw error;
     } finally {
       setLoading(false);
     }
-  };
+  }, [blogId, isFavorite]);
+
+  // Check initial favorite status
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      try {
+        const { savedBlogsApi } = await import("../services/savedBlogApi");
+        const result = await savedBlogsApi.isBookmarked(blogId);
+        setIsFavorite(result.isBookmarked);
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
+        // Keep the initial value if API call fails
+      }
+    };
+
+    if (blogId) {
+      checkFavoriteStatus();
+    }
+  }, [blogId]);
 
   return { isFavorite, loading, toggleFavorite };
 };
