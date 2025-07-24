@@ -3,6 +3,8 @@ export interface Comment {
   id: string;
   content: string;
   authorName: string;
+  authorId: string;
+  authorImage: string;
   blogPostId: string;
   parentCommentId?: string;
   replies: Comment[];
@@ -12,7 +14,8 @@ export interface Comment {
 
 export interface CreateCommentDto {
   content: string;
-  authorName: string;
+  authorName?: string; // Optional since backend will populate this
+  authorId?: string; // Optional since backend will populate this
   blogPostId: string;
   parentCommentId?: string;
 }
@@ -22,7 +25,7 @@ export interface CommentItemProps {
   comment: Comment;
   onEdit?: (comment: Comment) => void;
   onDelete?: (commentId: string) => void;
-  onReply?: (commentData: CreateCommentDto) => Promise<void>;
+  onReply?: (replyData: CreateCommentDto) => Promise<void>;
   depth?: number; // For styling nested comments
 }
 

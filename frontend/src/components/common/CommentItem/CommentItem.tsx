@@ -78,7 +78,12 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
       <div className="comment-item__main">
         <div className="comment-item__avatar">
-          <Avatar size={depth > 0 ? 32 : 40} icon={<UserOutlined />} />
+          <Avatar
+            size={depth > 0 ? 32 : 40}
+            src={comment.authorImage || undefined}
+            icon={!comment.authorImage ? <UserOutlined /> : undefined}
+            alt={comment.authorName}
+          />
         </div>
 
         <div className="comment-item__content">

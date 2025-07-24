@@ -1,89 +1,139 @@
-import React from "react";
-import { Typography, Spin, Alert, Empty, App } from "antd";
-import { MessageOutlined } from "@ant-design/icons";
-import { useComments } from "@/hooks/useComments";
+import React, { useState } from "react";
+import { Typography, Divider, Button, Space } from "antd";
+import { LoginOutlined } from "@ant-design/icons";
 import CommentForm from "../CommentForm/CommentForm";
 import CommentItem from "../CommentItem/CommentItem";
-import type { CommentSectionProps } from "@/types/comment";
+import { useComments } from "@/hooks/useComments";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "@/router/RouterProvider";
+import type { Comment, CreateCommentDto } from "@/types/comment";
 import "./CommentSection.scss";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+
+interface CommentSectionProps {
+  blogPostId: string;
+}
 
 const CommentSection: React.FC<CommentSectionProps> = ({ blogPostId }) => {
   const { comments, loading, error, addComment, deleteComment } =
     useComments(blogPostId);
-  const { modal, message } = App.useApp();
+  const { isAuthenticated } = useAuth();
+  const { navigate } = useRouter();
+  const [submittingComment, setSubmittingComment] = useState(false);
 
-  const handleDeleteComment = (commentId: string) => {
-    modal.confirm({
-      title: "Delete Comment",
-      content:
-        "Are you sure you want to delete this comment? This action cannot be undone.",
-      okText: "Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: async () => {
-        try {
-          await deleteComment(commentId);
-          message.success("Comment deleted successfully");
-        } catch (error) {
-          message.error("Failed to delete comment");
-        }
-      },
-    });
+  const handleAddComment = async (commentData: CreateCommentDto) => {
+    if (!isAuthenticated) {
+      navigate("login");
+      return;
+    }
+
+    setSubmittingComment(true);
+    try {
+      await addComment(commentData);
+    } finally {
+      setSubmittingComment(false);
+    }
   };
 
-  const handleReply = async (parentComment: any) => {
-    // This will be handled by the CommentItem component's reply form
-    // The actual reply submission goes through addComment with parentCommentId
+  const handleReply = async (replyData: CreateCommentDto) => {
+    if (!isAuthenticated) {
+      navigate("login");
+      return;
+    }
+
+    await addComment(replyData);
   };
+
+  const handleEdit = (comment: Comment) => {
+    console.log("Edit comment:", comment);
+    // TODO: Implement edit functionality
+  };
+
+  const handleDelete = async (commentId: string) => {
+    if (!isAuthenticated) {
+      navigate("login");
+      return;
+    }
+
+    await deleteComment(commentId);
+  };
+
+  const handleLoginClick = () => {
+    navigate("login");
+  };
+
+  if (loading) {
+    return <div className="comment-section__loading">Loading comments...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="comment-section__error">
+        Error loading comments: {error}
+      </div>
+    );
+  }
 
   return (
     <div className="comment-section">
-      <div className="comment-section__header">
-        <Title level={3} className="comment-section__title">
-          <MessageOutlined /> Comments ({comments.length})
-        </Title>
-      </div>
+      <Title level={3} className="comment-section__title">
+        Comments ({comments.length})
+      </Title>
 
-      <CommentForm
-        blogPostId={blogPostId}
-        onSubmit={addComment}
-        loading={loading}
-      />
+      <Divider />
 
-      <div className="comment-section__list">
-        {loading ? (
-          <div className="comment-section__loading">
-            <Spin size="large" />
-          </div>
-        ) : error ? (
-          <Alert
-            message="Error Loading Comments"
-            description={error}
-            type="error"
-            showIcon
+      {/* Comment Form - shown only to authenticated users */}
+      {isAuthenticated ? (
+        <div className="comment-section__form">
+          <CommentForm
+            blogPostId={blogPostId}
+            onSubmit={handleAddComment}
+            loading={submittingComment}
+            placeholder="Share your thoughts about this recipe..."
           />
-        ) : comments.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="No comments yet"
-            className="comment-section__empty"
+        </div>
+      ) : (
+        <div className="comment-section__login-prompt">
+          <Text className="comment-section__login-text">
+            Please log in to leave a comment
+          </Text>
+          <Button
+            type="primary"
+            icon={<LoginOutlined />}
+            onClick={handleLoginClick}
+            className="comment-section__login-button"
           >
-            <p>Be the first to share your thoughts about this recipe!</p>
-          </Empty>
+            Log In
+          </Button>
+        </div>
+      )}
+
+      <Divider />
+
+      {/* Comments List */}
+      <div className="comment-section__list">
+        {comments.length === 0 ? (
+          <div className="comment-section__empty">
+            <Text type="secondary">
+              {isAuthenticated
+                ? "Be the first to comment!"
+                : "No comments yet. Log in to be the first to comment!"}
+            </Text>
+          </div>
         ) : (
-          <div className="comment-section__items">
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
             {comments.map((comment) => (
               <CommentItem
                 key={comment.id}
                 comment={comment}
-                onDelete={handleDeleteComment}
-                onReply={addComment}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onReply={handleReply}
                 depth={0}
               />
             ))}
-          </div>
+          </Space>
         )}
       </div>
     </div>

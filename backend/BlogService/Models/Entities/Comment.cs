@@ -13,6 +13,9 @@ public class Comment
     public string AuthorName { get; set; } = string.Empty;
     
     [Required]
+    public string AuthorId { get; set; } = string.Empty;
+    
+    [Required]
     public Guid BlogPostId { get; set; }
     
     public BlogPost BlogPost { get; set; } = null!;
