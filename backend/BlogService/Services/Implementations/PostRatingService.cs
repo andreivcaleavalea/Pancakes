@@ -22,16 +22,16 @@ public class PostRatingService : IPostRatingService
         _mapper = mapper;
     }
 
-    public async Task<PostRatingStatsDto> GetRatingStatsAsync(Guid blogPostId, string? userIdentifier = null)
+    public async Task<PostRatingStatsDto> GetRatingStatsAsync(Guid blogPostId, string? UserId = null)
     {
         var averageRating = await _ratingRepository.GetAverageRatingAsync(blogPostId);
         var totalRatings = await _ratingRepository.GetTotalRatingsAsync(blogPostId);
         var ratingDistribution = await _ratingRepository.GetRatingDistributionAsync(blogPostId);
         
         decimal? userRating = null;
-        if (!string.IsNullOrEmpty(userIdentifier))
+        if (!string.IsNullOrEmpty(UserId))
         {
-            var userRatingEntity = await _ratingRepository.GetByBlogPostAndUserAsync(blogPostId, userIdentifier);
+            var userRatingEntity = await _ratingRepository.GetByBlogPostAndUserAsync(blogPostId, UserId);
             userRating = userRatingEntity?.Rating;
         }
 
@@ -64,7 +64,7 @@ public class PostRatingService : IPostRatingService
         createDto.Rating = Math.Round(createDto.Rating * 2) / 2;
 
         // Check if user already rated this post
-        var existingRating = await _ratingRepository.GetByBlogPostAndUserAsync(createDto.BlogPostId, createDto.UserIdentifier);
+        var existingRating = await _ratingRepository.GetByBlogPostAndUserAsync(createDto.BlogPostId, createDto.UserId);
         
         PostRating rating;
         if (existingRating != null)
@@ -83,9 +83,9 @@ public class PostRatingService : IPostRatingService
         return _mapper.Map<PostRatingDto>(rating);
     }
 
-    public async Task DeleteRatingAsync(Guid blogPostId, string userIdentifier)
+    public async Task DeleteRatingAsync(Guid blogPostId, string UserId)
     {
-        var existingRating = await _ratingRepository.GetByBlogPostAndUserAsync(blogPostId, userIdentifier);
+        var existingRating = await _ratingRepository.GetByBlogPostAndUserAsync(blogPostId, UserId);
         if (existingRating == null)
         {
             throw new ArgumentException("Rating not found for this user and blog post.");

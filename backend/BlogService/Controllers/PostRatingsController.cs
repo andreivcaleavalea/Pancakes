@@ -27,8 +27,10 @@ public class PostRatingsController : ControllerBase
     {
         try
         {
-            var userIdentifier = GetUserIdentifier();
-            var stats = await _ratingService.GetRatingStatsAsync(blogPostId, userIdentifier);
+            // Allow both authenticated and unauthenticated access to rating stats
+            var UserId = _jwtUserService.GetCurrentUserId();
+
+            var stats = await _ratingService.GetRatingStatsAsync(blogPostId, UserId);
             return Ok(stats);
         }
         catch (Exception ex)
@@ -38,6 +40,7 @@ public class PostRatingsController : ControllerBase
         }
     }
 
+    [HttpPut]
     [HttpPost]
     public async Task<IActionResult> CreateOrUpdateRating([FromBody] CreatePostRatingDto createDto)
     {
@@ -63,11 +66,25 @@ public class PostRatingsController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            // Set user identifier from IP address
-            createDto.UserIdentifier = GetUserIdentifier();
+            // Set user identifier from validated token
+            _logger.LogInformation("Attempting to get user ID from JWT token...");
+            try
+            {
+                createDto.UserId = GetUserId();
+                _logger.LogInformation("Successfully extracted user ID: {UserId}", createDto.UserId);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Failed to extract user ID from JWT token: {Message}", ex.Message);
+                return Unauthorized(ex.Message);
+            }
 
             var rating = await _ratingService.CreateOrUpdateRatingAsync(createDto);
             return Ok(rating);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (ArgumentException ex)
         {
@@ -85,9 +102,13 @@ public class PostRatingsController : ControllerBase
     {
         try
         {
-            var userIdentifier = GetUserIdentifier();
-            await _ratingService.DeleteRatingAsync(blogPostId, userIdentifier);
+            var UserId = GetUserId();
+            await _ratingService.DeleteRatingAsync(blogPostId, UserId);
             return NoContent();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (ArgumentException ex)
         {
@@ -100,16 +121,24 @@ public class PostRatingsController : ControllerBase
         }
     }
 
-    private string GetUserIdentifier()
+    private string GetUserId()
     {
+        // Log the authorization header for debugging
+        var authHeader = Request.Headers.Authorization.FirstOrDefault();
+        _logger.LogInformation("Authorization header present: {HasAuth}, StartsWith Bearer: {IsBearer}", 
+            !string.IsNullOrEmpty(authHeader), 
+            authHeader?.StartsWith("Bearer ") == true);
+
         // Try to get user ID from JWT token first
         var userId = _jwtUserService.GetCurrentUserId();
         if (!string.IsNullOrEmpty(userId))
         {
+            _logger.LogInformation("JWT validation successful, user ID: {UserId}", userId);
             return userId;
         }
 
-        // If no JWT token, require authentication for rating operations
-        throw new UnauthorizedAccessException("Authentication required for rating operations. Please log in to rate blog posts.");
+        // If no valid JWT token, throw unauthorized exception for rating operations
+        _logger.LogWarning("JWT validation failed - no valid user ID found");
+        throw new UnauthorizedAccessException("Authorization token is required for rating operations. Please log in to rate blog posts.");
     }
 } 

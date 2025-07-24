@@ -117,14 +117,14 @@ namespace BlogService.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserIdentifier")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CommentId", "UserIdentifier")
+                    b.HasIndex("CommentId", "UserId")
                         .IsUnique();
 
                     b.ToTable("CommentLikes");
@@ -148,14 +148,14 @@ namespace BlogService.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserIdentifier")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BlogPostId", "UserIdentifier")
+                    b.HasIndex("BlogPostId", "UserId")
                         .IsUnique();
 
                     b.ToTable("PostRatings");

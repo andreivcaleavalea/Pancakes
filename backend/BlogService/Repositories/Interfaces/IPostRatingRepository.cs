@@ -5,7 +5,7 @@ namespace BlogService.Repositories.Interfaces;
 public interface IPostRatingRepository
 {
     Task<PostRating?> GetByIdAsync(Guid id);
-    Task<PostRating?> GetByBlogPostAndUserAsync(Guid blogPostId, string userIdentifier);
+    Task<PostRating?> GetByBlogPostAndUserAsync(Guid blogPostId, string userId);
     Task<IEnumerable<PostRating>> GetByBlogPostIdAsync(Guid blogPostId);
     Task<PostRating> CreateAsync(PostRating rating);
     Task<PostRating> UpdateAsync(PostRating rating);

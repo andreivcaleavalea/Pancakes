@@ -17,7 +17,7 @@ namespace BlogService.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CommentId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserIdentifier = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    UserId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     IsLike = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -39,7 +39,7 @@ namespace BlogService.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     BlogPostId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserIdentifier = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    UserId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Rating = table.Column<decimal>(type: "numeric", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -56,15 +56,15 @@ namespace BlogService.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_CommentLikes_CommentId_UserIdentifier",
+                name: "IX_CommentLikes_CommentId_UserId",
                 table: "CommentLikes",
-                columns: new[] { "CommentId", "UserIdentifier" },
+                columns: new[] { "CommentId", "UserId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PostRatings_BlogPostId_UserIdentifier",
+                name: "IX_PostRatings_BlogPostId_UserId",
                 table: "PostRatings",
-                columns: new[] { "BlogPostId", "UserIdentifier" },
+                columns: new[] { "BlogPostId", "UserId" },
                 unique: true);
         }
 

@@ -6,7 +6,7 @@ public class PostRatingDto
 {
     public Guid Id { get; set; }
     public Guid BlogPostId { get; set; }
-    public string UserIdentifier { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
     public decimal Rating { get; set; }
     public DateTime CreatedAt { get; set; }
 }
@@ -16,7 +16,7 @@ public class CreatePostRatingDto
     [Required(ErrorMessage = "BlogPostId is required")]
     public Guid BlogPostId { get; set; }
     
-    public string UserIdentifier { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
     
     [Required(ErrorMessage = "Rating is required")]
     [Range(0.5, 5.0, ErrorMessage = "Rating must be between 0.5 and 5.0")]

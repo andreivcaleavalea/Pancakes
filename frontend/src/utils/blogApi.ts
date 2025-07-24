@@ -19,7 +19,6 @@ export const authenticatedBlogRequest = async <T>(
   options: RequestInit = {}
 ): Promise<T> => {
   const url = `${API_CONFIG.BLOG_API_URL}${endpoint}`;
-
   // Get token from localStorage
   const authSession = localStorage.getItem("auth-session");
   let token = "";

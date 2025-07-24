@@ -21,10 +21,10 @@ public class CommentLikeRepository : ICommentLikeRepository
             .FirstOrDefaultAsync(cl => cl.Id == id);
     }
 
-    public async Task<CommentLike?> GetByCommentAndUserAsync(Guid commentId, string userIdentifier)
+    public async Task<CommentLike?> GetByCommentAndUserAsync(Guid commentId, string UserId)
     {
         return await _context.CommentLikes
-            .FirstOrDefaultAsync(cl => cl.CommentId == commentId && cl.UserIdentifier == userIdentifier);
+            .FirstOrDefaultAsync(cl => cl.CommentId == commentId && cl.UserId == UserId);
     }
 
     public async Task<IEnumerable<CommentLike>> GetByCommentIdAsync(Guid commentId)

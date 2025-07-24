@@ -49,7 +49,7 @@ VALUES ('20250721081040_AddCommentReplies', '9.0.0');
 CREATE TABLE "CommentLikes" (
     "Id" uuid NOT NULL,
     "CommentId" uuid NOT NULL,
-    "UserIdentifier" character varying(100) NOT NULL,
+    "UserId" character varying(100) NOT NULL,
     "IsLike" boolean NOT NULL,
     "CreatedAt" timestamp with time zone NOT NULL,
     "UpdatedAt" timestamp with time zone NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE "CommentLikes" (
 CREATE TABLE "PostRatings" (
     "Id" uuid NOT NULL,
     "BlogPostId" uuid NOT NULL,
-    "UserIdentifier" character varying(100) NOT NULL,
+    "UserId" character varying(100) NOT NULL,
     "Rating" numeric NOT NULL,
     "CreatedAt" timestamp with time zone NOT NULL,
     "UpdatedAt" timestamp with time zone NOT NULL,
@@ -68,9 +68,9 @@ CREATE TABLE "PostRatings" (
     CONSTRAINT "FK_PostRatings_BlogPosts_BlogPostId" FOREIGN KEY ("BlogPostId") REFERENCES "BlogPosts" ("Id") ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX "IX_CommentLikes_CommentId_UserIdentifier" ON "CommentLikes" ("CommentId", "UserIdentifier");
+CREATE UNIQUE INDEX "IX_CommentLikes_CommentId_UserId" ON "CommentLikes" ("CommentId", "UserId");
 
-CREATE UNIQUE INDEX "IX_PostRatings_BlogPostId_UserIdentifier" ON "PostRatings" ("BlogPostId", "UserIdentifier");
+CREATE UNIQUE INDEX "IX_PostRatings_BlogPostId_UserId" ON "PostRatings" ("BlogPostId", "UserId");
 
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20250721090834_AddRatingAndLikeSystem', '9.0.0');

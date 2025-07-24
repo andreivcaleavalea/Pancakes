@@ -236,6 +236,7 @@ const BlogViewPage: React.FC = () => {
             totalRatings={ratingStats?.totalRatings || 0}
             userRating={ratingStats?.userRating}
             onRate={submitRating}
+            readonly={!isAuthenticated}
           />
         </div>
 

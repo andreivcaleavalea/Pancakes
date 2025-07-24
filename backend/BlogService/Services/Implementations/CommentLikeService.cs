@@ -22,15 +22,15 @@ public class CommentLikeService : ICommentLikeService
         _mapper = mapper;
     }
 
-    public async Task<CommentLikeStatsDto> GetLikeStatsAsync(Guid commentId, string? userIdentifier = null)
+    public async Task<CommentLikeStatsDto> GetLikeStatsAsync(Guid commentId, string? UserId = null)
     {
         var likeCount = await _likeRepository.GetLikeCountAsync(commentId);
         var dislikeCount = await _likeRepository.GetDislikeCountAsync(commentId);
         
         bool? userLike = null;
-        if (!string.IsNullOrEmpty(userIdentifier))
+        if (!string.IsNullOrEmpty(UserId))
         {
-            var userLikeEntity = await _likeRepository.GetByCommentAndUserAsync(commentId, userIdentifier);
+            var userLikeEntity = await _likeRepository.GetByCommentAndUserAsync(commentId, UserId);
             if (userLikeEntity != null)
             {
                 userLike = userLikeEntity.IsLike;
@@ -56,7 +56,7 @@ public class CommentLikeService : ICommentLikeService
         }
 
         // Check if user already liked/disliked this comment
-        var existingLike = await _likeRepository.GetByCommentAndUserAsync(createDto.CommentId, createDto.UserIdentifier);
+        var existingLike = await _likeRepository.GetByCommentAndUserAsync(createDto.CommentId, createDto.UserId);
         
         CommentLike like;
         if (existingLike != null)
@@ -75,9 +75,9 @@ public class CommentLikeService : ICommentLikeService
         return _mapper.Map<CommentLikeDto>(like);
     }
 
-    public async Task DeleteLikeAsync(Guid commentId, string userIdentifier)
+    public async Task DeleteLikeAsync(Guid commentId, string UserId)
     {
-        var existingLike = await _likeRepository.GetByCommentAndUserAsync(commentId, userIdentifier);
+        var existingLike = await _likeRepository.GetByCommentAndUserAsync(commentId, UserId);
         if (existingLike == null)
         {
             throw new ArgumentException("Like/dislike not found for this user and comment.");

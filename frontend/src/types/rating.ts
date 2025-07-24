@@ -2,15 +2,15 @@
 export interface PostRating {
   id: string;
   blogPostId: string;
-  userIdentifier: string;
+  userId: string;
   rating: number;
   createdAt: string;
 }
 
 export interface CreatePostRatingDto {
   blogPostId: string;
-  userIdentifier: string;
-  rating: number; // 1.0 to 5.0 with 0.5 increments
+  userId: string;
+  rating: number; // 0.5 to 5.0 with 0.5 increments
 }
 
 export interface PostRatingStats {
@@ -25,14 +25,14 @@ export interface PostRatingStats {
 export interface CommentLike {
   id: string;
   commentId: string;
-  userIdentifier: string;
+  userId: string;
   isLike: boolean;
   createdAt: string;
 }
 
 export interface CreateCommentLikeDto {
   commentId: string;
-  userIdentifier: string;
+  userId: string;
   isLike: boolean; // true = like, false = dislike
 }
 
