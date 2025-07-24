@@ -27,8 +27,8 @@ public class CommentLikesController : ControllerBase
     {
         try
         {
-            var userIdentifier = GetUserIdentifier();
-            var stats = await _likeService.GetLikeStatsAsync(commentId, userIdentifier);
+            var UserId = GetUserId();
+            var stats = await _likeService.GetLikeStatsAsync(commentId, UserId);
             return Ok(stats);
         }
         catch (Exception ex)
@@ -49,7 +49,7 @@ public class CommentLikesController : ControllerBase
             }
 
             // Set user identifier from IP address
-            createDto.UserIdentifier = GetUserIdentifier();
+            createDto.UserId = GetUserId();
 
             var like = await _likeService.CreateOrUpdateLikeAsync(createDto);
             return Ok(like);
@@ -70,8 +70,8 @@ public class CommentLikesController : ControllerBase
     {
         try
         {
-            var userIdentifier = GetUserIdentifier();
-            await _likeService.DeleteLikeAsync(commentId, userIdentifier);
+            var UserId = GetUserId();
+            await _likeService.DeleteLikeAsync(commentId, UserId);
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -85,7 +85,7 @@ public class CommentLikesController : ControllerBase
         }
     }
 
-    private string GetUserIdentifier()
+    private string GetUserId()
     {
         // Try to get user ID from JWT token first
         var userId = _jwtUserService.GetCurrentUserId();

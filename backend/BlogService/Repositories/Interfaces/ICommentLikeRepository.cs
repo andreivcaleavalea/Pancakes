@@ -5,7 +5,7 @@ namespace BlogService.Repositories.Interfaces;
 public interface ICommentLikeRepository
 {
     Task<CommentLike?> GetByIdAsync(Guid id);
-    Task<CommentLike?> GetByCommentAndUserAsync(Guid commentId, string userIdentifier);
+    Task<CommentLike?> GetByCommentAndUserAsync(Guid commentId, string UserId);
     Task<IEnumerable<CommentLike>> GetByCommentIdAsync(Guid commentId);
     Task<CommentLike> CreateAsync(CommentLike like);
     Task<CommentLike> UpdateAsync(CommentLike like);

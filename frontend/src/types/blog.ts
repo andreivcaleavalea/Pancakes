@@ -25,6 +25,12 @@ export interface BlogPost {
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;
+  // Legacy/computed fields for backward compatibility
+  description?: string;
+  date?: string;
+  image?: string;
+  author?: string;
+  authorAvatar?: string;
 }
 
 export interface FeaturedPost extends BlogPost {

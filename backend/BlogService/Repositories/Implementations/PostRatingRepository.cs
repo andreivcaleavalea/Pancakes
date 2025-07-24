@@ -21,10 +21,10 @@ public class PostRatingRepository : IPostRatingRepository
             .FirstOrDefaultAsync(pr => pr.Id == id);
     }
 
-    public async Task<PostRating?> GetByBlogPostAndUserAsync(Guid blogPostId, string userIdentifier)
+    public async Task<PostRating?> GetByBlogPostAndUserAsync(Guid blogPostId, string userId)
     {
         return await _context.PostRatings
-            .FirstOrDefaultAsync(pr => pr.BlogPostId == blogPostId && pr.UserIdentifier == userIdentifier);
+            .FirstOrDefaultAsync(pr => pr.BlogPostId == blogPostId && pr.UserId == userId);
     }
 
     public async Task<IEnumerable<PostRating>> GetByBlogPostIdAsync(Guid blogPostId)

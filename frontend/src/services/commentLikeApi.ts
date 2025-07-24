@@ -13,7 +13,7 @@ export const commentLikeApi = {
 
   // Create or update a like/dislike
   createOrUpdate: async (
-    data: Omit<CreateCommentLikeDto, "userIdentifier">
+    data: Omit<CreateCommentLikeDto, "userId">
   ): Promise<CommentLike> => {
     return apiRequest<CommentLike>(`/api/commentlikes`, {
       method: "POST",

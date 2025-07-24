@@ -4,7 +4,7 @@ public class CommentLikeDto
 {
     public Guid Id { get; set; }
     public Guid CommentId { get; set; }
-    public string UserIdentifier { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
     public bool IsLike { get; set; }
     public DateTime CreatedAt { get; set; }
 }
@@ -12,7 +12,7 @@ public class CommentLikeDto
 public class CreateCommentLikeDto
 {
     public Guid CommentId { get; set; }
-    public string UserIdentifier { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
     public bool IsLike { get; set; } // true = like, false = dislike
 }
 

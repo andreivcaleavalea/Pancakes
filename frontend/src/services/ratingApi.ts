@@ -1,4 +1,5 @@
 import { apiRequest } from "@/utils/api";
+import { authenticatedBlogRequest } from "@/utils/blogApi";
 import type {
   CreatePostRatingDto,
   PostRating,
@@ -44,13 +45,36 @@ export const postRatingApi = {
 
   // Create or update a rating
   createOrUpdate: async (
-    data: Omit<CreatePostRatingDto, "userIdentifier">
+    data: Omit<CreatePostRatingDto, "userId">
   ): Promise<PostRating> => {
-    const result = await apiRequest<PostRating>(`/api/postratings`, {
+    // Get token directly (same as console test that worked)
+    const authSession = localStorage.getItem("auth-session");
+    if (!authSession) {
+      throw new Error("No authentication session found");
+    }
+
+    const session = JSON.parse(authSession);
+    const token = session.token;
+
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await fetch(`http://localhost:5001/api/postratings`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(data),
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
 
     // Invalidate cache for this blog post since rating was updated
     ratingStatsCache.delete(data.blogPostId);
@@ -60,9 +84,12 @@ export const postRatingApi = {
 
   // Delete a rating
   delete: async (blogPostId: string): Promise<void> => {
-    const result = await apiRequest<void>(`/api/postratings/${blogPostId}`, {
-      method: "DELETE",
-    });
+    const result = await authenticatedBlogRequest<void>(
+      `/api/postratings/${blogPostId}`,
+      {
+        method: "DELETE",
+      }
+    );
 
     // Invalidate cache for this blog post since rating was deleted
     ratingStatsCache.delete(blogPostId);

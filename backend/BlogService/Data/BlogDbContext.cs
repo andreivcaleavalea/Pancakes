@@ -37,7 +37,7 @@ public class BlogDbContext : DbContext
 
         // Ensure one rating per user per post
         modelBuilder.Entity<PostRating>()
-            .HasIndex(pr => new { pr.BlogPostId, pr.UserIdentifier })
+            .HasIndex(pr => new { pr.BlogPostId, pr.UserId })
             .IsUnique();
 
         // Configure CommentLike relationships
@@ -49,7 +49,7 @@ public class BlogDbContext : DbContext
 
         // Ensure one like/dislike per user per comment
         modelBuilder.Entity<CommentLike>()
-            .HasIndex(cl => new { cl.CommentId, cl.UserIdentifier })
+            .HasIndex(cl => new { cl.CommentId, cl.UserId })
             .IsUnique();
 
         base.OnModelCreating(modelBuilder);
