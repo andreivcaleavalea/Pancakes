@@ -1,17 +1,22 @@
 import React from 'react';
-import type { SectionRendererProps } from '../../../types';
 import { SECTION_COLORS } from '../../../constants';
-import { 
-  HeroTemplate, 
-  CreativeTemplate, 
-  ProfessionalTemplate, 
-  ModernTemplate, 
-  CardTemplate, 
-  MinimalTemplate 
+import type { User, SectionSettings, TemplateOption } from '../../../types';
+import {
+  HeroTemplate,
+  CreativeTemplate,
+  ProfessionalTemplate,
+  ModernTemplate,
+  CardTemplate,
+  MinimalTemplate,
 } from './templates';
 
-interface PersonalSectionProps extends Omit<SectionRendererProps, 'data'> {
-  user: any;
+interface PersonalSectionProps {
+  sectionKey: string;
+  user: User;
+  primaryColor: string;
+  currentSectionSettings: SectionSettings;
+  onSectionSettingsChange: (sectionKey: string, newSettings: SectionSettings) => void;
+  templateOptions: TemplateOption[];
 }
 
 const PersonalSection: React.FC<PersonalSectionProps> = ({
@@ -22,7 +27,7 @@ const PersonalSection: React.FC<PersonalSectionProps> = ({
   onSectionSettingsChange,
   templateOptions,
 }) => {
-  const { template } = currentSectionSettings;
+  const { template, advancedSettings } = currentSectionSettings;
   const sectionPrimaryColor = SECTION_COLORS[currentSectionSettings.color as keyof typeof SECTION_COLORS] || SECTION_COLORS.blue;
 
   // Common props for all templates
@@ -33,25 +38,29 @@ const PersonalSection: React.FC<PersonalSectionProps> = ({
     currentSectionSettings,
     onSectionSettingsChange,
     templateOptions,
+    advancedSettings,
   };
 
   // Template selector
-  switch (template) {
-    case 'hero':
-      return <HeroTemplate {...templateProps} />;
-    case 'creative':
-      return <CreativeTemplate {...templateProps} />;
-    case 'professional':
-      return <ProfessionalTemplate {...templateProps} />;
-    case 'modern':
-      return <ModernTemplate {...templateProps} />;
-    case 'card':
-      return <CardTemplate {...templateProps} />;
-    case 'minimal':
-      return <MinimalTemplate {...templateProps} />;
-    default:
-      return <CardTemplate {...templateProps} />; // fallback
-  }
+  const renderTemplate = () => {
+    switch (template) {
+      case 'hero':
+        return <HeroTemplate {...templateProps} />;
+      case 'creative':
+        return <CreativeTemplate {...templateProps} />;
+      case 'professional':
+        return <ProfessionalTemplate {...templateProps} />;
+      case 'modern':
+        return <ModernTemplate {...templateProps} />;
+      case 'minimal':
+        return <MinimalTemplate {...templateProps} />;
+      case 'card':
+      default:
+        return <CardTemplate {...templateProps} />;
+    }
+  };
+
+  return <>{renderTemplate()}</>;
 };
 
 export default PersonalSection; 

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SectionRendererProps } from '../../../types';
+import type { Job, SectionSettings, TemplateOption } from '../../../types';
 import { SECTION_COLORS } from '../../../constants';
 import { 
   CareerTemplate, 
@@ -10,8 +10,13 @@ import {
   RoadmapTemplate 
 } from './templates';
 
-interface JobsSectionProps extends Omit<SectionRendererProps, 'data'> {
-  jobs: any[];
+interface JobsSectionProps {
+  sectionKey: string;
+  jobs: Job[];
+  primaryColor: string;
+  currentSectionSettings: SectionSettings;
+  onSectionSettingsChange: (sectionKey: string, newSettings: SectionSettings) => void;
+  templateOptions: TemplateOption[];
 }
 
 const JobsSection: React.FC<JobsSectionProps> = ({
@@ -22,7 +27,7 @@ const JobsSection: React.FC<JobsSectionProps> = ({
   onSectionSettingsChange,
   templateOptions,
 }) => {
-  const { template } = currentSectionSettings;
+  const { template, advancedSettings } = currentSectionSettings;
   const sectionPrimaryColor = SECTION_COLORS[currentSectionSettings.color as keyof typeof SECTION_COLORS] || SECTION_COLORS.blue;
 
   // Common props for all templates
@@ -33,25 +38,29 @@ const JobsSection: React.FC<JobsSectionProps> = ({
     currentSectionSettings,
     onSectionSettingsChange,
     templateOptions,
+    advancedSettings,
   };
 
   // Template selector
-  switch (template) {
-    case 'career':
-      return <CareerTemplate {...templateProps} />;
-    case 'corporate':
-      return <CorporateTemplate {...templateProps} />;
-    case 'timeline':
-      return <TimelineTemplate {...templateProps} />;
-    case 'professional':
-      return <ProfessionalTemplate {...templateProps} />;
-    case 'experience':
-      return <ExperienceTemplate {...templateProps} />;
-    case 'roadmap':
-      return <RoadmapTemplate {...templateProps} />;
-    default:
-      return <TimelineTemplate {...templateProps} />; // fallback
-  }
+  const renderTemplate = () => {
+    switch (template) {
+      case 'career':
+        return <CareerTemplate {...templateProps} />;
+      case 'corporate':
+        return <CorporateTemplate {...templateProps} />;
+      case 'timeline':
+        return <TimelineTemplate {...templateProps} />;
+      case 'professional':
+        return <ProfessionalTemplate {...templateProps} />;
+      case 'experience':
+        return <ExperienceTemplate {...templateProps} />;
+      case 'roadmap':
+      default:
+        return <RoadmapTemplate {...templateProps} />;
+    }
+  };
+
+  return <>{renderTemplate()}</>;
 };
 
 export default JobsSection; 

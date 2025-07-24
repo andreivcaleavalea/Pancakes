@@ -27,6 +27,14 @@ public class PersonalPageSettings
     [MaxLength(300)]
     public string SectionTemplates { get; set; } = "{\"personal\":\"card\",\"education\":\"timeline\",\"jobs\":\"timeline\",\"projects\":\"grid\",\"hobbies\":\"tags\"}";
     
+    // Section colors (JSON object with section: color)
+    [MaxLength(300)]
+    public string SectionColors { get; set; } = "{\"personal\":\"blue\",\"education\":\"green\",\"jobs\":\"blue\",\"projects\":\"purple\",\"hobbies\":\"orange\"}";
+    
+    // Section advanced settings (JSON object with section: advanced settings)
+    [MaxLength(8000)]
+    public string SectionAdvancedSettings { get; set; } = "{}";
+    
     // Page theme/style
     [MaxLength(50)]
     public string Theme { get; set; } = "modern";

@@ -57,7 +57,9 @@ public class MappingProfile : Profile
         CreateMap<PersonalPageSettings, PersonalPageSettingsDto>()
             .ForMember(dest => dest.SectionOrder, opt => opt.MapFrom<SectionOrderResolver>())
             .ForMember(dest => dest.SectionVisibility, opt => opt.MapFrom<SectionVisibilityResolver>())
-            .ForMember(dest => dest.SectionTemplates, opt => opt.MapFrom<SectionTemplatesResolver>());
+            .ForMember(dest => dest.SectionTemplates, opt => opt.MapFrom<SectionTemplatesResolver>())
+            .ForMember(dest => dest.SectionColors, opt => opt.MapFrom<SectionColorsResolver>())
+            .ForMember(dest => dest.SectionAdvancedSettings, opt => opt.MapFrom<SectionAdvancedSettingsResolver>());
     }
 }
 
@@ -88,11 +90,11 @@ public class SectionVisibilityResolver : IValueResolver<PersonalPageSettings, Pe
         {
             return new Dictionary<string, bool>
             {
-                ["personal"] = true,
-                ["education"] = true,
-                ["jobs"] = true,
-                ["projects"] = true,
-                ["hobbies"] = true
+                { "personal", true },
+                { "education", true },
+                { "jobs", true },
+                { "projects", true },
+                { "hobbies", true }
             };
         }
     }
@@ -110,12 +112,49 @@ public class SectionTemplatesResolver : IValueResolver<PersonalPageSettings, Per
         {
             return new Dictionary<string, string>
             {
-                ["personal"] = "card",
-                ["education"] = "timeline",
-                ["jobs"] = "timeline",
-                ["projects"] = "grid",
-                ["hobbies"] = "tags"
+                { "personal", "card" },
+                { "education", "timeline" },
+                { "jobs", "timeline" },
+                { "projects", "grid" },
+                { "hobbies", "tags" }
             };
+        }
+    }
+}
+
+public class SectionColorsResolver : IValueResolver<PersonalPageSettings, PersonalPageSettingsDto, Dictionary<string, string>>
+{
+    public Dictionary<string, string> Resolve(PersonalPageSettings source, PersonalPageSettingsDto destination, Dictionary<string, string> destMember, ResolutionContext context)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<Dictionary<string, string>>(source.SectionColors) ?? new Dictionary<string, string>();
+        }
+        catch
+        {
+            return new Dictionary<string, string>
+            {
+                { "personal", "blue" },
+                { "education", "green" },
+                { "jobs", "blue" },
+                { "projects", "purple" },
+                { "hobbies", "orange" }
+            };
+        }
+    }
+}
+
+public class SectionAdvancedSettingsResolver : IValueResolver<PersonalPageSettings, PersonalPageSettingsDto, Dictionary<string, AdvancedSectionSettings>>
+{
+    public Dictionary<string, AdvancedSectionSettings> Resolve(PersonalPageSettings source, PersonalPageSettingsDto destination, Dictionary<string, AdvancedSectionSettings> destMember, ResolutionContext context)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<Dictionary<string, AdvancedSectionSettings>>(source.SectionAdvancedSettings) ?? new Dictionary<string, AdvancedSectionSettings>();
+        }
+        catch
+        {
+            return new Dictionary<string, AdvancedSectionSettings>();
         }
     }
 } 

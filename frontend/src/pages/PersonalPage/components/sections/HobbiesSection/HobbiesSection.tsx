@@ -1,17 +1,22 @@
 import React from 'react';
-import type { SectionRendererProps } from '../../../types';
+import type { Hobby, SectionSettings, TemplateOption } from '../../../types';
 import { SECTION_COLORS } from '../../../constants';
 import { 
-  TagsTemplate, 
-  CreativeTemplate, 
-  MinimalTemplate, 
-  InterestsTemplate, 
   ColorfulTemplate, 
-  IconsTemplate 
+  CreativeTemplate, 
+  IconsTemplate, 
+  InterestsTemplate, 
+  MinimalTemplate, 
+  TagsTemplate 
 } from './templates';
 
-interface HobbiesSectionProps extends Omit<SectionRendererProps, 'data'> {
-  hobbies: any[];
+interface HobbiesSectionProps {
+  sectionKey: string;
+  hobbies: Hobby[];
+  primaryColor: string;
+  currentSectionSettings: SectionSettings;
+  onSectionSettingsChange: (sectionKey: string, newSettings: SectionSettings) => void;
+  templateOptions: TemplateOption[];
 }
 
 const HobbiesSection: React.FC<HobbiesSectionProps> = ({
@@ -22,7 +27,7 @@ const HobbiesSection: React.FC<HobbiesSectionProps> = ({
   onSectionSettingsChange,
   templateOptions,
 }) => {
-  const { template } = currentSectionSettings;
+  const { template, advancedSettings } = currentSectionSettings;
   const sectionPrimaryColor = SECTION_COLORS[currentSectionSettings.color as keyof typeof SECTION_COLORS] || SECTION_COLORS.blue;
 
   // Common props for all templates
@@ -33,25 +38,29 @@ const HobbiesSection: React.FC<HobbiesSectionProps> = ({
     currentSectionSettings,
     onSectionSettingsChange,
     templateOptions,
+    advancedSettings,
   };
 
   // Template selector
-  switch (template) {
-    case 'tags':
-      return <TagsTemplate {...templateProps} />;
-    case 'creative':
-      return <CreativeTemplate {...templateProps} />;
-    case 'minimal':
-      return <MinimalTemplate {...templateProps} />;
-    case 'interests':
-      return <InterestsTemplate {...templateProps} />;
-    case 'colorful':
-      return <ColorfulTemplate {...templateProps} />;
-    case 'icons':
-      return <IconsTemplate {...templateProps} />;
-    default:
-      return <TagsTemplate {...templateProps} />; // fallback
-  }
+  const renderTemplate = () => {
+    switch (template) {
+      case 'colorful':
+        return <ColorfulTemplate {...templateProps} />;
+      case 'creative':
+        return <CreativeTemplate {...templateProps} />;
+      case 'icons':
+        return <IconsTemplate {...templateProps} />;
+      case 'interests':
+        return <InterestsTemplate {...templateProps} />;
+      case 'minimal':
+        return <MinimalTemplate {...templateProps} />;
+      case 'tags':
+      default:
+        return <TagsTemplate {...templateProps} />;
+    }
+  };
+
+  return <>{renderTemplate()}</>;
 };
 
 export default HobbiesSection; 

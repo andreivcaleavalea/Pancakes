@@ -1,17 +1,22 @@
 import React from 'react';
-import type { SectionRendererProps } from '../../../types';
+import type { Project, SectionSettings, TemplateOption } from '../../../types';
 import { SECTION_COLORS } from '../../../constants';
 import { 
+  CardsTemplate, 
+  DetailedTemplate, 
   GridTemplate, 
-  ShowcaseTemplate, 
   MinimalTemplate, 
   PortfolioTemplate, 
-  CardsTemplate, 
-  DetailedTemplate 
+  ShowcaseTemplate 
 } from './templates';
 
-interface ProjectsSectionProps extends Omit<SectionRendererProps, 'data'> {
-  projects: any[];
+interface ProjectsSectionProps {
+  sectionKey: string;
+  projects: Project[];
+  primaryColor: string;
+  currentSectionSettings: SectionSettings;
+  onSectionSettingsChange: (sectionKey: string, newSettings: SectionSettings) => void;
+  templateOptions: TemplateOption[];
 }
 
 const ProjectsSection: React.FC<ProjectsSectionProps> = ({
@@ -22,7 +27,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   onSectionSettingsChange,
   templateOptions,
 }) => {
-  const { template } = currentSectionSettings;
+  const { template, advancedSettings } = currentSectionSettings;
   const sectionPrimaryColor = SECTION_COLORS[currentSectionSettings.color as keyof typeof SECTION_COLORS] || SECTION_COLORS.blue;
 
   // Common props for all templates
@@ -33,25 +38,29 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     currentSectionSettings,
     onSectionSettingsChange,
     templateOptions,
+    advancedSettings,
   };
 
   // Template selector
-  switch (template) {
-    case 'grid':
-      return <GridTemplate {...templateProps} />;
-    case 'showcase':
-      return <ShowcaseTemplate {...templateProps} />;
-    case 'minimal':
-      return <MinimalTemplate {...templateProps} />;
-    case 'portfolio':
-      return <PortfolioTemplate {...templateProps} />;
-    case 'cards':
-      return <CardsTemplate {...templateProps} />;
-    case 'detailed':
-      return <DetailedTemplate {...templateProps} />;
-    default:
-      return <GridTemplate {...templateProps} />; // fallback
-  }
+  const renderTemplate = () => {
+    switch (template) {
+      case 'cards':
+        return <CardsTemplate {...templateProps} />;
+      case 'detailed':
+        return <DetailedTemplate {...templateProps} />;
+      case 'grid':
+        return <GridTemplate {...templateProps} />;
+      case 'minimal':
+        return <MinimalTemplate {...templateProps} />;
+      case 'portfolio':
+        return <PortfolioTemplate {...templateProps} />;
+      case 'showcase':
+      default:
+        return <ShowcaseTemplate {...templateProps} />;
+    }
+  };
+
+  return <>{renderTemplate()}</>;
 };
 
 export default ProjectsSection; 

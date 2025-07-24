@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SectionRendererProps } from '../../../types';
+import type { Education, SectionSettings, TemplateOption } from '../../../types';
 import { SECTION_COLORS } from '../../../constants';
 import { 
   AcademicTemplate, 
@@ -10,8 +10,13 @@ import {
   ProgressTemplate 
 } from './templates';
 
-interface EducationSectionProps extends Omit<SectionRendererProps, 'data'> {
-  educations: any[];
+interface EducationSectionProps {
+  sectionKey: string;
+  educations: Education[];
+  primaryColor: string;
+  currentSectionSettings: SectionSettings;
+  onSectionSettingsChange: (sectionKey: string, newSettings: SectionSettings) => void;
+  templateOptions: TemplateOption[];
 }
 
 const EducationSection: React.FC<EducationSectionProps> = ({
@@ -22,36 +27,40 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   onSectionSettingsChange,
   templateOptions,
 }) => {
-  const { template } = currentSectionSettings;
+  const { template, advancedSettings } = currentSectionSettings;
   const sectionPrimaryColor = SECTION_COLORS[currentSectionSettings.color as keyof typeof SECTION_COLORS] || SECTION_COLORS.blue;
 
   // Common props for all templates
   const templateProps = {
-    educationData: educations,
+    educations,
     sectionKey,
     sectionPrimaryColor,
     currentSectionSettings,
     onSectionSettingsChange,
     templateOptions,
+    advancedSettings,
   };
 
   // Template selector
-  switch (template) {
-    case 'academic':
-      return <AcademicTemplate {...templateProps} />;
-    case 'timeline':
-      return <TimelineTemplate {...templateProps} />;
-    case 'grid':
-      return <GridTemplate {...templateProps} />;
-    case 'journey':
-      return <JourneyTemplate {...templateProps} />;
-    case 'university':
-      return <UniversityTemplate {...templateProps} />;
-    case 'progress':
-      return <ProgressTemplate {...templateProps} />;
-    default:
-      return <TimelineTemplate {...templateProps} />; // fallback
-  }
+  const renderTemplate = () => {
+    switch (template) {
+      case 'academic':
+        return <AcademicTemplate {...templateProps} />;
+      case 'timeline':
+        return <TimelineTemplate {...templateProps} />;
+      case 'grid':
+        return <GridTemplate {...templateProps} />;
+      case 'journey':
+        return <JourneyTemplate {...templateProps} />;
+      case 'university':
+        return <UniversityTemplate {...templateProps} />;
+      case 'progress':
+      default:
+        return <ProgressTemplate {...templateProps} />;
+    }
+  };
+
+  return <>{renderTemplate()}</>;
 };
 
 export default EducationSection; 

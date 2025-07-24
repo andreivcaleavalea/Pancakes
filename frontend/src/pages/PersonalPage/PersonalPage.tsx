@@ -1,32 +1,20 @@
 import React from 'react';
-import { Card, Typography, Spin, Alert } from 'antd';
+import { Card, Typography, Spin, Alert, Button, Space } from 'antd';
+import { SaveOutlined, UndoOutlined } from '@ant-design/icons';
 import { PersonalSection, EducationSection, JobsSection, ProjectsSection, HobbiesSection } from './components/sections';
-import { usePersonalPageLogic } from './hooks/usePersonalPageLogic';
-import type { SectionVisibility } from './types';
+import { usePersonalPageEditMode } from './hooks/usePersonalPageEditMode';
+import type { SectionVisibility, User, Education, Job, Project, Hobby } from './types';
 import './PersonalPage.scss';
 
 const { Text } = Typography;
 
 interface PersonalPageProps {
-  settings?: any;
-  sectionSettings?: any;
-  onSectionSettingsChange?: (sectionKey: string, newSettings: any) => void;
+  // No external props needed - using internal edit mode
 }
 
-// Section renderer mapping
-const SECTION_COMPONENTS = {
-  personal: PersonalSection,
-  education: EducationSection,
-  jobs: JobsSection,
-  projects: ProjectsSection,
-  hobbies: HobbiesSection,
-} as const;
+// Section components imported directly
 
-const PersonalPage: React.FC<PersonalPageProps> = ({
-  settings,
-  sectionSettings: externalSectionSettings,
-  onSectionSettingsChange: externalOnSectionSettingsChange,
-}) => {
+const PersonalPage: React.FC<PersonalPageProps> = () => {
   const {
     user,
     educations,
@@ -38,8 +26,12 @@ const PersonalPage: React.FC<PersonalPageProps> = ({
     sectionOrder,
     sectionVisibility,
     colorScheme,
+    hasUnsavedChanges,
+    saving,
+    handleSave,
+    handleRevert,
     getSectionProps,
-  } = usePersonalPageLogic(settings);
+  } = usePersonalPageEditMode();
 
   if (loading) {
     return (
@@ -84,22 +76,13 @@ const PersonalPage: React.FC<PersonalPageProps> = ({
       return null;
     }
 
-    // Get the appropriate component
-    const SectionComponent = SECTION_COMPONENTS[sectionKey as keyof typeof SECTION_COMPONENTS];
-    if (!SectionComponent) {
-      return null;
-    }
+    // Component selection handled in switch statement below
 
     // Get section props from hook
     const sectionProps = getSectionProps(sectionKey);
 
-    // Override with external handlers if provided
-    if (externalOnSectionSettingsChange) {
-      sectionProps.onSectionSettingsChange = externalOnSectionSettingsChange;
-    }
-
-    // Get section-specific data
-    let data: any = null;
+    // Get section-specific data with proper typing
+    let data: User | Education[] | Job[] | Project[] | Hobby[] | null = null;
     let shouldSkip = false;
 
     switch (sectionKey) {
@@ -133,7 +116,7 @@ const PersonalPage: React.FC<PersonalPageProps> = ({
     }
 
     // For personal section, pass user directly
-    if (sectionKey === 'personal') {
+    if (sectionKey === 'personal' && user) {
       return (
         <PersonalSection
           key={sectionKey}
@@ -146,29 +129,47 @@ const PersonalPage: React.FC<PersonalPageProps> = ({
     // For other sections, pass data array with specific props
     const sectionSpecificProps = { ...sectionProps };
     
-    // Add specific data props for each section type
+    // Add specific data props for each section type with proper typing
     switch (sectionKey) {
       case 'education':
-        (sectionSpecificProps as any).educations = data;
-        break;
+        (sectionSpecificProps as any).educations = data as Education[];
+        return (
+          <EducationSection
+            key={sectionKey}
+            {...sectionSpecificProps}
+            educations={data as Education[]}
+          />
+        );
       case 'jobs':
-        (sectionSpecificProps as any).jobs = data;
-        break;
+        (sectionSpecificProps as any).jobs = data as Job[];
+        return (
+          <JobsSection
+            key={sectionKey}
+            {...sectionSpecificProps}
+            jobs={data as Job[]}
+          />
+        );
       case 'projects':
-        (sectionSpecificProps as any).projects = data;
-        break;
+        (sectionSpecificProps as any).projects = data as Project[];
+        return (
+          <ProjectsSection
+            key={sectionKey}
+            {...sectionSpecificProps}
+            projects={data as Project[]}
+          />
+        );
       case 'hobbies':
-        (sectionSpecificProps as any).hobbies = data;
-        break;
+        (sectionSpecificProps as any).hobbies = data as Hobby[];
+        return (
+          <HobbiesSection
+            key={sectionKey}
+            {...sectionSpecificProps}
+            hobbies={data as Hobby[]}
+          />
+        );
     }
 
-    return (
-      <SectionComponent
-        key={sectionKey}
-        {...sectionSpecificProps}
-        data={data}
-      />
-    );
+    return null;
   };
 
   return (
@@ -177,16 +178,52 @@ const PersonalPage: React.FC<PersonalPageProps> = ({
         {/* Render sections in order */}
         {sectionOrder.map((sectionKey: string) => renderSection(sectionKey))}
         
-        {/* Settings Preview Footer */}
-        {settings && (
-          <Card style={{ marginTop: '24px', background: '#fafafa' }}>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              <strong>Page Settings:</strong> {settings.pageSlug ? `pancakes.dev/personal/${settings.pageSlug}` : 'URL not set'} • 
-              Color: {colorScheme} • 
-              Visible sections: {Object.entries(sectionVisibility).filter(([_, visible]) => visible).length}/5
+        {/* Save/Revert Action Buttons */}
+        <Card style={{ 
+          marginTop: '32px', 
+          textAlign: 'center', 
+          background: hasUnsavedChanges ? '#fff7e6' : '#fafafa', 
+          borderColor: hasUnsavedChanges ? '#ffa940' : '#d9d9d9' 
+        }}>
+          {hasUnsavedChanges && (
+            <Text type="warning" style={{ display: 'block', marginBottom: '16px', fontWeight: 500 }}>
+              ⚠️ You have unsaved changes
             </Text>
-          </Card>
-        )}
+          )}
+          <Space size="large">
+            <Button 
+              type="primary" 
+              icon={<SaveOutlined />}
+              size="large"
+              loading={saving}
+              disabled={!hasUnsavedChanges}
+              onClick={handleSave}
+            >
+              Save Changes
+            </Button>
+            <Button 
+              icon={<UndoOutlined />}
+              size="large"
+              disabled={!hasUnsavedChanges || saving}
+              onClick={handleRevert}
+            >
+              Revert Changes
+            </Button>
+          </Space>
+          {!hasUnsavedChanges && (
+            <Text type="secondary" style={{ display: 'block', marginTop: '8px', fontSize: '12px' }}>
+              All changes saved ✓
+            </Text>
+          )}
+        </Card>
+        
+        {/* Settings Preview Footer */}
+        <Card style={{ marginTop: '16px', background: '#fafafa' }}>
+          <Text type="secondary" style={{ fontSize: '12px' }}>
+            <strong>Page Settings:</strong> Color scheme: {colorScheme} • 
+            Visible sections: {Object.entries(sectionVisibility).filter(([_, visible]) => visible).length}/5
+          </Text>
+        </Card>
       </div>
     </div>
   );

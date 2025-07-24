@@ -1,9 +1,19 @@
 import React from 'react';
 import { Card, Avatar, Typography, Row, Col } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
+import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
 import './CreativeTemplate.scss';
 
 const { Title, Text, Paragraph } = Typography;
+
+interface AdvancedSectionSettings {
+  layout: any;
+  background: any;
+  typography: any;
+  styling: any;
+  spacing: any;
+  animation: any;
+}
 
 interface CreativeTemplateProps {
   user: any;
@@ -12,6 +22,7 @@ interface CreativeTemplateProps {
   currentSectionSettings: any;
   onSectionSettingsChange: any;
   templateOptions: any;
+  advancedSettings?: AdvancedSectionSettings;
 }
 
 const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
@@ -21,14 +32,118 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,
+  advancedSettings,
 }) => {
+  // Build card styles with advanced settings overrides
+  const getCardStyles = () => {
+    const defaultStyles = {
+      background: `linear-gradient(45deg, ${sectionPrimaryColor}05, ${sectionPrimaryColor}15)`,
+      marginBottom: '32px',
+      position: 'relative' as const,
+      borderRadius: '24px',
+      overflow: 'hidden' as const,
+      border: 'none',
+      boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
+    };
+
+    console.log('🔍 DETAILED CreativeTemplate Debug:', {
+      sectionKey,
+      hasAdvancedSettings: !!advancedSettings,
+      advancedSettings: JSON.stringify(advancedSettings, null, 2),
+      currentSectionSettings: JSON.stringify(currentSectionSettings, null, 2)
+    });
+
+    if (!advancedSettings) {
+      console.log('❌ No advanced settings, returning defaults');
+      return defaultStyles;
+    }
+
+    const { layout, background, styling } = advancedSettings;
+
+    console.log('🎨 Background Analysis:', {
+      'background.color': background.color,
+      'background.pattern': background.pattern,
+      'background.opacity': background.opacity,
+      'has background.color': !!background.color,
+      'pattern !== none': background.pattern !== 'none',
+      'condition result': (background.color || background.pattern !== 'none')
+    });
+
+    // Test getBackgroundWithPattern function
+    if (background.color || background.pattern !== 'none') {
+      const testBg = getBackgroundWithPattern(background.color || '#ffffff', background.pattern, background.opacity);
+      const testBgSize = getBackgroundSize(background.pattern);
+      console.log('🖌️ Generated background:', testBg);
+      console.log('📏 Background size:', testBgSize);
+    }
+
+    // Generate CSS custom properties for advanced settings
+    const cssCustomProperties = {
+      '--advanced-background': (background.color || background.pattern !== 'none') ? 
+        getBackgroundWithPattern(background.color || '#ffffff', background.pattern, background.opacity) :
+        defaultStyles.background,
+      '--advanced-background-size': getBackgroundSize(background.pattern),
+      '--advanced-border-radius': styling.roundCorners ? styling.borderRadius : '0px',
+      '--advanced-box-shadow': styling.shadow ? getShadowStyle(styling.shadowIntensity) : 'none',
+      '--advanced-margin-bottom': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
+      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
+      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
+      '--advanced-border': styling.border.enabled 
+        ? `${styling.border.width} ${styling.border.style} ${styling.border.color}`
+        : 'none',
+      '--advanced-overflow': 'hidden',
+      '--advanced-width': layout.fullscreen ? '100vw' : 'auto',
+    } as React.CSSProperties;
+
+    // Add animation and transition as regular inline styles (these work fine)
+    const finalStyles = {
+      ...cssCustomProperties,
+      position: 'relative' as const,
+      transition: 'none', // Animation disabled
+      animation: undefined, // Animation disabled
+    };
+
+    console.log('✅ Final computed styles with CSS custom properties:', {
+      cssCustomProperties,
+      finalStyles
+    });
+    return finalStyles;
+  };
+
+  // Build content styles
+  const getContentStyles = () => {
+    if (!advancedSettings) return { padding: '40px' };
+    return {
+      padding: '32px', // Default padding
+      position: 'relative' as const,
+      zIndex: 1,
+    };
+  };
+
+  // Build typography styles
+  const getTypographyStyles = () => {
+    if (!advancedSettings) return {};
+
+    const { typography } = advancedSettings;
+    return {
+      fontSize: typography.fontSize ? getFontSize(typography.fontSize) : undefined,
+      color: typography.fontColor || undefined,
+      fontWeight: typography.fontWeight ? getFontWeight(typography.fontWeight) : undefined,
+    };
+  };
+
+  const cardStyles = getCardStyles();
+  console.log('🎯 Final cardStyles being applied:', cardStyles);
+
+  // Use different className when advanced settings are active to avoid SCSS conflicts
+  const cardClassName = advancedSettings ? 'creative-template creative-template--custom' : 'creative-template';
+  console.log('🏷️ Card className:', cardClassName, 'hasAdvancedSettings:', !!advancedSettings);
+
   return (
     <Card 
       key="personal" 
-      className="creative-template"
-      style={{
-        background: `linear-gradient(45deg, ${sectionPrimaryColor}05, ${sectionPrimaryColor}15)`,
-      }}
+      className={cardClassName}
+      style={cardStyles}
     >
       <SectionSettingsPopover
         sectionKey={sectionKey}
@@ -37,15 +152,17 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
         templateOptions={templateOptions}
       />
 
-      {/* Creative Background Pattern */}
-      <div 
-        className="creative-template__bg-pattern"
-        style={{
-          background: `radial-gradient(circle, ${sectionPrimaryColor}20, transparent)`,
-        }}
-      />
+      {/* Creative Background Pattern - only show if no custom background */}
+      {(!advancedSettings?.background.color && (!advancedSettings?.background.pattern || advancedSettings?.background.pattern === 'none')) && (
+        <div 
+          className="creative-template__bg-pattern"
+          style={{
+            background: `radial-gradient(circle, ${sectionPrimaryColor}20, transparent)`,
+          }}
+        />
+      )}
 
-      <div className="creative-template__content">
+      <div className="creative-template__content" style={getContentStyles()}>
         <Row align="middle" gutter={[32, 24]}>
           <Col xs={24} md={8}>
             <div className="creative-template__avatar-container">
@@ -74,9 +191,10 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
               </div>
             </div>
           </Col>
+          
           <Col xs={24} md={16}>
             <div>
-              <Title level={2} className="creative-template__name">
+              <Title level={2} className="creative-template__name" style={getTypographyStyles()}>
                 {user.name}
               </Title>
 
@@ -87,6 +205,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
                     background: `${sectionPrimaryColor}15`,
                     border: `2px solid ${sectionPrimaryColor}30`,
                     color: sectionPrimaryColor,
+                    ...getTypographyStyles(),
                   }}
                 >
                   <Text>📧 {user.email}</Text>
@@ -98,6 +217,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
                       background: `${sectionPrimaryColor}15`,
                       border: `2px solid ${sectionPrimaryColor}30`,
                       color: sectionPrimaryColor,
+                      ...getTypographyStyles(),
                     }}
                   >
                     <Text>📞 {user.phoneNumber}</Text>
@@ -106,7 +226,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
               </div>
 
               {user.bio && (
-                <Paragraph className="creative-template__bio">
+                <Paragraph className="creative-template__bio" style={getTypographyStyles()}>
                   "{user.bio}"
                 </Paragraph>
               )}
