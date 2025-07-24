@@ -24,9 +24,9 @@ const CommentForm: React.FC<CommentFormProps> = ({
       setSubmitting(true);
       await onSubmit({
         content: values.content,
-        authorName: "Author Name", // As per requirement
         blogPostId,
         parentCommentId,
+        // No need to send authorName or authorId - backend will populate from JWT token
       });
       form.resetFields();
       message.success(

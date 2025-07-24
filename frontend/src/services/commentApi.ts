@@ -1,4 +1,4 @@
-import { apiRequest } from "@/utils/api";
+import { authenticatedBlogRequest } from "@/utils/blogApi";
 import type { Comment, CreateCommentDto } from "@/types/comment";
 
 const ENDPOINTS = {
@@ -9,33 +9,35 @@ const ENDPOINTS = {
 export const commentsApi = {
   // Get comments for a specific blog post
   getByBlogPostId: async (blogPostId: string): Promise<Comment[]> => {
-    return apiRequest<Comment[]>(`${ENDPOINTS.COMMENTS}/blog/${blogPostId}`);
+    return authenticatedBlogRequest<Comment[]>(
+      `${ENDPOINTS.COMMENTS}/blog/${blogPostId}`
+    );
   },
 
   // Get comment by ID
   getById: async (id: string): Promise<Comment> => {
-    return apiRequest<Comment>(`${ENDPOINTS.COMMENTS}/${id}`);
+    return authenticatedBlogRequest<Comment>(`${ENDPOINTS.COMMENTS}/${id}`);
   },
 
-  // Create new comment
+  // Create new comment (requires authentication)
   create: async (comment: CreateCommentDto): Promise<Comment> => {
-    return apiRequest<Comment>(ENDPOINTS.COMMENTS, {
+    return authenticatedBlogRequest<Comment>(ENDPOINTS.COMMENTS, {
       method: "POST",
       body: JSON.stringify(comment),
     });
   },
 
-  // Update comment
+  // Update comment (requires authentication)
   update: async (id: string, comment: CreateCommentDto): Promise<Comment> => {
-    return apiRequest<Comment>(`${ENDPOINTS.COMMENTS}/${id}`, {
+    return authenticatedBlogRequest<Comment>(`${ENDPOINTS.COMMENTS}/${id}`, {
       method: "PUT",
       body: JSON.stringify(comment),
     });
   },
 
-  // Delete comment
+  // Delete comment (requires authentication)
   delete: async (id: string): Promise<void> => {
-    return apiRequest<void>(`${ENDPOINTS.COMMENTS}/${id}`, {
+    return authenticatedBlogRequest<void>(`${ENDPOINTS.COMMENTS}/${id}`, {
       method: "DELETE",
     });
   },
