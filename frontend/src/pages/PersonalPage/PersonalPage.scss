@@ -63,6 +63,101 @@
   &__content {
     min-height: 500px;
   }
+
+  &__action-buttons {
+    position: sticky;
+    bottom: 20px;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    
+    &.has-changes {
+      animation: pulse 2s infinite;
+    }
+
+    .ant-btn-primary {
+      background: linear-gradient(135deg, #52c41a, #389e0d);
+      border: none;
+      box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
+      
+      &:hover {
+        background: linear-gradient(135deg, #73d13d, #52c41a);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
+      }
+    }
+
+    .ant-btn:not(.ant-btn-primary) {
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  &__settings-footer {
+    border-top: 1px solid #f0f0f0;
+    background: linear-gradient(to right, #fafafa, #f5f5f5);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(255, 169, 64, 0.3);
+  }
+  100% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Advanced Settings Animations */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes fadeInSlide {
+  from { 
+    opacity: 0; 
+    transform: translateX(-30px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+@keyframes fadeInScale {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+/* Advanced Settings Hover Effects */
+.personal-page-section:hover {
+  transition: transform 0.3s ease-in-out;
+}
+
+.personal-page-section[data-animation="scale"]:hover {
+  transform: scale(1.02) !important;
+}
+
+.personal-page-section[data-animation="slide"]:hover {
+  transform: translateY(-2px) !important;
 }
 
 @media (max-width: 768px) {

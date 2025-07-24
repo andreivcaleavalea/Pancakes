@@ -3,7 +3,7 @@ import HomePage from "../pages/HomePage/HomePage";
 import LoginPage from "../pages/LoginPage/LoginPage";
 import AuthCallback from "../pages/AuthCallback/AuthCallback";
 import ProfilePage from "../pages/ProfilePage/ProfilePage";
-import PersonalPage from "../pages/PersonalPage/PersonalPage";
+import PersonalPageEditMode from "../pages/PersonalPage/PersonalPageEditMode";
 import { useRouter } from "./RouterProvider";
 
 const PageRenderer: React.FC = () => {
@@ -20,7 +20,7 @@ const PageRenderer: React.FC = () => {
     case "profile":
       return <ProfilePage />;
     case "personal-page":
-      return <PersonalPage />;
+      return <PersonalPageEditMode />;
     case "home":
     default:
       return <HomePage />;

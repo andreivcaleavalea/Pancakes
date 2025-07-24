@@ -88,6 +88,12 @@ public class PersonalPageService : IPersonalPageService
         if (updateDto.SectionTemplates != null)
             settings.SectionTemplates = JsonSerializer.Serialize(updateDto.SectionTemplates);
             
+        if (updateDto.SectionColors != null)
+            settings.SectionColors = JsonSerializer.Serialize(updateDto.SectionColors);
+            
+        if (updateDto.SectionAdvancedSettings != null)
+            settings.SectionAdvancedSettings = JsonSerializer.Serialize(updateDto.SectionAdvancedSettings);
+            
         if (!string.IsNullOrEmpty(updateDto.Theme))
             settings.Theme = updateDto.Theme;
             

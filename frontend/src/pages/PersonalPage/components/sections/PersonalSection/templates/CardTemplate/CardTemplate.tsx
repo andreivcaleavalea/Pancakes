@@ -1,35 +1,38 @@
 import React from 'react';
 import { Card, Avatar, Typography } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
+import { useAdvancedStyles } from '../../../../../hooks/useAdvancedStyles';
+import type { PersonalTemplateProps } from '../../../../types';
 import './CardTemplate.scss';
 
 const { Title, Text, Paragraph } = Typography;
 
-interface CardTemplateProps {
-  user: any;
-  sectionKey: string;
-  sectionPrimaryColor: string;
-  currentSectionSettings: any;
-  onSectionSettingsChange: any;
-  templateOptions: any;
-}
-
-const CardTemplate: React.FC<CardTemplateProps> = ({
+const CardTemplate: React.FC<PersonalTemplateProps> = ({
   user,
   sectionKey,
   sectionPrimaryColor,
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,
+  advancedSettings,
 }) => {
-  return (
-    <Card key="personal" style={{ 
-      marginBottom: '24px', 
-      textAlign: 'center', 
+  // Use shared hook instead of duplicated code
+  const { cardStyles, cardClassName, getContentStyles, getTypographyStyles } = useAdvancedStyles(
+    advancedSettings,
+    'card-template',
+    {
+      textAlign: 'center' as const,
       padding: '32px',
-      position: 'relative',
-      borderRadius: '12px'
-    }}>
+      borderRadius: '12px',
+    }
+  );
+
+  return (
+    <Card 
+      key="personal" 
+      className={cardClassName}
+      style={cardStyles}
+    >
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -37,27 +40,29 @@ const CardTemplate: React.FC<CardTemplateProps> = ({
         templateOptions={templateOptions}
       />
       
-      <Avatar
-        size={100}
-        src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
-        style={{ marginBottom: '20px', border: `3px solid ${sectionPrimaryColor}` }}
-      />
-      <Title level={2} style={{ color: sectionPrimaryColor, margin: '20px 0 8px' }}>
-        {user.name}
-      </Title>
-      <Text type="secondary" style={{ fontSize: '16px', display: 'block', marginBottom: '12px' }}>
-        {user.email}
-      </Text>
-      {user.phoneNumber && (
-        <Text type="secondary" style={{ fontSize: '14px', display: 'block', marginBottom: '16px' }}>
-          📞 {user.phoneNumber}
+      <div style={getContentStyles()}>
+        <Avatar
+          size={120}
+          src={user.avatar ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.avatar}` : undefined}
+          className="card-template__avatar"
+        />
+        <Title level={2} style={getTypographyStyles()}>
+          {user.name}
+        </Title>
+        <Text type="secondary" style={getTypographyStyles()}>
+          {user.email}
         </Text>
-      )}
-      {user.bio && (
-        <Paragraph style={{ marginTop: '20px', fontSize: '14px' }}>
-          {user.bio}
-        </Paragraph>
-      )}
+        {user.phoneNumber && (
+          <Text style={getTypographyStyles()}>
+            📞 {user.phoneNumber}
+          </Text>
+        )}
+        {user.bio && (
+          <Paragraph style={getTypographyStyles()}>
+            {user.bio}
+          </Paragraph>
+        )}
+      </div>
     </Card>
   );
 };

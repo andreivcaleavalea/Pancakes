@@ -1,5 +1,46 @@
 import { authenticatedFetch } from '../lib/api';
 
+export interface AdvancedSectionSettings {
+  layout: LayoutSettings;
+  background: BackgroundSettings;
+  typography: TypographySettings;
+  styling: StylingSettings;
+}
+
+export interface LayoutSettings {
+  fullscreen: boolean;
+  margin: string | number; // "8px", "16px", "24px", "32px" or number for slider
+}
+
+export interface BackgroundSettings {
+  color: string;
+  pattern: string; // "none", "dots", "grid", "diagonal", "waves"
+  opacity: number; // 0.0 to 1.0
+}
+
+export interface TypographySettings {
+  fontSize: string; // "small", "medium", "large", "xl"
+  fontColor: string;
+  fontWeight: string; // "normal", "medium", "semibold", "bold"
+}
+
+export interface StylingSettings {
+  roundCorners: boolean;
+  borderRadius: string; // "4px", "8px", "12px", "16px", "24px"
+  shadow: boolean;
+  shadowIntensity: string; // "light", "medium", "strong"
+  border: BorderSettings;
+}
+
+export interface BorderSettings {
+  enabled: boolean;
+  color: string;
+  width: string; // "1px", "2px", "3px"
+  style: string; // "solid", "dashed", "dotted"
+}
+
+
+
 export interface PersonalPageSettings {
   id: string;
   userId: string;
@@ -8,6 +49,8 @@ export interface PersonalPageSettings {
   sectionOrder: string[];
   sectionVisibility: Record<string, boolean>;
   sectionTemplates: Record<string, string>;
+  sectionColors: Record<string, string>;
+  sectionAdvancedSettings: Record<string, AdvancedSectionSettings>;
   theme: string;
   colorScheme: string;
   createdAt: string;
@@ -20,6 +63,8 @@ export interface UpdatePersonalPageSettings {
   sectionOrder?: string[];
   sectionVisibility?: Record<string, boolean>;
   sectionTemplates?: Record<string, string>;
+  sectionColors?: Record<string, string>;
+  sectionAdvancedSettings?: Record<string, AdvancedSectionSettings>;
   theme?: string;
   colorScheme?: string;
 }

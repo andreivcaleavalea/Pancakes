@@ -3,6 +3,23 @@
   border-radius: 16px;
   position: relative;
 
+  // Override default styles when advanced settings are active
+  &--custom {
+
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+
+    position: relative !important;
+  }
+
   &__title {
     text-align: center;
     margin-bottom: 32px;

@@ -1,36 +1,32 @@
 import React from 'react';
-import { Card, Avatar, Typography, Row, Col, Space } from 'antd';
+import { Card, Avatar, Typography, Row, Col } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
-import { getProfilePictureUrl } from '../../../../../../../utils/imageUtils';
+import { useAdvancedStyles } from '../../../../../hooks/useAdvancedStyles';
+import type { PersonalTemplateProps } from '../../../../types';
 import './HeroTemplate.scss';
 
 const { Title, Text, Paragraph } = Typography;
 
-interface HeroTemplateProps {
-  user: any;
-  sectionKey: string;
-  sectionPrimaryColor: string;
-  currentSectionSettings: any;
-  onSectionSettingsChange: any;
-  templateOptions: any;
-}
-
-const HeroTemplate: React.FC<HeroTemplateProps> = ({
+const HeroTemplate: React.FC<PersonalTemplateProps> = ({
   user,
   sectionKey,
   sectionPrimaryColor,
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,
+  advancedSettings,
 }) => {
+  // Use shared hook instead of duplicated code
+  const { cardStyles, cardClassName, getContentStyles, getTypographyStyles } = useAdvancedStyles(
+    advancedSettings,
+    'hero-template'
+  );
+
   return (
     <Card 
       key="personal" 
-      className="hero-template"
-      style={{
-        background: `linear-gradient(135deg, ${sectionPrimaryColor}10, ${sectionPrimaryColor}05)`,
-        border: `1px solid ${sectionPrimaryColor}20`,
-      }}
+      className={cardClassName}
+      style={cardStyles}
     >
       <SectionSettingsPopover
         sectionKey={sectionKey}
@@ -38,50 +34,62 @@ const HeroTemplate: React.FC<HeroTemplateProps> = ({
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
       />
-
-      <div className="hero-template__content">
-        <Row align="middle" gutter={[32, 24]}>
-          <Col xs={24} sm={8} md={6}>
-            <div className="hero-template__avatar-container">
-              <div 
-                className="hero-template__avatar-wrapper"
-                style={{
-                  background: `linear-gradient(45deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}90)`,
-                }}
-              >
-                <Avatar
-                  size={120}
-                  src={getProfilePictureUrl(user.avatar)}
-                  className="hero-template__avatar"
-                />
-              </div>
-            </div>
+      
+      <div style={getContentStyles()}>
+        <Row align="middle" gutter={32}>
+          <Col xs={24} md={8} style={{ textAlign: 'center' }}>
+            <Avatar
+              size={120}
+              src={user.avatar ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.avatar}` : undefined}
+              className="hero-template__avatar"
+              style={{ 
+                marginBottom: '16px', 
+                border: `3px solid ${sectionPrimaryColor}` 
+              }}
+            />
           </Col>
-          <Col xs={24} sm={16} md={18}>
-            <Space direction="vertical" size="large" className="hero-template__info">
-              <div>
-                <Title level={1} className="hero-template__name">
-                  {user.name}
-                </Title>
-                <div 
-                  className="hero-template__contact-card"
-                  style={{
-                    background: `${sectionPrimaryColor}15`,
-                    borderLeft: `4px solid ${sectionPrimaryColor}`
-                  }}
-                >
-                  <Text>
-                    📧 {user.email}
-                    {user.phoneNumber && <span className="hero-template__phone">📞 {user.phoneNumber}</span>}
-                  </Text>
-                </div>
-              </div>
-              {user.bio && (
-                <Paragraph className="hero-template__bio">
-                  {user.bio}
-                </Paragraph>
-              )}
-            </Space>
+          <Col xs={24} md={16}>
+            <Title level={1} style={{ 
+              ...getTypographyStyles(), 
+              color: sectionPrimaryColor, 
+              marginBottom: '8px' 
+            }}>
+              {user.name}
+            </Title>
+            <Title level={3} style={{ 
+              ...getTypographyStyles(), 
+              marginBottom: '16px', 
+              fontWeight: 400 
+            }}>
+              {user.email}
+            </Title>
+            {user.location && (
+              <Text style={{ 
+                ...getTypographyStyles(), 
+                display: 'block', 
+                marginBottom: '8px' 
+              }}>
+                📍 {user.location}
+              </Text>
+            )}
+            {user.phoneNumber && (
+              <Text style={{ 
+                ...getTypographyStyles(), 
+                display: 'block', 
+                marginBottom: '16px' 
+              }}>
+                📞 {user.phoneNumber}
+              </Text>
+            )}
+            {user.bio && (
+              <Paragraph style={{ 
+                ...getTypographyStyles(), 
+                fontSize: '16px', 
+                lineHeight: '1.6' 
+              }}>
+                {user.bio}
+              </Paragraph>
+            )}
           </Col>
         </Row>
       </div>

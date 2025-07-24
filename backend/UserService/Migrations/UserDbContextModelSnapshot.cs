@@ -188,6 +188,16 @@ namespace UserService.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("SectionAdvancedSettings")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<string>("SectionColors")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<string>("SectionOrder")
                         .IsRequired()
                         .HasMaxLength(500)

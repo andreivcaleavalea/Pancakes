@@ -1,4 +1,5 @@
 import type { AllTemplateOptions } from './types';
+import type { AdvancedSectionSettings } from '../../services/personalPageService';
 
 export const SECTION_COLORS = {
   blue: '#1890ff',
@@ -10,6 +11,36 @@ export const SECTION_COLORS = {
   orange: '#fa8c16',
   red: '#f5222d',
   gold: '#faad14'
+};
+
+// Default advanced settings for all sections
+const DEFAULT_ADVANCED_SETTINGS: AdvancedSectionSettings = {
+  layout: {
+    fullscreen: false,
+    margin: 16
+  },
+  background: {
+    color: "",
+    pattern: "none",
+    opacity: 1.0
+  },
+  typography: {
+    fontSize: "medium",
+    fontColor: "",
+    fontWeight: "normal"
+  },
+  styling: {
+    roundCorners: true,
+    borderRadius: "8px",
+    shadow: true,
+    shadowIntensity: "medium",
+    border: {
+      enabled: false,
+      color: "#e5e7eb",
+      width: "1px",
+      style: "solid"
+    }
+  }
 };
 
 export const ALL_TEMPLATE_OPTIONS: AllTemplateOptions = {
@@ -74,9 +105,9 @@ export const DEFAULT_SECTION_VISIBILITY = {
 };
 
 export const DEFAULT_SECTION_SETTINGS = {
-  personal: { template: 'card', color: 'blue' },
-  education: { template: 'timeline', color: 'green' },
-  jobs: { template: 'career', color: 'blue' },
-  projects: { template: 'grid', color: 'purple' },
-  hobbies: { template: 'tags', color: 'orange' },
+  personal: { template: 'card', color: 'blue', advancedSettings: DEFAULT_ADVANCED_SETTINGS },
+  education: { template: 'timeline', color: 'green', advancedSettings: DEFAULT_ADVANCED_SETTINGS },
+  jobs: { template: 'career', color: 'blue', advancedSettings: DEFAULT_ADVANCED_SETTINGS },
+  projects: { template: 'grid', color: 'purple', advancedSettings: DEFAULT_ADVANCED_SETTINGS },
+  hobbies: { template: 'tags', color: 'orange', advancedSettings: DEFAULT_ADVANCED_SETTINGS },
 }; 
