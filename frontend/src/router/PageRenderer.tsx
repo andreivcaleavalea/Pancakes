@@ -23,7 +23,6 @@ const PageRenderer: React.FC = () => {
     case "personal-page":
       return <PersonalPageEditMode />;
     case "public":
-      console.log('PageRenderer: Rendering PublicPersonalPage with slug:', publicSlug); // Debug logging
       if (!publicSlug) {
         console.error('PageRenderer: No publicSlug provided for public page');
         return <HomePage />;

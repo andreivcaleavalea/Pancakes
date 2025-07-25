@@ -18,25 +18,22 @@ const PublicPersonalPageComponent: React.FC<PublicPersonalPageProps> = ({ pageSl
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPublicPage = async () => {
+    if (!pageSlug) return;
+
+    const fetchData = async () => {
       try {
-        console.log('PublicPersonalPage: Fetching data for slug:', pageSlug); // Debug logging
         setLoading(true);
-        setError(null);
         const data = await PersonalPageService.getPublicPage(pageSlug);
-        console.log('PublicPersonalPage: Received data:', data); // Debug logging
         setPublicPage(data);
       } catch (err) {
         console.error('Error fetching public page:', err);
-        setError('Personal page not found or not public');
+        setError(err instanceof Error ? err.message : 'Failed to load page');
       } finally {
         setLoading(false);
       }
     };
 
-    if (pageSlug) {
-      fetchPublicPage();
-    }
+    fetchData();
   }, [pageSlug]);
 
   if (loading) {

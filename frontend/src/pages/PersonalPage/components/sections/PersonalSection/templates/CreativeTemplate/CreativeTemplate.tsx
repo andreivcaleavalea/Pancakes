@@ -48,36 +48,11 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
       boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
     };
 
-    console.log('🔍 DETAILED CreativeTemplate Debug:', {
-      sectionKey,
-      hasAdvancedSettings: !!advancedSettings,
-      advancedSettings: JSON.stringify(advancedSettings, null, 2),
-      currentSectionSettings: JSON.stringify(currentSectionSettings, null, 2)
-    });
-
     if (!advancedSettings) {
-      console.log('❌ No advanced settings, returning defaults');
       return defaultStyles;
     }
 
     const { layout, background, styling } = advancedSettings;
-
-    console.log('🎨 Background Analysis:', {
-      'background.color': background.color,
-      'background.pattern': background.pattern,
-      'background.opacity': background.opacity,
-      'has background.color': !!background.color,
-      'pattern !== none': background.pattern !== 'none',
-      'condition result': (background.color || background.pattern !== 'none')
-    });
-
-    // Test getBackgroundWithPattern function
-    if (background.color || background.pattern !== 'none') {
-      const testBg = getBackgroundWithPattern(background.color || '#ffffff', background.pattern, background.opacity);
-      const testBgSize = getBackgroundSize(background.pattern);
-      console.log('🖌️ Generated background:', testBg);
-      console.log('📏 Background size:', testBgSize);
-    }
 
     // Generate CSS custom properties for advanced settings
     const cssCustomProperties = {
@@ -106,10 +81,6 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
       animation: undefined, // Animation disabled
     };
 
-    console.log('✅ Final computed styles with CSS custom properties:', {
-      cssCustomProperties,
-      finalStyles
-    });
     return finalStyles;
   };
 
@@ -136,11 +107,9 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
   };
 
   const cardStyles = getCardStyles();
-  console.log('🎯 Final cardStyles being applied:', cardStyles);
 
   // Use different className when advanced settings are active to avoid SCSS conflicts
   const cardClassName = advancedSettings ? 'creative-template creative-template--custom' : 'creative-template';
-  console.log('🏷️ Card className:', cardClassName, 'hasAdvancedSettings:', !!advancedSettings);
 
   return (
     <Card 
