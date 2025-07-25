@@ -33,10 +33,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogPostId }) => {
     });
   };
 
-  const handleReply = async (parentComment: any) => {
-    // This will be handled by the CommentItem component's reply form
-    // The actual reply submission goes through addComment with parentCommentId
-  };
+  // const handleReply = async (parentComment: any) => {
+  //   // This will be handled by the CommentItem component's reply form
+  //   // The actual reply submission goes through addComment with parentCommentId
+  // };
 
   return (
     <div className="comment-section">

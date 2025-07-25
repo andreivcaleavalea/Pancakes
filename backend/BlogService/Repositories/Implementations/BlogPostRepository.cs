@@ -129,4 +129,19 @@ public class BlogPostRepository : IBlogPostRepository
         return await _context.BlogPosts.AnyAsync(bp => bp.Id == id);
     }
 
+    public async Task<(IEnumerable<BlogPost> posts, int totalCount)> GetFriendsPostsAsync(IEnumerable<string> friendUserIds, int page = 1, int pageSize = 10)
+    {
+        var query = _context.BlogPosts
+            .Where(bp => bp.Status == PostStatus.Published && friendUserIds.Contains(bp.AuthorId))
+            .OrderByDescending(bp => bp.PublishedAt ?? bp.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+        
+        var posts = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (posts, totalCount);
+    }
 }

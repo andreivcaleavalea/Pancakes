@@ -57,9 +57,11 @@ const Header: React.FC = () => {
       case "saved":
         navigate("saved");
         break;
+      case "friends":
+        navigate("friends");
+        break;
       case "blogs":
       case "explore":
-      case "friends":
       case "profile":
         // TODO: Implement these pages
         console.log(`Navigate to ${key}`);

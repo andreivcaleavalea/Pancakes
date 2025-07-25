@@ -23,5 +23,8 @@ public class MappingProfile : Profile
         
         CreateMap<SavedBlog, SavedBlogDto>();
         CreateMap<CreateSavedBlogDto, SavedBlog>();
+        
+        CreateMap<Friendship, FriendshipDto>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
     }
 }

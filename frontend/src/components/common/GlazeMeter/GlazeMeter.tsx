@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Rate, Typography, Tooltip } from "antd";
+import { Rate, Typography } from "antd";
 import { StarFilled } from "@ant-design/icons";
 import type { GlazeMeterProps } from "@/types/rating";
 import "./GlazeMeter.scss";
@@ -7,7 +7,7 @@ import "./GlazeMeter.scss";
 const { Text } = Typography;
 
 const GlazeMeter: React.FC<GlazeMeterProps> = ({
-  blogPostId,
+  // blogPostId,
   averageRating,
   totalRatings,
   userRating,

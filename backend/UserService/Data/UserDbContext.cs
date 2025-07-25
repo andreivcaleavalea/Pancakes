@@ -5,77 +5,80 @@ namespace UserService.Data;
 
 public class UserDbContext : DbContext
 {
-    public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
+    public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
+    {
+    }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<Friendship> Friendships { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         // Configure User entity
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(u => u.Id);
-            
-            // Configure unique indexes
-            entity.HasIndex(u => u.Email)
-                .IsUnique()
-                .HasDatabaseName("IX_Users_Email");
-                
-            entity.HasIndex(u => new { u.Provider, u.ProviderUserId })
-                .IsUnique()
-                .HasDatabaseName("IX_Users_Provider_ProviderUserId");
-                
-            // Configure column types to match PostgreSQL schema
-            entity.Property(u => u.Id)
-                .HasColumnType("text")
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => new { e.Provider, e.ProviderUserId }).IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(450)
                 .IsRequired();
-                
-            entity.Property(u => u.Name)
-                .HasColumnType("character varying(255)")
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
                 .IsRequired();
-                
-            entity.Property(u => u.Email)
-                .HasColumnType("character varying(255)")
+
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
                 .IsRequired();
-                
-            entity.Property(u => u.Image)
-                .HasColumnType("character varying(500)")
+
+            entity.Property(e => e.Provider)
+                .HasMaxLength(50)
                 .IsRequired();
-                
-            entity.Property(u => u.Provider)
-                .HasColumnType("character varying(50)")
+
+            entity.Property(e => e.ProviderUserId)
+                .HasMaxLength(255)
                 .IsRequired();
-                
-            entity.Property(u => u.ProviderUserId)
-                .HasColumnType("character varying(255)")
-                .IsRequired();
-                
-            entity.Property(u => u.Bio)
-                .HasColumnType("character varying(1000)")
-                .IsRequired();
-                
-            entity.Property(u => u.PhoneNumber)
-                .HasColumnType("character varying(20)")
-                .IsRequired();
-                
-            entity.Property(u => u.DateOfBirth)
-                .HasColumnType("timestamp with time zone");
-                
-            entity.Property(u => u.CreatedAt)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .IsRequired();
-                
-            entity.Property(u => u.LastLoginAt)
-                .HasColumnType("timestamp with time zone")
-                .IsRequired();
-                
-            entity.Property(u => u.UpdatedAt)
-                .HasColumnType("timestamp with time zone")
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .IsRequired();
+
+            entity.Property(e => e.Bio)
+                .HasMaxLength(1000);
+
+            entity.Property(e => e.PhoneNumber)
+                .HasMaxLength(20);
+
+            entity.Property(e => e.Image)
+                .HasMaxLength(500);
         });
 
-        base.OnModelCreating(modelBuilder);
+        // Configure Friendship entity
+        modelBuilder.Entity<Friendship>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.SenderId)
+                .IsRequired();
+
+            entity.Property(e => e.ReceiverId)
+                .IsRequired();
+
+            entity.Property(e => e.Status)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+
+            entity.Property(e => e.UpdatedAt)
+                .IsRequired();
+
+            // Create unique index to prevent duplicate friendships
+            entity.HasIndex(e => new { e.SenderId, e.ReceiverId })
+                .IsUnique();
+
+            // Add constraint to prevent self-friendship
+            entity.HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\"");
+        });
     }
 }

@@ -99,6 +99,20 @@ public class BlogPostService : IBlogPostService
         return blogPostDtos;
     }
 
+    public async Task<PaginatedResult<BlogPostDto>> GetFriendsPostsAsync(IEnumerable<string> friendUserIds, int page = 1, int pageSize = 10)
+    {
+        var (posts, totalCount) = await _blogPostRepository.GetFriendsPostsAsync(friendUserIds, page, pageSize);
+        var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
+        
+        // Populate author information for all posts
+        foreach (var dto in blogPostDtos)
+        {
+            await PopulateAuthorInfoAsync(dto);
+        }
+        
+        return PaginationHelper.CreatePaginatedResult(blogPostDtos, page, pageSize, totalCount);
+    }
+
     public async Task<BlogPostDto> CreateAsync(CreateBlogPostDto createDto)
     {
         var blogPost = _mapper.Map<BlogPost>(createDto);
