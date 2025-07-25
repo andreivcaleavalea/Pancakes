@@ -1,39 +1,39 @@
 .friends-page {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  background: var(--color-bg-card);
+  min-height: calc(100vh - 140px);
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
 
   &__header {
-    margin-bottom: 24px;
+    margin-bottom: 32px;
     text-align: center;
 
     h2 {
-      margin-bottom: 8px;
-    }
-  }
+      margin-bottom: 8px !important;
+      color: var(--color-text);
+      font-size: 24px !important;
 
-  &__tabs {
-    .ant-tabs-content-holder {
-      padding-top: 16px;
+      .anticon {
+        color: #e9833a;
+        margin-right: 8px;
+      }
     }
-  }
 
-  &__section {
-    &-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    @media (max-width: 768px) {
       margin-bottom: 24px;
+      text-align: left;
 
-      @media (max-width: 768px) {
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
+      h2 {
+        font-size: 20px !important;
       }
     }
   }
 
-  &__friend-card {
+  &__card {
     height: 100%;
 
     .ant-card-body {
@@ -41,40 +41,94 @@
     }
   }
 
-  &__friend-info {
+  &__empty {
+    text-align: center;
+    padding: 24px;
+
+    .ant-empty-description {
+      margin-bottom: 16px;
+    }
+  }
+
+  // Friends' Posts Section - New improved styling
+  &__posts-section {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  &__posts-header {
+    margin-bottom: 32px;
+    text-align: center;
+
+    @media (max-width: 768px) {
+      margin-bottom: 24px;
+      text-align: left;
+    }
+  }
+
+  &__posts-title {
+    color: var(--color-text);
+    margin-bottom: 8px !important;
+    font-size: 24px !important;
+
+    .anticon {
+      color: #e9833a;
+      margin-right: 8px;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 20px !important;
+    }
+  }
+
+  &__posts-subtitle {
+    color: #666;
+    font-size: 16px;
+
+    @media (max-width: 768px) {
+      font-size: 14px;
+    }
+  }
+
+  &__posts-loading {
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
-    margin-bottom: 16px;
+    justify-content: center;
+    gap: 16px;
+    min-height: 400px;
+    padding: 48px 0;
   }
 
-  &__friend-details {
-    margin-top: 12px;
+  &__posts-content {
+    margin-bottom: 24px;
 
-    h5 {
-      margin-bottom: 4px;
+    .ant-row {
+      margin: 0 -6px;
+    }
+
+    .ant-col {
+      padding: 0 6px;
     }
   }
 
-  &__empty-state {
+  &__posts-empty {
+    margin-top: 80px;
     text-align: center;
-    padding: 48px 24px;
 
-    .ant-card-body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 120px;
+    .ant-empty-description {
+      margin-bottom: 16px;
     }
   }
 
-  &__pagination {
+  &__posts-pagination {
     margin-top: 32px;
     display: flex;
     justify-content: center;
   }
 
+  // Add Friends Modal
   &__add-friend-modal {
     .ant-list-item {
       padding: 12px 0;
@@ -85,44 +139,59 @@
     }
   }
 
-  // Responsive design
+  // Mobile responsiveness
   @media (max-width: 768px) {
-    padding: 16px;
-
-    &__section-header {
-      h3 {
-        font-size: 1.2rem;
-      }
+    .container {
+      padding: 16px;
     }
 
-    &__friend-card {
+    &__card {
       .ant-card-body {
         padding: 12px;
       }
     }
 
-    &__friend-info {
-      .ant-avatar {
-        width: 48px !important;
-        height: 48px !important;
+    &__posts-content {
+      .ant-row {
+        margin: 0 -6px;
+      }
+
+      .ant-col {
+        padding: 0 6px;
+      }
+    }
+  }
+
+  @media (max-width: 576px) {
+    &__posts-content {
+      .ant-row {
+        margin: 0 -6px;
+      }
+
+      .ant-col {
+        padding: 0 6px;
       }
     }
   }
 
   // Dark mode support
   .dark & {
-    &__friend-card {
+    &__card {
       .ant-card {
         background-color: #1f1f1f;
         border-color: #303030;
       }
     }
 
-    &__empty-state {
+    &__empty {
       .ant-card {
         background-color: #1f1f1f;
         border-color: #303030;
       }
+    }
+
+    &__posts-section {
+      border-top-color: #303030;
     }
   }
 }
