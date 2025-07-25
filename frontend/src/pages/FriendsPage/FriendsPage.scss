@@ -1,0 +1,128 @@
+.friends-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  &__header {
+    margin-bottom: 24px;
+    text-align: center;
+
+    h2 {
+      margin-bottom: 8px;
+    }
+  }
+
+  &__tabs {
+    .ant-tabs-content-holder {
+      padding-top: 16px;
+    }
+  }
+
+  &__section {
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+      }
+    }
+  }
+
+  &__friend-card {
+    height: 100%;
+
+    .ant-card-body {
+      padding: 16px;
+    }
+  }
+
+  &__friend-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  &__friend-details {
+    margin-top: 12px;
+
+    h5 {
+      margin-bottom: 4px;
+    }
+  }
+
+  &__empty-state {
+    text-align: center;
+    padding: 48px 24px;
+
+    .ant-card-body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 120px;
+    }
+  }
+
+  &__pagination {
+    margin-top: 32px;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__add-friend-modal {
+    .ant-list-item {
+      padding: 12px 0;
+    }
+
+    .ant-list-item-meta-title {
+      margin-bottom: 4px;
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    &__section-header {
+      h3 {
+        font-size: 1.2rem;
+      }
+    }
+
+    &__friend-card {
+      .ant-card-body {
+        padding: 12px;
+      }
+    }
+
+    &__friend-info {
+      .ant-avatar {
+        width: 48px !important;
+        height: 48px !important;
+      }
+    }
+  }
+
+  // Dark mode support
+  .dark & {
+    &__friend-card {
+      .ant-card {
+        background-color: #1f1f1f;
+        border-color: #303030;
+      }
+    }
+
+    &__empty-state {
+      .ant-card {
+        background-color: #1f1f1f;
+        border-color: #303030;
+      }
+    }
+  }
+}

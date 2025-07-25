@@ -110,4 +110,31 @@ public class UserServiceClient : IUserServiceClient
             _httpClient.DefaultRequestHeaders.Authorization = null;
         }
     }
+
+    public async Task<IEnumerable<UserInfoDto>> GetAllUsersAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync("/users");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                var users = JsonSerializer.Deserialize<List<UserInfoDto>>(jsonContent, options);
+                return users ?? new List<UserInfoDto>();
+            }
+
+            _logger.LogWarning("Failed to get all users from UserService. Status: {StatusCode}", response.StatusCode);
+            return new List<UserInfoDto>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling UserService to get all users");
+            return new List<UserInfoDto>();
+        }
+    }
 }

@@ -5,6 +5,7 @@ import AuthCallback from "../pages/AuthCallback/AuthCallback";
 import CreateBlogPage from "../pages/CreateBlogPage/CreateBlogPage";
 import EditBlogPage from "../pages/EditBlogPage/EditBlogPage";
 import BlogViewPage from "../pages/BlogViewPage/BlogViewPage";
+import FriendsPage from "../pages/FriendsPage/FriendsPage";
 import SavedBlogsPage from "../pages/SavedBlogsPage/SavedBlogsPage";
 import { useRouter } from "./RouterProvider";
 
@@ -21,6 +22,8 @@ const PageRenderer: React.FC = () => {
       return <LoginPage initialMode={loginMode} />;
     case "create-blog":
       return <CreateBlogPage />;
+    case "friends":
+      return <FriendsPage />;
     case "edit-blog":
       return <EditBlogPage />;
     case "blog-view":

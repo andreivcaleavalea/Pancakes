@@ -10,6 +10,7 @@ public interface IBlogPostRepository
     Task<IEnumerable<BlogPost>> GetFeaturedAsync(int count = 1);
     Task<IEnumerable<BlogPost>> GetPopularAsync(int count = 3);
     Task<IEnumerable<BlogPost>> GetByAuthorAsync(Guid authorId, int page = 1, int pageSize = 10);
+    Task<(IEnumerable<BlogPost> posts, int totalCount)> GetFriendsPostsAsync(IEnumerable<string> friendUserIds, int page = 1, int pageSize = 10);
     Task<BlogPost> CreateAsync(BlogPost blogPost);
     Task<BlogPost> UpdateAsync(BlogPost blogPost);
     Task DeleteAsync(Guid id);

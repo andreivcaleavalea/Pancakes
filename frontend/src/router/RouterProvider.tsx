@@ -12,7 +12,8 @@ export type PageType =
   | "create-blog"
   | "blog-view"
   | "edit-blog"
-  | "saved";
+  | "saved"
+  | "friends";
 export type LoginMode = "signin" | "register";
 
 interface RouterContextType {
@@ -54,6 +55,10 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
         setCurrentPage("login");
       } else if (path === "/create-blog") {
         setCurrentPage("create-blog");
+      } else if (path === "/friends") {
+        setCurrentPage("friends");
+      } else if (path === "/saved") {
+        setCurrentPage("saved");
       } else if (path.startsWith("/edit-blog/")) {
         setCurrentPage("edit-blog");
         setBlogId(path.replace("/edit-blog/", ""));

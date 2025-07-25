@@ -16,7 +16,7 @@ import { blogPostsApi } from "@/services/blogApi";
 import { DEFAULTS } from "@/utils/constants";
 import "./BlogViewPage.scss";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 const BlogViewPage: React.FC = () => {
   const { blogId, navigate } = useRouter();

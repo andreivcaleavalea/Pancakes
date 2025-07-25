@@ -13,7 +13,7 @@ interface BlogPostWithDisplay extends BlogPost {
 import { useFavorite } from "@/hooks/useBlog";
 import { useRouter } from "@/router/RouterProvider";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULTS } from "@/utils/constants";
-import { AverageRatingDisplay, CachedAvatar } from "@/components/common";
+import { AverageRatingDisplay } from "@/components/common";
 import "./BlogCard.scss";
 
 const { Title, Text, Paragraph } = Typography;

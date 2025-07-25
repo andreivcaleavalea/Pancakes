@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using AutoMapper;
 using Serilog;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,12 +55,14 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IPostRatingRepository, PostRatingRepository>();
 builder.Services.AddScoped<ICommentLikeRepository, CommentLikeRepository>();
 builder.Services.AddScoped<ISavedBlogRepository, SavedBlogRepository>();
+builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IPostRatingService, PostRatingService>();
 builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
 builder.Services.AddScoped<ISavedBlogService, SavedBlogService>();
+builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 
 // Add JWT User Service for extracting user info from tokens
 builder.Services.AddScoped<IJwtUserService, JwtUserService>();
@@ -67,6 +72,27 @@ builder.Services.AddHttpClient<IUserServiceClient, UserServiceClient>();
 builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+// Configure JWT Authentication
+var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "your-super-secret-key-that-is-at-least-256-bits-long";
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers";
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
 // Configure CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
@@ -119,6 +145,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

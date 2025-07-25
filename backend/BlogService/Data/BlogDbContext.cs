@@ -12,6 +12,7 @@ public class BlogDbContext : DbContext
     public DbSet<PostRating> PostRatings { get; set; }
     public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<SavedBlog> SavedBlogs { get; set; }
+    public DbSet<Friendship> Friendships { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +63,15 @@ public class BlogDbContext : DbContext
             .WithMany()
             .HasForeignKey(sb => sb.BlogPostId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure Friendship relationships
+        modelBuilder.Entity<Friendship>()
+            .HasIndex(f => new { f.SenderId, f.ReceiverId })
+            .IsUnique(); // Prevent duplicate friend requests
+
+        // Prevent self-friendship - use lowercase column names for PostgreSQL
+        modelBuilder.Entity<Friendship>()
+            .HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\"");
 
         base.OnModelCreating(modelBuilder);
     }

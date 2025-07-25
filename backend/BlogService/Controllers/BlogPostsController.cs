@@ -12,12 +12,16 @@ public class BlogPostsController : ControllerBase
     private readonly IBlogPostService _blogPostService;
     private readonly IUserServiceClient _userServiceClient;
     private readonly ILogger<BlogPostsController> _logger;
+    private readonly IFriendshipService _friendshipService;
+    private readonly IJwtUserService _jwtUserService;
 
-    public BlogPostsController(IBlogPostService blogPostService, IUserServiceClient userServiceClient, ILogger<BlogPostsController> logger)
+    public BlogPostsController(IBlogPostService blogPostService, IUserServiceClient userServiceClient, ILogger<BlogPostsController> logger, IFriendshipService friendshipService, IJwtUserService jwtUserService)
     {
         _blogPostService = blogPostService;
         _userServiceClient = userServiceClient;
         _logger = logger;
+        _friendshipService = friendshipService;
+        _jwtUserService = jwtUserService;
     }
 
     [HttpGet]
@@ -266,6 +270,37 @@ public class BlogPostsController : ControllerBase
         {
             _logger.LogError(ex, "Error deleting blog post with ID {Id}", id);
             return StatusCode(500, "An error occurred while deleting the blog post");
+        }
+    }
+
+    [HttpGet("friends")]
+    public async Task<IActionResult> GetFriendsPosts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var currentUserId = _jwtUserService.GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            // Get friends list
+            var friends = await _friendshipService.GetUserFriendsAsync(currentUserId);
+            var friendUserIds = friends.Select(f => f.UserId).ToList();
+
+            if (!friendUserIds.Any())
+            {
+                // Return empty result if user has no friends
+                return Ok(new { posts = new List<BlogPostDto>(), totalCount = 0, page, pageSize });
+            }
+
+            var result = await _blogPostService.GetFriendsPostsAsync(friendUserIds, page, pageSize);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving friends' posts");
+            return StatusCode(500, "An error occurred while retrieving friends' posts");
         }
     }
 }
