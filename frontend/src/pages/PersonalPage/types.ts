@@ -112,6 +112,7 @@ export interface SectionSettingsPopoverProps {
   sectionSettings: SectionSettings;
   onSettingsChange: (sectionKey: string, newSettings: SectionSettings) => void;
   templateOptions: TemplateOption[];
+  editMode?: boolean;
 }
 
 // Template prop interfaces
@@ -122,6 +123,7 @@ export interface BaseTemplateProps {
   onSectionSettingsChange: (sectionKey: string, newSettings: SectionSettings) => void;
   templateOptions: TemplateOption[];
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean; // Disable settings in public view
 }
 
 export interface PersonalTemplateProps extends BaseTemplateProps {

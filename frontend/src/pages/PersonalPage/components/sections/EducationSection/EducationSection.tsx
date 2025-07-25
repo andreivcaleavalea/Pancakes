@@ -17,6 +17,7 @@ interface EducationSectionProps {
   currentSectionSettings: SectionSettings;
   onSectionSettingsChange: (sectionKey: string, newSettings: SectionSettings) => void;
   templateOptions: TemplateOption[];
+  editMode?: boolean;
 }
 
 const EducationSection: React.FC<EducationSectionProps> = ({
@@ -26,19 +27,21 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,
+  editMode = true,
 }) => {
   const { template, advancedSettings } = currentSectionSettings;
   const sectionPrimaryColor = SECTION_COLORS[currentSectionSettings.color as keyof typeof SECTION_COLORS] || SECTION_COLORS.blue;
 
   // Common props for all templates
   const templateProps = {
-    educations,
+    educationData: educations,
     sectionKey,
     sectionPrimaryColor,
     currentSectionSettings,
     onSectionSettingsChange,
     templateOptions,
     advancedSettings,
+    editMode,
   };
 
   // Template selector

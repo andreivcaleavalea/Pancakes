@@ -23,6 +23,7 @@ interface CardsTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const CardsTemplate: React.FC<CardsTemplateProps> = ({
@@ -33,6 +34,7 @@ const CardsTemplate: React.FC<CardsTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const CardsTemplate: React.FC<CardsTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="cards-template__title" style={{ color: sectionPrimaryColor }}>
-        🃏 Project Cards
+        Projects
       </Title>
        
       <Row gutter={[16, 16]}>

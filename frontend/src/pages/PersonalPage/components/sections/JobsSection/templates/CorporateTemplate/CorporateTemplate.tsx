@@ -23,6 +23,7 @@ interface CorporateTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const CorporateTemplate: React.FC<CorporateTemplateProps> = ({
@@ -33,6 +34,7 @@ const CorporateTemplate: React.FC<CorporateTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -109,6 +111,7 @@ const CorporateTemplate: React.FC<CorporateTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       {/* Corporate Header */}
@@ -120,7 +123,7 @@ const CorporateTemplate: React.FC<CorporateTemplateProps> = ({
         position: 'relative'
       }}>
         <Title level={2} style={{ color: 'white', margin: 0, fontSize: '28px', fontWeight: '700' }}>
-          🏢 Corporate Timeline
+          Jobs
         </Title>
         <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginTop: '8px' }}>
           Professional Career Journey

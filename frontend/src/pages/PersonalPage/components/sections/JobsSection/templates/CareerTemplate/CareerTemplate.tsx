@@ -23,6 +23,7 @@ interface CareerTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const CareerTemplate: React.FC<CareerTemplateProps> = ({
@@ -33,6 +34,7 @@ const CareerTemplate: React.FC<CareerTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const CareerTemplate: React.FC<CareerTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="career-template__title" style={{ color: sectionPrimaryColor }}>
-        🚀 Career Journey
+        Jobs
       </Title>
       
       <div className="career-template__timeline">

@@ -42,7 +42,13 @@ const SectionSettingsPopover: React.FC<SectionSettingsPopoverProps> = ({
   sectionSettings,
   onSettingsChange,
   templateOptions,
+  editMode = true,
 }) => {
+  
+  // Don't render anything in public view
+  if (!editMode) {
+    return null;
+  }
   const { message } = App.useApp();
   const [form] = Form.useForm();
 

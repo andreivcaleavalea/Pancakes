@@ -6,12 +6,13 @@ import React, {
   type ReactNode,
 } from "react";
 
-export type PageType = "home" | "login" | "profile";
+export type PageType = "home" | "login" | "profile" | "personal-page" | "public";
 export type LoginMode = "signin" | "register";
 
 interface RouterContextType {
   currentPage: PageType;
   loginMode: LoginMode;
+  publicSlug?: string;
   navigate: (page: PageType, mode?: LoginMode) => void;
 }
 
@@ -32,13 +33,24 @@ interface RouterProviderProps {
 export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
   const [loginMode, setLoginMode] = useState<LoginMode>("signin");
+  const [publicSlug, setPublicSlug] = useState<string | undefined>();
 
   const updatePageFromPath = () => {
     const path = window.location.pathname;
+    console.log('Router: Current path is', path); // Debug logging
 
     // Handle auth callback
     if (path === "/auth/callback") {
       return; // Let AuthCallback component handle this
+    }
+
+    // Handle public pages
+    if (path.startsWith("/public/")) {
+      const slug = path.replace("/public/", "");
+      console.log('Router: Setting public page with slug:', slug); // Debug logging
+      setCurrentPage("public");
+      setPublicSlug(slug);
+      return;
     }
 
     if (path === "/login") {
@@ -60,10 +72,12 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Update page on initial load
+    console.log('RouterProvider: Initial load, updating page from path'); // Debug logging
     updatePageFromPath();
 
     // Listen for back/forward navigation
     const handlePopState = () => {
+      console.log('RouterProvider: Pop state event, updating page from path'); // Debug logging
       updatePageFromPath();
     };
 
@@ -90,7 +104,7 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
   };
 
   return (
-    <RouterContext.Provider value={{ currentPage, loginMode, navigate }}>
+    <RouterContext.Provider value={{ currentPage, loginMode, publicSlug, navigate }}>
       {children}
     </RouterContext.Provider>
   );

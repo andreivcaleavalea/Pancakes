@@ -4,10 +4,11 @@ import LoginPage from "../pages/LoginPage/LoginPage";
 import AuthCallback from "../pages/AuthCallback/AuthCallback";
 import ProfilePage from "../pages/ProfilePage/ProfilePage";
 import PersonalPageEditMode from "../pages/PersonalPage/PersonalPageEditMode";
+import PublicPersonalPage from "../pages/PersonalPage/PublicPersonalPage";
 import { useRouter } from "./RouterProvider";
 
 const PageRenderer: React.FC = () => {
-  const { currentPage, loginMode } = useRouter();
+  const { currentPage, loginMode, publicSlug } = useRouter();
 
   // Handle auth callback
   if (window.location.pathname === "/auth/callback") {
@@ -21,6 +22,13 @@ const PageRenderer: React.FC = () => {
       return <ProfilePage />;
     case "personal-page":
       return <PersonalPageEditMode />;
+    case "public":
+      console.log('PageRenderer: Rendering PublicPersonalPage with slug:', publicSlug); // Debug logging
+      if (!publicSlug) {
+        console.error('PageRenderer: No publicSlug provided for public page');
+        return <HomePage />;
+      }
+      return <PublicPersonalPage pageSlug={publicSlug} />;
     case "home":
     default:
       return <HomePage />;

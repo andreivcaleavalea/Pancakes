@@ -23,6 +23,7 @@ interface MinimalTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
@@ -33,6 +34,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="minimal-template__title" style={{ color: sectionPrimaryColor }}>
-        📝 Simple List
+        Projects
       </Title>
        
       {projects.map((project: any, index: number) => (

@@ -23,6 +23,7 @@ interface TimelineTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const TimelineTemplate: React.FC<TimelineTemplateProps> = ({
@@ -33,6 +34,7 @@ const TimelineTemplate: React.FC<TimelineTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,9 +110,10 @@ const TimelineTemplate: React.FC<TimelineTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor }}>💼 Work Experience</Title>
+      <Title level={2} style={{ color: sectionPrimaryColor }}>Jobs</Title>
        
       {jobs.map((job: any, index: number) => (
         <div key={index} style={{ 

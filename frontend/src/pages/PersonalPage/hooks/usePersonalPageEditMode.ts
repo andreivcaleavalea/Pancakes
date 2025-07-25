@@ -8,6 +8,7 @@ import {
   DEFAULT_SECTION_ORDER, 
   DEFAULT_SECTION_VISIBILITY, 
   DEFAULT_SECTION_SETTINGS,
+  DEFAULT_PUBLIC_SETTINGS,
   ALL_TEMPLATE_OPTIONS
 } from '../constants';
 
@@ -21,6 +22,8 @@ export const usePersonalPageEditMode = () => {
   const [tempSectionOrder, setTempSectionOrder] = useState<string[]>(DEFAULT_SECTION_ORDER);
   const [tempSectionVisibility, setTempSectionVisibility] = useState<SectionVisibility>(DEFAULT_SECTION_VISIBILITY);
   const [tempColorScheme, setTempColorScheme] = useState<string>('blue');
+  const [tempIsPublic, setTempIsPublic] = useState<boolean>(DEFAULT_PUBLIC_SETTINGS.isPublic);
+  const [tempPageSlug, setTempPageSlug] = useState<string>(DEFAULT_PUBLIC_SETTINGS.pageSlug);
   
   // State management
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -66,6 +69,8 @@ export const usePersonalPageEditMode = () => {
       setTempSectionVisibility(visibility);
       
       setTempColorScheme(originalSettings.colorScheme || 'blue');
+      setTempIsPublic(originalSettings.isPublic ?? DEFAULT_PUBLIC_SETTINGS.isPublic);
+      setTempPageSlug(originalSettings.pageSlug || DEFAULT_PUBLIC_SETTINGS.pageSlug);
       setHasUnsavedChanges(false);
     }
   }, [originalSettings]);
@@ -98,9 +103,11 @@ export const usePersonalPageEditMode = () => {
     };
     const visibilityChanged = JSON.stringify(tempSectionVisibility) !== JSON.stringify(originalVisibility);
     const colorSchemeChanged = tempColorScheme !== (originalSettings.colorScheme || 'blue');
+    const publicChanged = tempIsPublic !== (originalSettings.isPublic ?? DEFAULT_PUBLIC_SETTINGS.isPublic);
+    const slugChanged = tempPageSlug !== (originalSettings.pageSlug || DEFAULT_PUBLIC_SETTINGS.pageSlug);
 
-    return settingsChanged || orderChanged || visibilityChanged || colorSchemeChanged;
-  }, [originalSettings, tempSectionSettings, tempSectionOrder, tempSectionVisibility, tempColorScheme]);
+    return settingsChanged || orderChanged || visibilityChanged || colorSchemeChanged || publicChanged || slugChanged;
+  }, [originalSettings, tempSectionSettings, tempSectionOrder, tempSectionVisibility, tempColorScheme, tempIsPublic, tempPageSlug]);
 
   // Update hasUnsavedChanges when temp settings change
   useEffect(() => {
@@ -131,6 +138,16 @@ export const usePersonalPageEditMode = () => {
   // Handle color scheme change
   const handleColorSchemeChange = (newColorScheme: string) => {
     setTempColorScheme(newColorScheme);
+  };
+
+  // Handle public toggle change
+  const handlePublicToggleChange = (isPublic: boolean) => {
+    setTempIsPublic(isPublic);
+  };
+
+  // Handle page slug change
+  const handlePageSlugChange = (pageSlug: string) => {
+    setTempPageSlug(pageSlug);
   };
 
   // Save all changes to database
@@ -201,6 +218,8 @@ export const usePersonalPageEditMode = () => {
 
       // Call API to update settings
       await PersonalPageService.updateSettings({
+        isPublic: tempIsPublic,
+        pageSlug: tempPageSlug,
         sectionOrder: tempSectionOrder,
         sectionVisibility,
         sectionTemplates,
@@ -250,6 +269,8 @@ export const usePersonalPageEditMode = () => {
     setTempSectionOrder(originalSettings.sectionOrder || DEFAULT_SECTION_ORDER);
     setTempSectionVisibility(originalVisibility);
     setTempColorScheme(originalSettings.colorScheme || 'blue');
+    setTempIsPublic(originalSettings.isPublic ?? DEFAULT_PUBLIC_SETTINGS.isPublic);
+    setTempPageSlug(originalSettings.pageSlug || DEFAULT_PUBLIC_SETTINGS.pageSlug);
     setHasUnsavedChanges(false);
     
     message.info('All changes reverted to last saved state');
@@ -304,6 +325,8 @@ export const usePersonalPageEditMode = () => {
     sectionOrder: tempSectionOrder,
     sectionVisibility: tempSectionVisibility,
     colorScheme: tempColorScheme,
+    isPublic: tempIsPublic,
+    pageSlug: tempPageSlug,
     
     // Original settings for comparison
     originalSettings,
@@ -317,6 +340,8 @@ export const usePersonalPageEditMode = () => {
     handleSectionOrderChange,
     handleSectionVisibilityChange,
     handleColorSchemeChange,
+    handlePublicToggleChange,
+    handlePageSlugChange,
     handleSave,
     handleRevert,
     getSectionData,

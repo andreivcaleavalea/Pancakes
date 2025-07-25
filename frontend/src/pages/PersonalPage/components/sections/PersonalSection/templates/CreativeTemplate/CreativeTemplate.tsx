@@ -23,6 +23,7 @@ interface CreativeTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
@@ -33,6 +34,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -85,9 +87,10 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
       '--advanced-background-size': getBackgroundSize(background.pattern),
       '--advanced-border-radius': styling.roundCorners ? styling.borderRadius : '0px',
       '--advanced-box-shadow': styling.shadow ? getShadowStyle(styling.shadowIntensity) : 'none',
+      '--advanced-margin-top': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
       '--advanced-margin-bottom': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
+      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
+      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
       '--advanced-border': styling.border.enabled 
         ? `${styling.border.width} ${styling.border.style} ${styling.border.color}`
         : 'none',
@@ -150,6 +153,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
 
       {/* Creative Background Pattern - only show if no custom background */}

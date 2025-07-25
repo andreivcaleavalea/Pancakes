@@ -23,6 +23,7 @@ interface ProfessionalTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
@@ -33,6 +34,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,6 +110,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       {/* Professional Header */}
@@ -118,7 +121,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
         }}
       >
         <Title level={2} className="professional-template__title">
-          👔 Professional Showcase
+          Jobs
         </Title>
       </div>
       

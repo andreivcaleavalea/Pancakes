@@ -21,6 +21,7 @@ interface JourneyTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const JourneyTemplate: React.FC<JourneyTemplateProps> = ({
@@ -31,6 +32,7 @@ const JourneyTemplate: React.FC<JourneyTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -106,10 +108,11 @@ const JourneyTemplate: React.FC<JourneyTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="journey-template__title" style={{ color: sectionPrimaryColor }}>
-        🛤️ Education Journey
+        Education
       </Title>
       
       <div className="journey-template__container">

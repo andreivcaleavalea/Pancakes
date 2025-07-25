@@ -23,6 +23,7 @@ interface DetailedTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const DetailedTemplate: React.FC<DetailedTemplateProps> = ({
@@ -33,6 +34,7 @@ const DetailedTemplate: React.FC<DetailedTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const DetailedTemplate: React.FC<DetailedTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="detailed-template__title" style={{ color: sectionPrimaryColor }}>
-        📋 Detailed View
+        Projects
       </Title>
        
       {projects.map((project: any, index: number) => (

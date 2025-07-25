@@ -21,6 +21,7 @@ interface ProgressTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const ProgressTemplate: React.FC<ProgressTemplateProps> = ({
@@ -31,6 +32,7 @@ const ProgressTemplate: React.FC<ProgressTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -106,10 +108,11 @@ const ProgressTemplate: React.FC<ProgressTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="progress-template__title" style={{ color: sectionPrimaryColor }}>
-        📊 Progress Timeline
+        Education
       </Title>
       
       <div className="progress-template__container">

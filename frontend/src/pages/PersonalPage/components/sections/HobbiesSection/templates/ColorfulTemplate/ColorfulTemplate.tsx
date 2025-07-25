@@ -23,6 +23,7 @@ interface ColorfulTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const ColorfulTemplate: React.FC<ColorfulTemplateProps> = ({
@@ -33,6 +34,7 @@ const ColorfulTemplate: React.FC<ColorfulTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8', '#f7dc6f'];
 
@@ -110,10 +112,11 @@ const ColorfulTemplate: React.FC<ColorfulTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="colorful-template__title" style={{ color: sectionPrimaryColor }}>
-        🌈 Colorful Display
+        Hobbies
       </Title>
       
       <Row gutter={[16, 16]}>

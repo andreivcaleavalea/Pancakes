@@ -42,9 +42,10 @@ export const useAdvancedStyles = (
       '--advanced-background-size': getBackgroundSize(safePattern),
       '--advanced-border-radius': styling.roundCorners ? styling.borderRadius : '0px',
       '--advanced-box-shadow': styling.shadow ? getShadowStyle(styling.shadowIntensity) : 'none',
+      '--advanced-margin-top': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
       '--advanced-margin-bottom': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
+      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
+      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
       '--advanced-border': styling.border.enabled 
         ? `${styling.border.width} ${styling.border.style} ${styling.border.color}`
         : 'none',

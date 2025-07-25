@@ -17,6 +17,7 @@ interface HobbiesSectionProps {
   currentSectionSettings: SectionSettings;
   onSectionSettingsChange: (sectionKey: string, newSettings: SectionSettings) => void;
   templateOptions: TemplateOption[];
+  editMode?: boolean;
 }
 
 const HobbiesSection: React.FC<HobbiesSectionProps> = ({
@@ -26,6 +27,7 @@ const HobbiesSection: React.FC<HobbiesSectionProps> = ({
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,
+  editMode = true,
 }) => {
   const { template, advancedSettings } = currentSectionSettings;
   const sectionPrimaryColor = SECTION_COLORS[currentSectionSettings.color as keyof typeof SECTION_COLORS] || SECTION_COLORS.blue;
@@ -39,6 +41,7 @@ const HobbiesSection: React.FC<HobbiesSectionProps> = ({
     onSectionSettingsChange,
     templateOptions,
     advancedSettings,
+    editMode,
   };
 
   // Template selector

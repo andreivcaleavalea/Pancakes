@@ -23,6 +23,7 @@ interface IconsTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const IconsTemplate: React.FC<IconsTemplateProps> = ({
@@ -33,6 +34,7 @@ const IconsTemplate: React.FC<IconsTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const IconsTemplate: React.FC<IconsTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="icons-template__title" style={{ color: sectionPrimaryColor }}>
-        🎪 Icon Gallery
+        Hobbies
       </Title>
        
       <Row gutter={[16, 16]} className="icons-template__grid">

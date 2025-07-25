@@ -23,6 +23,7 @@ interface InterestsTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const InterestsTemplate: React.FC<InterestsTemplateProps> = ({
@@ -33,6 +34,7 @@ const InterestsTemplate: React.FC<InterestsTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const InterestsTemplate: React.FC<InterestsTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="interests-template__title" style={{ color: sectionPrimaryColor }}>
-        🎯 Interest Cards
+        Hobbies
       </Title>
        
       <Row gutter={[16, 16]} className="interests-template__grid">

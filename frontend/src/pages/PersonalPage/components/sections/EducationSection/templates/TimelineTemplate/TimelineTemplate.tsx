@@ -21,6 +21,7 @@ interface TimelineTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const TimelineTemplate: React.FC<TimelineTemplateProps> = ({
@@ -31,6 +32,7 @@ const TimelineTemplate: React.FC<TimelineTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -106,9 +108,10 @@ const TimelineTemplate: React.FC<TimelineTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
-      <Title level={2} style={{ color: sectionPrimaryColor }}>🎓 Education</Title>
+      <Title level={2} style={{ color: sectionPrimaryColor }}>Education</Title>
        
       {educationData.map((edu: any, index: number) => (
         <div key={index} style={{ 
@@ -117,7 +120,7 @@ const TimelineTemplate: React.FC<TimelineTemplateProps> = ({
         }}>
           <Text strong style={{ fontSize: '16px' }}>{edu.institution}</Text>
           <br />
-          <Text>{edu.degree} in {edu.specialization}</Text>
+          <Text>{edu.degree} in {edu.field}</Text>
           <br />
           <Text type="secondary">{edu.startDate} - {edu.endDate || 'Present'}</Text>
           {edu.description && (
