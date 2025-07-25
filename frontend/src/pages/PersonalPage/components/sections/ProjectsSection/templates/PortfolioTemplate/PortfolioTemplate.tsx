@@ -23,6 +23,7 @@ interface PortfolioTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const PortfolioTemplate: React.FC<PortfolioTemplateProps> = ({
@@ -33,6 +34,7 @@ const PortfolioTemplate: React.FC<PortfolioTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,6 +110,7 @@ const PortfolioTemplate: React.FC<PortfolioTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       {/* Portfolio Header */}
@@ -119,7 +122,7 @@ const PortfolioTemplate: React.FC<PortfolioTemplateProps> = ({
       >
         <div className="portfolio-template__bg-pattern" />
         <Title level={2} className="portfolio-template__title">
-          🖼️ Portfolio Gallery
+          Projects
         </Title>
         <Text className="portfolio-template__subtitle">
           Showcasing Creative Projects

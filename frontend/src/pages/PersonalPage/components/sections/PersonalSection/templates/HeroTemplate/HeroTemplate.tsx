@@ -15,6 +15,7 @@ const HeroTemplate: React.FC<PersonalTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Use shared hook instead of duplicated code
   const { cardStyles, cardClassName, getContentStyles, getTypographyStyles } = useAdvancedStyles(
@@ -33,6 +34,7 @@ const HeroTemplate: React.FC<PersonalTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <div style={getContentStyles()}>

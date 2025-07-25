@@ -23,6 +23,7 @@ interface ShowcaseTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const ShowcaseTemplate: React.FC<ShowcaseTemplateProps> = ({
@@ -33,6 +34,7 @@ const ShowcaseTemplate: React.FC<ShowcaseTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const ShowcaseTemplate: React.FC<ShowcaseTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="showcase-template__title" style={{ color: sectionPrimaryColor }}>
-        🚀 Project Showcase
+        Projects
       </Title>
        
       {projects.map((project: any, index: number) => (

@@ -23,6 +23,7 @@ interface TagsTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const TagsTemplate: React.FC<TagsTemplateProps> = ({
@@ -33,6 +34,7 @@ const TagsTemplate: React.FC<TagsTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const TagsTemplate: React.FC<TagsTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="tags-template__title" style={{ color: sectionPrimaryColor }}>
-        🏷️ Tag Cloud
+        Hobbies
       </Title>
        
       <div className="tags-template__container">

@@ -110,4 +110,9 @@ export const DEFAULT_SECTION_SETTINGS = {
   jobs: { template: 'career', color: 'blue', advancedSettings: DEFAULT_ADVANCED_SETTINGS },
   projects: { template: 'grid', color: 'purple', advancedSettings: DEFAULT_ADVANCED_SETTINGS },
   hobbies: { template: 'tags', color: 'orange', advancedSettings: DEFAULT_ADVANCED_SETTINGS },
+};
+
+export const DEFAULT_PUBLIC_SETTINGS = {
+  isPublic: false,
+  pageSlug: '',
 }; 

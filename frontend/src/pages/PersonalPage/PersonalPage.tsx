@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Typography, Spin, Alert, Button, Space } from 'antd';
 import { SaveOutlined, UndoOutlined } from '@ant-design/icons';
 import { PersonalSection, EducationSection, JobsSection, ProjectsSection, HobbiesSection } from './components/sections';
+import SectionOrderControl from './components/SectionOrderControl';
 import { usePersonalPageEditMode } from './hooks/usePersonalPageEditMode';
 import type { SectionVisibility, User, Education, Job, Project, Hobby } from './types';
 import './PersonalPage.scss';
@@ -30,6 +31,8 @@ const PersonalPage: React.FC<PersonalPageProps> = () => {
     saving,
     handleSave,
     handleRevert,
+    handleSectionOrderChange,
+    handleSectionVisibilityChange,
     getSectionProps,
   } = usePersonalPageEditMode();
 
@@ -175,6 +178,32 @@ const PersonalPage: React.FC<PersonalPageProps> = () => {
   return (
     <div className="personal-page" style={{ padding: '24px' }}>
       <div style={{ width: '100%' }}>
+        {/* DEBUG: Always render section order for testing */}
+        <div style={{ 
+          padding: '16px', 
+          backgroundColor: '#f0f0f0', 
+          marginBottom: '16px',
+          border: '2px solid red' 
+        }}>
+          <h3>🔍 DEBUG: Section Order Should Be Here</h3>
+          <p>sectionOrder: {JSON.stringify(sectionOrder)}</p>
+          <p>handleSectionOrderChange: {typeof handleSectionOrderChange}</p>
+        </div>
+        
+        {/* Section Order Control */}
+        <SectionOrderControl
+          sectionOrder={sectionOrder}
+          onSectionOrderChange={handleSectionOrderChange}
+          sectionVisibility={{
+            personal: sectionVisibility.personal,
+            education: sectionVisibility.education,
+            jobs: sectionVisibility.jobs,
+            projects: sectionVisibility.projects,
+            hobbies: sectionVisibility.hobbies,
+          }}
+          onSectionVisibilityChange={handleSectionVisibilityChange}
+        />
+        
         {/* Render sections in order */}
         {sectionOrder.map((sectionKey: string) => renderSection(sectionKey))}
         

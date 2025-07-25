@@ -21,6 +21,7 @@ interface UniversityTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const UniversityTemplate: React.FC<UniversityTemplateProps> = ({
@@ -31,6 +32,7 @@ const UniversityTemplate: React.FC<UniversityTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -106,6 +108,7 @@ const UniversityTemplate: React.FC<UniversityTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       {/* University Header */}
@@ -116,7 +119,7 @@ const UniversityTemplate: React.FC<UniversityTemplateProps> = ({
         }}
       >
         <Title level={2} className="university-template__title">
-          🏛️ University Style
+          Education
         </Title>
         <Text className="university-template__subtitle">
           Academic Excellence Journey

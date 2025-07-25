@@ -23,6 +23,7 @@ interface CreativeTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
@@ -33,6 +34,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="creative-template__title" style={{ color: sectionPrimaryColor }}>
-        🎨 Creative Layout
+        Hobbies
       </Title>
        
       <div className="creative-template__container">

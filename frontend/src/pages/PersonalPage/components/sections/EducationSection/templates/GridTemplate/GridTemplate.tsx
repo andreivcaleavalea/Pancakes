@@ -21,6 +21,7 @@ interface GridTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const GridTemplate: React.FC<GridTemplateProps> = ({
@@ -31,6 +32,7 @@ const GridTemplate: React.FC<GridTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -106,10 +108,11 @@ const GridTemplate: React.FC<GridTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="grid-template__title" style={{ color: sectionPrimaryColor }}>
-        📋 Grid Layout
+        Education
       </Title>
       
       <Row gutter={[24, 24]}>

@@ -21,6 +21,7 @@ interface AcademicTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const AcademicTemplate: React.FC<AcademicTemplateProps> = ({
@@ -31,6 +32,7 @@ const AcademicTemplate: React.FC<AcademicTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -102,10 +104,11 @@ const AcademicTemplate: React.FC<AcademicTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} className="academic-template__title" style={{ color: sectionPrimaryColor }}>
-        🎓 Academic Timeline
+        Education
       </Title>
       
       <Row gutter={[24, 24]}>

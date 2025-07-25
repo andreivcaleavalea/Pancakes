@@ -23,6 +23,7 @@ interface RoadmapTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const RoadmapTemplate: React.FC<RoadmapTemplateProps> = ({
@@ -33,6 +34,7 @@ const RoadmapTemplate: React.FC<RoadmapTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const RoadmapTemplate: React.FC<RoadmapTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} style={{ color: sectionPrimaryColor, textAlign: 'center', marginBottom: '32px' }}>
-        🗺️ Career Roadmap
+        Jobs
       </Title>
       
       <div style={{ padding: '20px', position: 'relative' }}>

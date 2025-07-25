@@ -23,6 +23,7 @@ interface ExperienceTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
 }
 
 const ExperienceTemplate: React.FC<ExperienceTemplateProps> = ({
@@ -33,6 +34,7 @@ const ExperienceTemplate: React.FC<ExperienceTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode = true,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
@@ -108,10 +110,11 @@ const ExperienceTemplate: React.FC<ExperienceTemplateProps> = ({
         sectionSettings={currentSectionSettings}
         onSettingsChange={onSectionSettingsChange}
         templateOptions={templateOptions}
+        editMode={editMode}
       />
       
       <Title level={2} style={{ color: sectionPrimaryColor, textAlign: 'center', marginBottom: '32px' }}>
-        ⭐ Experience Cards
+        Jobs
       </Title>
       
       <Row gutter={[24, 24]}>
