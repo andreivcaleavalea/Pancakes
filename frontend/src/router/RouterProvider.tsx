@@ -37,7 +37,6 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
 
   const updatePageFromPath = () => {
     const path = window.location.pathname;
-    console.log('Router: Current path is', path); // Debug logging
 
     // Handle auth callback
     if (path === "/auth/callback") {
@@ -47,7 +46,6 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
     // Handle public pages
     if (path.startsWith("/public/")) {
       const slug = path.replace("/public/", "");
-      console.log('Router: Setting public page with slug:', slug); // Debug logging
       setCurrentPage("public");
       setPublicSlug(slug);
       return;
@@ -72,12 +70,10 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Update page on initial load
-    console.log('RouterProvider: Initial load, updating page from path'); // Debug logging
     updatePageFromPath();
 
     // Listen for back/forward navigation
     const handlePopState = () => {
-      console.log('RouterProvider: Pop state event, updating page from path'); // Debug logging
       updatePageFromPath();
     };
 

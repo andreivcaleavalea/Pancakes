@@ -108,25 +108,25 @@ export class PersonalPageService {
 
   // Get public personal page
   static async getPublicPage(pageSlug: string): Promise<PublicPersonalPage> {
-    console.log('PersonalPageService: Fetching public page for slug:', pageSlug); // Debug logging
-    
-    // Use regular fetch for public endpoint since it doesn't require authentication
-    const response = await fetch(`${PersonalPageService.BASE_URL}/api/personalpage/public/${pageSlug}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/PersonalPage/public/${pageSlug}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('PersonalPageService: Error response:', response.status, errorText);
+        throw new Error(`Failed to fetch public page: ${response.status}`);
       }
-    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('PersonalPageService: Error response:', response.status, errorText);
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw error;
     }
-
-    const data = await response.json();
-    console.log('PersonalPageService: Received public page data:', data); // Debug logging
-    return data;
   }
 
   // Get preview of personal page
@@ -142,22 +142,17 @@ export class PersonalPageService {
 
   // Generate unique slug
   static async generateSlug(baseName: string): Promise<string> {
-    console.log('PersonalPageService: Generating slug for baseName:', baseName); // Debug logging
-    
     const response = await authenticatedFetch<{ slug: string }>('api/personalpage/generate-slug', {
       method: 'POST',
       body: JSON.stringify({ baseName })
     });
     
-    console.log('PersonalPageService: Generate slug response:', response); // Debug logging
-    
     if (response.error) {
-      console.error('PersonalPageService: Generate slug error:', response.error); // Debug logging
+      console.error('PersonalPageService: Generate slug error:', response.error);
       throw new Error(response.error);
     }
 
     const slug = response.data!.slug;
-    console.log('PersonalPageService: Generated slug:', slug); // Debug logging
     return slug;
   }
 } 
