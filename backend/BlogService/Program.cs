@@ -74,7 +74,7 @@ builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // Configure JWT Authentication
-var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "your-super-secret-key-that-is-at-least-256-bits-long";
+var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers";
 
