@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, Avatar, Typography, Row, Col } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
 import { useAdvancedStyles } from '../../../../../hooks/useAdvancedStyles';
-import type { PersonalTemplateProps } from '../../../../types';
+import type { PersonalTemplateProps } from '../../../../../types';
 import './HeroTemplate.scss';
 
 const { Title, Text, Paragraph } = Typography;

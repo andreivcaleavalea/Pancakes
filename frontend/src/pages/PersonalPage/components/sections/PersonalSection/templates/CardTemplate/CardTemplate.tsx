@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, Avatar, Typography } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
 import { useAdvancedStyles } from '../../../../../hooks/useAdvancedStyles';
-import type { PersonalTemplateProps } from '../../../../types';
+import type { PersonalTemplateProps } from '../../../../../types';
 import './CardTemplate.scss';
 
 const { Title, Text, Paragraph } = Typography;

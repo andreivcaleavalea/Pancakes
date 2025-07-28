@@ -21,6 +21,7 @@ interface MinimalTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode: boolean;
 }
 
 const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
@@ -31,6 +32,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
