@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using UserService.Services.Interfaces;
-using UserService.Models;
+using UserService.Models.Requests;
+using UserService.Models.Responses;
 
 namespace UserService.Controllers
 {

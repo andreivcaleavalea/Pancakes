@@ -1,4 +1,4 @@
-using UserService.Models;
+using UserService.Models.Authentication;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using UserService.Services.Interfaces;

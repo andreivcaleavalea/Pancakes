@@ -1,5 +1,5 @@
 using AutoMapper;
-using UserService.Models;
+using UserService.Models.Entities;
 using UserService.Models.DTOs;
 
 namespace UserService.Helpers;

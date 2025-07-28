@@ -1,4 +1,4 @@
-using UserService.Models;
+using UserService.Models.Entities;
 using UserService.Models.DTOs;
 using UserService.Services.Interfaces;
 

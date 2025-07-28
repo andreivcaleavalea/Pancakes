@@ -1,4 +1,4 @@
-using UserService.Models;
+using UserService.Models.Authentication;
 
 namespace UserService.Services.Interfaces;
 

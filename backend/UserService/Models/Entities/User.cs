@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace UserService.Models
+namespace UserService.Models.Entities
 {
     public class User
     {
@@ -38,27 +38,5 @@ namespace UserService.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime LastLoginAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    }
-
-    public class LoginRequest
-    {
-        public string Code { get; set; } = string.Empty;
-        public string State { get; set; } = string.Empty;
-        public string Provider { get; set; } = string.Empty;
-    }
-
-    public class LoginResponse
-    {
-        public string Token { get; set; } = string.Empty;
-        public User User { get; set; } = new User();
-        public DateTime ExpiresAt { get; set; }
-    }
-
-    public class OAuthUserInfo
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Picture { get; set; } = string.Empty;
     }
 }
