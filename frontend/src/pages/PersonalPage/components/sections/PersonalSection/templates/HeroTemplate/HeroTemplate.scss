@@ -1,0 +1,94 @@
+.hero-template {
+  margin-bottom: 32px;
+  position: relative;
+  border-radius: 16px;
+
+  // Override default styles when advanced settings are active
+  &--custom {
+    // Use CSS custom properties for advanced settings
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-top: var(--advanced-margin-top, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+    // KEEP position relative for settings button - DO NOT inherit
+    position: relative !important;
+  }
+
+  &__content {
+    padding: 40px 20px;
+  }
+
+  &__avatar-container {
+    text-align: center;
+
+    .hero-template__avatar-wrapper {
+      border-radius: 20px;
+      padding: 16px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+
+    .hero-template__avatar {
+      border: 4px solid white;
+    }
+  }
+
+  &__info {
+    width: 100%;
+  }
+
+  &__name {
+    margin-bottom: 8px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: #2c3e50;
+  }
+
+  &__contact-card {
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #555;
+
+    .hero-template__phone {
+      margin-left: 20px;
+    }
+  }
+
+  &__bio {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #666;
+    margin: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-template {
+    &__content {
+      padding: 24px 16px;
+    }
+
+    &__name {
+      font-size: 24px;
+    }
+
+    &__contact-card {
+      font-size: 16px;
+
+      .hero-template__phone {
+        margin-left: 0;
+        display: block;
+        margin-top: 8px;
+      }
+    }
+  }
+} 

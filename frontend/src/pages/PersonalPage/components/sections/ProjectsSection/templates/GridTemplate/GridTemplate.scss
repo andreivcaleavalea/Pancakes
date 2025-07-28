@@ -1,0 +1,102 @@
+.grid-template {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+
+  // Override default styles when advanced settings are active
+  &--custom {
+    // Use CSS custom properties for advanced settings
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-top: var(--advanced-margin-top, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+    // KEEP position relative for settings button - DO NOT inherit
+    position: relative !important;
+  }
+
+  &__title {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  &__project-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    height: 100%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  &__icon-container {
+    text-align: center;
+    margin-bottom: 12px;
+
+    .grid-template__icon {
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      font-size: 16px;
+    }
+  }
+
+  &__project-title {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  &__project-description {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.4;
+    margin: 0 0 8px;
+    text-align: center;
+  }
+
+  &__tech-container {
+    text-align: center;
+
+    .grid-template__tech-tag {
+      font-size: 9px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-template {
+    &__project-card {
+      padding: 14px;
+    }
+
+    &__icon-container .grid-template__icon {
+      width: 36px;
+      height: 36px;
+      font-size: 14px;
+    }
+
+    &__project-title {
+      font-size: 13px;
+    }
+
+    &__project-description {
+      font-size: 10px;
+    }
+  }
+} 

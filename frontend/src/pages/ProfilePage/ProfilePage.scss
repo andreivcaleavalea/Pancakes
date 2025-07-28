@@ -1,0 +1,326 @@
+// Profile Page Styles
+.profile-page {
+  min-height: 100vh;
+  background-color: var(--color-bg-secondary);
+  padding: 24px;
+
+  // Loading and error states
+  &__loading,
+  &__error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+  }
+
+  // Header section with user info
+  &__header {
+    margin-bottom: 24px;
+
+    &-card {
+      box-shadow: var(--shadow-medium);
+      border-radius: 12px;
+      border: 1px solid var(--color-border-light);
+    }
+  }
+
+  &__avatar {
+    border: 4px solid var(--color-primary);
+    box-shadow: var(--shadow-light);
+  }
+
+  &__user-info {
+    flex: 1;
+  }
+
+  &__name {
+    margin-bottom: 8px !important;
+    color: var(--color-text);
+  }
+
+  &__email {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  &__bio {
+    display: block;
+    font-size: 14px;
+    margin-top: 8px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  // Main content area
+  &__content {
+    .ant-card-body {
+      padding: 0;
+    }
+  }
+
+  &__tabs-card {
+    box-shadow: var(--shadow-medium);
+    border-radius: 12px;
+    border: 1px solid var(--color-border-light);
+
+    .ant-card-body {
+      padding: 0;
+    }
+  }
+
+  &__tabs {
+    .ant-tabs-nav {
+      background: var(--color-bg);
+      margin: 0;
+      padding: 0 24px;
+      border-radius: 12px 12px 0 0;
+
+      &::before {
+        border-bottom: 1px solid var(--color-border-light);
+      }
+    }
+
+    .ant-tabs-tab {
+      font-weight: 500;
+      color: var(--color-text-secondary);
+
+      &.ant-tabs-tab-active {
+        .ant-tabs-tab-btn {
+          color: var(--color-primary);
+          font-weight: 600;
+        }
+      }
+
+      &:hover {
+        .ant-tabs-tab-btn {
+          color: var(--color-primary);
+        }
+      }
+    }
+
+    .ant-tabs-ink-bar {
+      background: var(--color-primary);
+    }
+
+    .ant-tabs-content-holder {
+      padding: 24px;
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    &__header {
+      &-card {
+        .ant-row {
+          flex-direction: column;
+          text-align: center;
+
+          .ant-col {
+            margin-bottom: 16px;
+          }
+        }
+      }
+    }
+
+    &__tabs {
+      .ant-tabs-nav {
+        padding: 0 16px;
+      }
+
+      .ant-tabs-content-holder {
+        padding: 16px;
+      }
+
+      .ant-tabs-tab {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Individual tab styles
+.user-info-tab {
+  &__avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  &__avatar {
+    margin-bottom: 16px;
+    border: 4px solid var(--color-primary);
+    box-shadow: var(--shadow-light);
+  }
+
+  &__upload-btn {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+
+    &:hover {
+      background-color: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+  }
+
+  &__form {
+    .ant-form-item-label > label {
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    .ant-btn-primary {
+      background-color: var(--color-primary);
+      border-color: var(--color-primary);
+
+      &:hover {
+        background-color: var(--color-secondary);
+        border-color: var(--color-secondary);
+      }
+    }
+  }
+}
+
+.education-tab,
+.jobs-tab,
+.hobbies-tab,
+.projects-tab {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border-light);
+
+    h3 {
+      margin-bottom: 0 !important;
+      color: var(--color-text);
+    }
+
+    .ant-btn-primary {
+      background-color: var(--color-primary);
+      border-color: var(--color-primary);
+
+      &:hover {
+        background-color: var(--color-secondary);
+        border-color: var(--color-secondary);
+      }
+    }
+  }
+
+  // List items
+  .ant-list-item {
+    border-bottom: 1px solid var(--color-border-light);
+    padding: 16px 0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .ant-list-item-meta {
+      .ant-list-item-meta-title {
+        margin-bottom: 8px;
+        color: var(--color-text);
+      }
+
+      .ant-list-item-meta-description {
+        color: var(--color-text-secondary);
+        line-height: 1.5;
+      }
+    }
+
+    .ant-list-item-action {
+      li {
+        .ant-btn {
+          &:hover {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+          }
+
+          &.ant-btn-dangerous:hover {
+            color: var(--color-error);
+            border-color: var(--color-error);
+          }
+        }
+      }
+    }
+  }
+
+  // Empty state
+  .ant-list-empty-text {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  // Modal styles
+  .ant-modal {
+    .ant-modal-header {
+      border-bottom: 1px solid var(--color-border-light);
+
+      .ant-modal-title {
+        color: var(--color-text);
+        font-weight: 600;
+      }
+    }
+
+    .ant-form {
+      .ant-form-item-label > label {
+        color: var(--color-text);
+        font-weight: 500;
+      }
+
+      .ant-btn-primary {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+
+        &:hover {
+          background-color: var(--color-secondary);
+          border-color: var(--color-secondary);
+        }
+      }
+    }
+  }
+
+  // Tags
+  .ant-tag {
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+
+// Responsive adjustments for smaller screens
+@media (max-width: 576px) {
+  .education-tab,
+  .jobs-tab,
+  .hobbies-tab,
+  .projects-tab {
+    &__header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+
+      .ant-btn {
+        width: 100%;
+      }
+    }
+
+    .ant-list-item {
+      .ant-list-item-action {
+        margin-left: 0;
+        margin-top: 12px;
+      }
+    }
+  }
+
+  .ant-modal {
+    margin: 16px;
+    max-width: calc(100vw - 32px);
+  }
+}

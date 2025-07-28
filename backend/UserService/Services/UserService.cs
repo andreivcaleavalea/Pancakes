@@ -1,41 +1,94 @@
+using Microsoft.EntityFrameworkCore;
+using UserService.Data;
 using UserService.Models;
+using UserService.Models.Entities;
 
 namespace UserService.Services
 {
     public class UserManagementService
     {
-        /// <summary>
-        /// Creates a new user from OAuth information.
-        /// This is stateless - no persistence, returns a user object ready for JWT token generation.
-        /// </summary>
-        /// <param name="oauthInfo">OAuth user information</param>
-        /// <param name="provider">OAuth provider name</param>
-        /// <returns>New user object</returns>
-        public User CreateUserFromOAuth(OAuthUserInfo oauthInfo, string provider)
+        private readonly UserDbContext _context;
+
+        public UserManagementService(UserDbContext context)
         {
-            var user = new User
+            _context = context;
+        }
+        
+        public async Task<Models.User> CreateOrUpdateUserFromOAuthAsync(OAuthUserInfo oauthInfo, string provider)
+        {
+            var userId = GenerateUniqueUserId(provider, oauthInfo.Id);
+            
+            // Check if user already exists
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Provider == provider && u.ProviderUserId == oauthInfo.Id);
+
+            if (existingUser != null)
             {
-                Id = GenerateUniqueUserId(provider, oauthInfo.Id),
+                // Update existing user's last login and potentially other info
+                existingUser.LastLoginAt = DateTime.UtcNow;
+                existingUser.Name = oauthInfo.Name; // Update name in case it changed
+                
+                // Custom uploaded pictures start with "assets/profile-pictures/"
+                if (string.IsNullOrEmpty(existingUser.Image) || 
+                    !existingUser.Image.StartsWith("assets/profile-pictures/"))
+                {
+                    existingUser.Image = oauthInfo.Picture;
+                }
+                
+                existingUser.UpdatedAt = DateTime.UtcNow;
+                
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Updated existing user: {existingUser.Name} ({existingUser.Email}) via {provider}");
+                
+                return MapToLegacyUser(existingUser);
+            }
+
+            // Create new user
+            var newUser = new Models.Entities.User
+            {
+                Id = userId,
                 Name = oauthInfo.Name,
                 Email = oauthInfo.Email,
                 Image = oauthInfo.Picture,
                 Provider = provider,
                 ProviderUserId = oauthInfo.Id,
                 CreatedAt = DateTime.UtcNow,
-                LastLoginAt = DateTime.UtcNow
+                LastLoginAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
-            Console.WriteLine($"Created user from OAuth: {user.Name} ({user.Email}) via {provider}");
-            return user;
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+            
+            Console.WriteLine($"Created new user: {newUser.Name} ({newUser.Email}) via {provider}");
+            return MapToLegacyUser(newUser);
+        }
+        
+        public async Task<Models.User?> GetUserByIdAsync(string userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            return user != null ? MapToLegacyUser(user) : null;
+        }
+        
+        private Models.User MapToLegacyUser(Models.Entities.User entityUser)
+        {
+            return new Models.User
+            {
+                Id = entityUser.Id,
+                Name = entityUser.Name,
+                Email = entityUser.Email,
+                Image = entityUser.Image,
+                Provider = entityUser.Provider,
+                ProviderUserId = entityUser.ProviderUserId,
+                Bio = entityUser.Bio,
+                PhoneNumber = entityUser.PhoneNumber,
+                DateOfBirth = entityUser.DateOfBirth,
+                CreatedAt = entityUser.CreatedAt,
+                LastLoginAt = entityUser.LastLoginAt,
+                UpdatedAt = entityUser.UpdatedAt
+            };
         }
 
-        /// <summary>
-        /// Generates a unique user ID based on provider and provider user ID.
-        /// This ensures the same user from the same provider always gets the same ID.
-        /// </summary>
-        /// <param name="provider">OAuth provider</param>
-        /// <param name="providerUserId">Provider-specific user ID</param>
-        /// <returns>Deterministic unique user ID</returns>
         private string GenerateUniqueUserId(string provider, string providerUserId)
         {
             // Create a deterministic ID based on provider and provider user ID
@@ -45,14 +98,7 @@ namespace UserService.Services
             var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combinedString));
             return Convert.ToHexString(hashBytes)[..32]; // Take first 32 characters for a reasonable ID length
         }
-
-        /// <summary>
-        /// Validates if a user ID matches the expected format and provider pattern.
-        /// </summary>
-        /// <param name="userId">User ID to validate</param>
-        /// <param name="provider">Expected provider</param>
-        /// <param name="providerUserId">Expected provider user ID</param>
-        /// <returns>True if valid, false otherwise</returns>
+        
         public bool ValidateUserId(string userId, string provider, string providerUserId)
         {
             var expectedId = GenerateUniqueUserId(provider, providerUserId);

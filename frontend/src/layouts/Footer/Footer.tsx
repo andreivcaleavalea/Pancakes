@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
     <AntFooter className="footer">
       <div className="footer__content">
         <div className="footer__copyright">
-          © 2024 Pancake. All rights reserved.
+          © 2025 Pancake. All rights reserved.
         </div>
       </div>
     </AntFooter>

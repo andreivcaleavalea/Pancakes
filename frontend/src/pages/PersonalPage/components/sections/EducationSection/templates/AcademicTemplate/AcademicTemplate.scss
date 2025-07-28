@@ -1,0 +1,119 @@
+.academic-template {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+
+  // Override default styles when advanced settings are active
+  &--custom {
+
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-top: var(--advanced-margin-top, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+
+    position: relative !important;
+  }
+
+  &__title {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  &__card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 16px;
+    padding: 24px;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+
+    .academic-template__card-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+    }
+
+    .academic-template__icon-container {
+      text-align: center;
+      margin-bottom: 20px;
+
+      .academic-template__icon {
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        font-size: 24px;
+      }
+    }
+
+    .academic-template__institution {
+      margin: 0;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    .academic-template__degree-card {
+      background: rgba(255,255,255,0.8);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+
+      .academic-template__degree-title {
+        font-size: 15px;
+        color: #333;
+      }
+
+      .academic-template__specialization {
+        font-size: 14px;
+      }
+    }
+
+    .academic-template__dates {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+
+      .academic-template__arrow {
+        color: #999;
+      }
+    }
+
+    .academic-template__description {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .academic-template {
+    &__card {
+      padding: 20px;
+    }
+
+    &__icon-container .academic-template__icon {
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+    }
+
+    &__institution {
+      font-size: 16px;
+    }
+  }
+} 

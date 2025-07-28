@@ -1,0 +1,52 @@
+.tags-template {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+
+  // Override default styles when advanced settings are active
+  &--custom {
+    // Use CSS custom properties for advanced settings
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-top: var(--advanced-margin-top, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+    // KEEP position relative for settings button - DO NOT inherit
+    position: relative !important;
+  }
+
+  &__title {
+    margin-bottom: 20px;
+  }
+
+  &__container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .tags-template__tag {
+      font-size: 14px;
+      padding: 4px 12px;
+      border-radius: 16px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .tags-template {
+    &__container {
+      gap: 6px;
+
+      .tags-template__tag {
+        font-size: 12px;
+        padding: 3px 10px;
+      }
+    }
+  }
+} 
