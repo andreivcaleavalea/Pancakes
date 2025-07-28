@@ -5,7 +5,7 @@ import AuthCallback from "../pages/AuthCallback/AuthCallback";
 import ProfilePage from "../pages/ProfilePage/ProfilePage";
 import PublicPersonalPage from "../pages/PersonalPage/PublicPersonalPage";
 import { useRouter } from "./RouterProvider";
-import { PersonalPageRefactored } from "@/pages/PersonalPage";
+import { PersonalPage } from "@/pages/PersonalPage";
 
 const PageRenderer: React.FC = () => {
   const { currentPage, loginMode, publicSlug } = useRouter();
@@ -21,7 +21,7 @@ const PageRenderer: React.FC = () => {
     case "profile":
       return <ProfilePage />;
     case "personal-page":
-      return <PersonalPageRefactored />;
+      return <PersonalPage />;
     case "public":
       if (!publicSlug) {
         console.error('PageRenderer: No publicSlug provided for public page');

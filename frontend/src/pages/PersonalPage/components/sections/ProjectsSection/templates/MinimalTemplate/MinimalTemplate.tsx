@@ -120,7 +120,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
       {projects.map((project: any, index: number) => (
         <div key={index} className="minimal-template__project-item">
           <Text strong className="minimal-template__project-name">{project.name}</Text>
-          {project.technologies && (
+          {project.technologies && typeof project.technologies === 'string' && (
             <Text type="secondary" className="minimal-template__project-tech">
               ({project.technologies.split(',')[0]?.trim()})
             </Text>

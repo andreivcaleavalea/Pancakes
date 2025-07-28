@@ -31,7 +31,11 @@ const ProjectsTab: React.FC = () => {
         ...project,
         startDate: dayjs(project.startDate),
         endDate: project.endDate ? dayjs(project.endDate) : undefined,
-        technologies: project.technologies.join(', ')
+        technologies: Array.isArray(project.technologies) 
+          ? project.technologies.join(', ')
+          : typeof project.technologies === 'string' 
+            ? project.technologies 
+            : ''
       });
     } else {
       form.resetFields();
@@ -59,12 +63,11 @@ const ProjectsTab: React.FC = () => {
       const projectData = {
         name: values.name,
         description: values.description,
-        technologies: values.technologies.split(',').map(tech => tech.trim()).filter(tech => tech),
-        link: values.link,
-        repositoryUrl: values.repositoryUrl,
-        status: values.status,
+        technologies: values.technologies.split(',').map(tech => tech.trim()).filter(tech => tech).join(','),
         startDate: values.startDate.format('YYYY-MM'),
-        endDate: values.endDate ? values.endDate.format('YYYY-MM') : undefined
+        endDate: values.endDate ? values.endDate.format('YYYY-MM') : undefined,
+        projectUrl: values.link,
+        githubUrl: values.repositoryUrl
       };
 
       if (editingProject) {
@@ -147,29 +150,26 @@ const ProjectsTab: React.FC = () => {
               title={
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <Text strong>{project.name}</Text>
-                  <Tag color={statusColors[project.status]}>
-                    {project.status}
-                  </Tag>
-                  {(project.link || project.repositoryUrl) && (
+                  {(project.projectUrl || project.githubUrl) && (
                     <Space size="small">
-                      {project.link && (
+                      {project.projectUrl && (
                         <Button
                           type="link"
                           size="small"
                           icon={<LinkOutlined />}
-                          href={project.link}
+                          href={project.projectUrl}
                           target="_blank"
                           style={{ padding: 0, height: 'auto' }}
                         >
                           Demo
                         </Button>
                       )}
-                      {project.repositoryUrl && (
+                      {project.githubUrl && (
                         <Button
                           type="link"
                           size="small"
                           icon={<GithubOutlined />}
-                          href={project.repositoryUrl}
+                          href={project.githubUrl}
                           target="_blank"
                           style={{ padding: 0, height: 'auto' }}
                         >
@@ -187,11 +187,20 @@ const ProjectsTab: React.FC = () => {
                   <Text type="secondary">{getPeriod(project.startDate, project.endDate)}</Text>
                   <br />
                   <div style={{ marginTop: '8px' }}>
-                    {project.technologies.map((tech, index) => (
-                      <Tag key={index} style={{ marginBottom: '4px' }}>
-                        {tech}
-                      </Tag>
-                    ))}
+                    {project.technologies && typeof project.technologies === 'string' && 
+                      project.technologies.split(',').map((tech, index) => (
+                        <Tag key={index} style={{ marginBottom: '4px' }}>
+                          {tech.trim()}
+                        </Tag>
+                      ))
+                    }
+                    {project.technologies && Array.isArray(project.technologies) && 
+                      project.technologies.map((tech, index) => (
+                        <Tag key={index} style={{ marginBottom: '4px' }}>
+                          {tech}
+                        </Tag>
+                      ))
+                    }
                   </div>
                 </div>
               }

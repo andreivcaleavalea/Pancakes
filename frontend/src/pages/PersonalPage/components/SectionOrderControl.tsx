@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Card, Button, Typography, Space, Tooltip, message, Switch } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, MenuOutlined, ReloadOutlined, SettingOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
@@ -251,4 +251,4 @@ const SectionOrderControl: React.FC<SectionOrderControlProps> = ({
   );
 };
 
-export default SectionOrderControl; 
+export default memo(SectionOrderControl); 

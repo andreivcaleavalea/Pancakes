@@ -127,7 +127,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               <div className="modern-template__avatar-wrapper">
                 <Avatar
                   size={90}
-                  src={user.avatar ? `data:${user.avatar.type};base64,${user.avatar.data}` : undefined}
+                  src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
                   className="modern-template__avatar"
                   style={{ 
                     border: `3px solid ${sectionPrimaryColor}20`
