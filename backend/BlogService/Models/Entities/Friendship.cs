@@ -18,12 +18,4 @@ public class Friendship
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? AcceptedAt { get; set; }
-}
-
-public enum FriendshipStatus
-{
-    Pending = 0,
-    Accepted = 1,
-    Rejected = 2,
-    Blocked = 3
 } 

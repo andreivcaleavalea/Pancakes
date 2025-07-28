@@ -11,15 +11,21 @@ public class FriendshipService : IFriendshipService
     private readonly IFriendshipRepository _friendshipRepository;
     private readonly IUserServiceClient _userServiceClient;
     private readonly IMapper _mapper;
+    private readonly IJwtUserService _jwtUserService;
+    private readonly ILogger<FriendshipService> _logger;
 
     public FriendshipService(
         IFriendshipRepository friendshipRepository,
         IUserServiceClient userServiceClient,
-        IMapper mapper)
+        IMapper mapper,
+        IJwtUserService jwtUserService,
+        ILogger<FriendshipService> logger)
     {
         _friendshipRepository = friendshipRepository;
         _userServiceClient = userServiceClient;
         _mapper = mapper;
+        _jwtUserService = jwtUserService;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<FriendDto>> GetUserFriendsAsync(string userId)
@@ -206,5 +212,102 @@ public class FriendshipService : IFriendshipService
     public async Task<bool> AreFriendsAsync(string userId1, string userId2)
     {
         return await _friendshipRepository.AreFriendsAsync(userId1, userId2);
+    }
+
+    // New HttpContext-aware methods that handle all business logic
+    public async Task<IEnumerable<FriendDto>> GetFriendsAsync(HttpContext httpContext)
+    {
+        var currentUserId = _jwtUserService.GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        _logger.LogInformation("Getting friends for user {UserId}", currentUserId);
+        return await GetUserFriendsAsync(currentUserId);
+    }
+
+    public async Task<IEnumerable<FriendRequestDto>> GetPendingRequestsAsync(HttpContext httpContext)
+    {
+        var currentUserId = _jwtUserService.GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        _logger.LogInformation("Getting pending requests for user {UserId}", currentUserId);
+        return await GetPendingRequestsAsync(currentUserId);
+    }
+
+    public async Task<IEnumerable<UserInfoDto>> GetAvailableUsersAsync(HttpContext httpContext)
+    {
+        var currentUserId = _jwtUserService.GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        _logger.LogInformation("Getting available users for user {UserId}", currentUserId);
+        return await GetAvailableUsersAsync(currentUserId);
+    }
+
+    public async Task<FriendshipDto> SendFriendRequestAsync(CreateFriendRequestDto request, HttpContext httpContext)
+    {
+        var currentUserId = _jwtUserService.GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        _logger.LogInformation("User {UserId} sending friend request to {ReceiverId}", currentUserId, request.ReceiverId);
+        return await SendFriendRequestAsync(currentUserId, request.ReceiverId);
+    }
+
+    public async Task<FriendshipDto> AcceptFriendRequestAsync(Guid friendshipId, HttpContext httpContext)
+    {
+        var currentUserId = _jwtUserService.GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        _logger.LogInformation("User {UserId} accepting friend request {FriendshipId}", currentUserId, friendshipId);
+        return await AcceptFriendRequestAsync(friendshipId, currentUserId);
+    }
+
+    public async Task<FriendshipDto> RejectFriendRequestAsync(Guid friendshipId, HttpContext httpContext)
+    {
+        var currentUserId = _jwtUserService.GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        _logger.LogInformation("User {UserId} rejecting friend request {FriendshipId}", currentUserId, friendshipId);
+        return await RejectFriendRequestAsync(friendshipId, currentUserId);
+    }
+
+    public async Task RemoveFriendAsync(string friendUserId, HttpContext httpContext)
+    {
+        var currentUserId = _jwtUserService.GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        _logger.LogInformation("User {UserId} removing friend {FriendUserId}", currentUserId, friendUserId);
+        await RemoveFriendAsync(currentUserId, friendUserId);
+    }
+
+    public async Task<bool> CheckFriendshipAsync(string userId, HttpContext httpContext)
+    {
+        var currentUserId = _jwtUserService.GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        _logger.LogInformation("User {UserId} checking friendship with {OtherUserId}", currentUserId, userId);
+        return await AreFriendsAsync(currentUserId, userId);
     }
 } 

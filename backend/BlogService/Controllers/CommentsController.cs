@@ -10,19 +10,13 @@ public class CommentsController : ControllerBase
 {
     private readonly ICommentService _commentService;
     private readonly ILogger<CommentsController> _logger;
-    private readonly IJwtUserService _jwtUserService;
-    private readonly IUserServiceClient _userServiceClient;
 
     public CommentsController(
         ICommentService commentService, 
-        ILogger<CommentsController> logger,
-        IJwtUserService jwtUserService,
-        IUserServiceClient userServiceClient)
+        ILogger<CommentsController> logger)
     {
         _commentService = commentService;
         _logger = logger;
-        _jwtUserService = jwtUserService;
-        _userServiceClient = userServiceClient;
     }
 
     [HttpGet("blog/{blogPostId:guid}")]
@@ -64,50 +58,16 @@ public class CommentsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-                    .Where(x => x.Value?.Errors.Count > 0)
-                    .Select(x => $"{x.Key}: {string.Join(", ", x.Value.Errors.Select(e => e.ErrorMessage))}")
-                    .ToArray();
-                
-                _logger.LogWarning("Model state invalid: {Errors}", string.Join("; ", errors));
-                return BadRequest(ModelState);
-            }
-
-            // Extract the JWT token from Authorization header
-            var authHeader = Request.Headers.Authorization.FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-            {
-                _logger.LogWarning("Missing or invalid authorization header");
-                return Unauthorized("Authorization token is required");
-            }
-
-            var token = authHeader.Substring("Bearer ".Length);
-            _logger.LogInformation("Extracted token length: {TokenLength}", token.Length);
-            
-            // Get current user from UserService
-            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
-            if (currentUser == null)
-            {
-                _logger.LogWarning("Failed to get current user from UserService");
-                return Unauthorized("Invalid or expired token");
-            }
-
-            _logger.LogInformation("Current user retrieved: Id={UserId}, Name={UserName}", 
-                currentUser.Id, currentUser.Name);
-
-            // Override AuthorId with current user's ID to ensure security
-            createDto.AuthorId = currentUser.Id;
-            createDto.AuthorName = currentUser.Name;
-            _logger.LogInformation("Updated createDto.AuthorId to: {AuthorId}", createDto.AuthorId);
-
-            var comment = await _commentService.CreateAsync(createDto);
+            var comment = await _commentService.CreateAsync(createDto, HttpContext, ModelState);
             return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, comment);
         }
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
@@ -121,17 +81,16 @@ public class CommentsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var comment = await _commentService.UpdateAsync(id, updateDto);
+            var comment = await _commentService.UpdateAsync(id, updateDto, HttpContext, ModelState);
             return Ok(comment);
         }
         catch (ArgumentException ex)
         {
             return NotFound(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
@@ -145,12 +104,16 @@ public class CommentsController : ControllerBase
     {
         try
         {
-            await _commentService.DeleteAsync(id);
+            await _commentService.DeleteAsync(id, HttpContext);
             return NoContent();
         }
         catch (ArgumentException ex)
         {
             return NotFound(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {

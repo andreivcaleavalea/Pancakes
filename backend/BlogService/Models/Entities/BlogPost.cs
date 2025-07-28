@@ -25,10 +25,3 @@ public class BlogPost
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? PublishedAt { get; set; }
 }
-
-public enum PostStatus
-{
-    Draft = 0,
-    Published = 1,
-    Archived = 2
-}

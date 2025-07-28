@@ -11,14 +11,10 @@ namespace BlogService.Controllers;
 public class FriendshipsController : ControllerBase
 {
     private readonly IFriendshipService _friendshipService;
-    private readonly IJwtUserService _jwtUserService;
-    private readonly IUserServiceClient _userServiceClient;
 
-    public FriendshipsController(IFriendshipService friendshipService, IJwtUserService jwtUserService, IUserServiceClient userServiceClient)
+    public FriendshipsController(IFriendshipService friendshipService)
     {
         _friendshipService = friendshipService;
-        _jwtUserService = jwtUserService;
-        _userServiceClient = userServiceClient;
     }
 
     [HttpGet("friends")]
@@ -26,14 +22,12 @@ public class FriendshipsController : ControllerBase
     {
         try
         {
-            var currentUserId = _jwtUserService.GetCurrentUserId();
-            if (currentUserId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
-            var friends = await _friendshipService.GetUserFriendsAsync(currentUserId);
+            var friends = await _friendshipService.GetFriendsAsync(HttpContext);
             return Ok(friends);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
@@ -46,14 +40,12 @@ public class FriendshipsController : ControllerBase
     {
         try
         {
-            var currentUserId = _jwtUserService.GetCurrentUserId();
-            if (currentUserId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
-            var requests = await _friendshipService.GetPendingRequestsAsync(currentUserId);
+            var requests = await _friendshipService.GetPendingRequestsAsync(HttpContext);
             return Ok(requests);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
@@ -66,14 +58,12 @@ public class FriendshipsController : ControllerBase
     {
         try
         {
-            var currentUserId = _jwtUserService.GetCurrentUserId();
-            if (currentUserId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
-            var availableUsers = await _friendshipService.GetAvailableUsersAsync(currentUserId);
+            var availableUsers = await _friendshipService.GetAvailableUsersAsync(HttpContext);
             return Ok(availableUsers);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
@@ -86,14 +76,12 @@ public class FriendshipsController : ControllerBase
     {
         try
         {
-            var currentUserId = _jwtUserService.GetCurrentUserId();
-            if (currentUserId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
-            var friendship = await _friendshipService.SendFriendRequestAsync(currentUserId, request.ReceiverId);
+            var friendship = await _friendshipService.SendFriendRequestAsync(request, HttpContext);
             return Ok(friendship);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (ArgumentException ex)
         {
@@ -114,22 +102,16 @@ public class FriendshipsController : ControllerBase
     {
         try
         {
-            var currentUserId = _jwtUserService.GetCurrentUserId();
-            if (currentUserId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
-            var friendship = await _friendshipService.AcceptFriendRequestAsync(friendshipId, currentUserId);
+            var friendship = await _friendshipService.AcceptFriendRequestAsync(friendshipId, HttpContext);
             return Ok(friendship);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (ArgumentException ex)
         {
             return NotFound(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
         }
         catch (InvalidOperationException ex)
         {
@@ -146,22 +128,16 @@ public class FriendshipsController : ControllerBase
     {
         try
         {
-            var currentUserId = _jwtUserService.GetCurrentUserId();
-            if (currentUserId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
-            var friendship = await _friendshipService.RejectFriendRequestAsync(friendshipId, currentUserId);
+            var friendship = await _friendshipService.RejectFriendRequestAsync(friendshipId, HttpContext);
             return Ok(friendship);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (ArgumentException ex)
         {
             return NotFound(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
         }
         catch (InvalidOperationException ex)
         {
@@ -178,22 +154,16 @@ public class FriendshipsController : ControllerBase
     {
         try
         {
-            var currentUserId = _jwtUserService.GetCurrentUserId();
-            if (currentUserId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
-            await _friendshipService.RemoveFriendAsync(currentUserId, friendUserId);
+            await _friendshipService.RemoveFriendAsync(friendUserId, HttpContext);
             return NoContent();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (ArgumentException ex)
         {
             return NotFound(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
         }
         catch (Exception ex)
         {
@@ -206,14 +176,12 @@ public class FriendshipsController : ControllerBase
     {
         try
         {
-            var currentUserId = _jwtUserService.GetCurrentUserId();
-            if (currentUserId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
-            var areFriends = await _friendshipService.AreFriendsAsync(currentUserId, userId);
+            var areFriends = await _friendshipService.CheckFriendshipAsync(userId, HttpContext);
             return Ok(areFriends);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
