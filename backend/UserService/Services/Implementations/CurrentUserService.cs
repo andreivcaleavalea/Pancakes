@@ -1,13 +1,14 @@
 using System.Security.Claims;
 using UserService.Models;
+using UserService.Services.Interfaces;
 
-namespace UserService.Services
+namespace UserService.Services.Implementations
 {
     /// <summary>
     /// Service for accessing the current authenticated user from the HTTP context.
     /// This provides a clean abstraction for getting user information from JWT tokens.
     /// </summary>
-    public class CurrentUserService
+    public class CurrentUserService : ICurrentUserService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -71,6 +72,32 @@ namespace UserService.Services
         {
             var context = _httpContextAccessor.HttpContext;
             return context?.User?.Identity?.IsAuthenticated == true;
+        }
+
+        /// <summary>
+        /// Gets the current user's email from the JWT token claims.
+        /// </summary>
+        /// <returns>User email if authenticated, null otherwise</returns>
+        public string? GetUserEmail()
+        {
+            var context = _httpContextAccessor.HttpContext;
+            if (context?.User?.Identity?.IsAuthenticated != true)
+                return null;
+
+            return context.User.FindFirst(ClaimTypes.Email)?.Value;
+        }
+
+        /// <summary>
+        /// Gets the current user's name from the JWT token claims.
+        /// </summary>
+        /// <returns>User name if authenticated, null otherwise</returns>
+        public string? GetUserName()
+        {
+            var context = _httpContextAccessor.HttpContext;
+            if (context?.User?.Identity?.IsAuthenticated != true)
+                return null;
+
+            return context.User.FindFirst(ClaimTypes.Name)?.Value;
         }
     }
 }

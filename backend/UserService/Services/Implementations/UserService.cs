@@ -3,6 +3,10 @@ using UserService.Models;
 using UserService.Models.DTOs;
 using UserService.Repositories.Interfaces;
 using UserService.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 
 namespace UserService.Services.Implementations;
 
@@ -10,16 +14,16 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
-    private readonly UserManagementService _userManagementService;
+    private readonly ILogger<UserService> _logger;
 
     public UserService(
         IUserRepository userRepository,
         IMapper mapper,
-        UserManagementService userManagementService)
+        ILogger<UserService> logger)
     {
         _userRepository = userRepository;
         _mapper = mapper;
-        _userManagementService = userManagementService;
+        _logger = logger;
     }
 
     public async Task<UserDto?> GetByIdAsync(string id)
@@ -61,7 +65,7 @@ public class UserService : IUserService
         }
 
         var user = _mapper.Map<User>(createDto);
-        user.Id = _userManagementService.GenerateUniqueUserId(createDto.Provider, createDto.ProviderUserId);
+        user.Id = GenerateUniqueUserId(createDto.Provider, createDto.ProviderUserId);
         
         var createdUser = await _userRepository.CreateAsync(user);
         return _mapper.Map<UserDto>(createdUser);
@@ -126,7 +130,7 @@ public class UserService : IUserService
         else
         {
             // Create new user from OAuth info
-            var userId = _userManagementService.GenerateUniqueUserId(provider, oauthInfo.Id);
+            var userId = GenerateUniqueUserId(provider, oauthInfo.Id);
             
             var newUser = new User
             {
@@ -149,6 +153,62 @@ public class UserService : IUserService
         }
     }
 
+    // UserManagement methods (merged from UserManagementService)
+    /// <summary>
+    /// Creates a new user from OAuth information.
+    /// This is stateless - no persistence, returns a user object ready for JWT token generation.
+    /// </summary>
+    /// <param name="oauthInfo">OAuth user information</param>
+    /// <param name="provider">OAuth provider name</param>
+    /// <returns>New user object</returns>
+    public User CreateUserFromOAuth(OAuthUserInfo oauthInfo, string provider)
+    {
+        var user = new User
+        {
+            Id = GenerateUniqueUserId(provider, oauthInfo.Id),
+            Name = oauthInfo.Name,
+            Email = oauthInfo.Email,
+            Image = oauthInfo.Picture,
+            Provider = provider,
+            ProviderUserId = oauthInfo.Id,
+            CreatedAt = DateTime.UtcNow,
+            LastLoginAt = DateTime.UtcNow
+        };
+
+        _logger.LogInformation("Created user from OAuth: {UserName} ({Email}) via {Provider}", user.Name, user.Email, provider);
+        return user;
+    }
+
+    /// <summary>
+    /// Generates a unique user ID based on provider and provider user ID.
+    /// This ensures the same user from the same provider always gets the same ID.
+    /// </summary>
+    /// <param name="provider">OAuth provider</param>
+    /// <param name="providerUserId">Provider-specific user ID</param>
+    /// <returns>Deterministic unique user ID</returns>
+    public string GenerateUniqueUserId(string provider, string providerUserId)
+    {
+        // Create a deterministic ID based on provider and provider user ID
+        // This ensures the same user from the same provider always gets the same ID
+        var combinedString = $"{provider}:{providerUserId}";
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(combinedString));
+        return Convert.ToHexString(hashBytes)[..32]; // Take first 32 characters for a reasonable ID length
+    }
+
+    /// <summary>
+    /// Validates if a user ID matches the expected format and provider pattern.
+    /// </summary>
+    /// <param name="userId">User ID to validate</param>
+    /// <param name="provider">Expected provider</param>
+    /// <param name="providerUserId">Expected provider user ID</param>
+    /// <returns>True if valid, false otherwise</returns>
+    public bool ValidateUserId(string userId, string provider, string providerUserId)
+    {
+        var expectedId = GenerateUniqueUserId(provider, providerUserId);
+        return userId.Equals(expectedId, StringComparison.OrdinalIgnoreCase);
+    }
+
     private async Task<User> GetUserByIdOrThrowAsync(string id)
     {
         var user = await _userRepository.GetByIdAsync(id);
@@ -157,5 +217,122 @@ public class UserService : IUserService
             throw new ArgumentException($"User with ID {id} not found.");
         }
         return user;
+    }
+
+    // HttpContext-aware methods for controller use
+    public async Task<IActionResult> GetByIdAsync(HttpContext httpContext, string id)
+    {
+        try
+        {
+            var user = await GetByIdAsync(id);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { message = "User not found" });
+            }
+
+            return new OkObjectResult(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Get user by ID error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> GetByEmailAsync(HttpContext httpContext, string email)
+    {
+        try
+        {
+            var user = await GetByEmailAsync(email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { message = "User not found" });
+            }
+
+            return new OkObjectResult(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Get user by email error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> GetAllAsync(HttpContext httpContext, int page, int pageSize)
+    {
+        try
+        {
+            var users = await GetAllAsync(page, pageSize);
+            return new OkObjectResult(users);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Get all users error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> CreateAsync(HttpContext httpContext, CreateUserDto createDto, ModelStateDictionary modelState)
+    {
+        try
+        {
+            if (!modelState.IsValid)
+            {
+                return new BadRequestObjectResult(modelState);
+            }
+
+            var user = await CreateAsync(createDto);
+            return new CreatedAtActionResult("GetById", null, new { id = user.Id }, user);
+        }
+        catch (ArgumentException ex)
+        {
+            return new BadRequestObjectResult(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Create user error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> UpdateAsync(HttpContext httpContext, string id, UpdateUserDto updateDto, ModelStateDictionary modelState)
+    {
+        try
+        {
+            if (!modelState.IsValid)
+            {
+                return new BadRequestObjectResult(modelState);
+            }
+
+            var user = await UpdateAsync(id, updateDto);
+            return new OkObjectResult(user);
+        }
+        catch (ArgumentException ex)
+        {
+            return new BadRequestObjectResult(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Update user error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> DeleteAsync(HttpContext httpContext, string id)
+    {
+        try
+        {
+            await DeleteAsync(id);
+            return new NoContentResult();
+        }
+        catch (ArgumentException ex)
+        {
+            return new NotFoundObjectResult(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Delete user error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
     }
 }

@@ -1,10 +1,11 @@
 using UserService.Models;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using UserService.Services.Interfaces;
 
-namespace UserService.Services
+namespace UserService.Services.Implementations
 {
-    public class OAuthService
+    public class OAuthService : IOAuthService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
@@ -32,7 +33,7 @@ namespace UserService.Services
             }
         }
 
-        private async Task<string?> ExchangeCodeForToken(string code, string provider)
+        public async Task<string?> ExchangeCodeForToken(string code, string provider)
         {
             string tokenUrl;
             if (provider.ToLower() == "google")
@@ -120,7 +121,7 @@ namespace UserService.Services
             return null;
         }
 
-        private async Task<OAuthUserInfo?> GetUserInfo(string accessToken, string provider)
+        public async Task<OAuthUserInfo?> GetUserInfo(string accessToken, string provider)
         {
             // Clear any existing headers to prevent conflicts
             _httpClient.DefaultRequestHeaders.Clear();
