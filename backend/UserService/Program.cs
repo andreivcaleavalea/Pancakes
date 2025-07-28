@@ -46,6 +46,8 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<CurrentUserService>();
 builder.Services.AddScoped<IUserService, UserService.Services.Implementations.UserService>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserMappingService, UserMappingService>();
 
 // Add CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
