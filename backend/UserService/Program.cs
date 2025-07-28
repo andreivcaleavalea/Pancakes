@@ -1,13 +1,16 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using System.Text;
-using UserService.Services;
-using UserService.Services.Implementations;
-using UserService.Services.Interfaces;
 using UserService.Data;
+using UserService.Services;
 using UserService.Repositories.Interfaces;
 using UserService.Repositories.Implementations;
+using UserService.Services.Interfaces;
+using UserService.Services.Implementations;
+using UserService.Services.Interfaces;
 using UserService.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,9 +18,26 @@ var builder = WebApplication.CreateBuilder(args);
 // Load environment variables from .env file
 DotNetEnv.Env.Load("../../.env");
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (string.IsNullOrEmpty(connectionString))
+{
+    var host = Environment.GetEnvironmentVariable("USERS_DB_HOST") ?? "localhost";
+    var dbPort = Environment.GetEnvironmentVariable("USERS_DB_PORT") ?? "5433";
+    var database = Environment.GetEnvironmentVariable("USERS_DB_DATABASE") ?? "PancakesUserDB";
+    var username = Environment.GetEnvironmentVariable("USERS_DB_USERNAME") ?? "postgres";
+    var password = Environment.GetEnvironmentVariable("USERS_DB_PASSWORD") ?? "team";
+    
+    connectionString = $"Host={host};Port={dbPort};Database={database};Username={username};Password={password}";
+}
+
+builder.Services.AddDbContext<UserDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(UserService.Helpers.MappingProfile));
 
 // Add HttpContextAccessor for current user service
 builder.Services.AddHttpContextAccessor();

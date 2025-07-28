@@ -9,13 +9,10 @@ using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using AutoMapper;
 using Serilog;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-DotNetEnv.Env.Load("../../.env");
+DotNetEnv.Env.Load();
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
@@ -38,11 +35,11 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<BlogDbContext>(options =>
 {
-    var host = Environment.GetEnvironmentVariable("POSTGRES_HOST");
-    var port = Environment.GetEnvironmentVariable("POSTGRES_PORT");
-    var database = Environment.GetEnvironmentVariable("POSTGRES_DATABASE");
-    var username = Environment.GetEnvironmentVariable("POSTGRES_USERNAME");
-    var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+    var host = Environment.GetEnvironmentVariable("BLOGS_DB_HOST");
+    var port = Environment.GetEnvironmentVariable("BLOGS_DB_PORT");
+    var database = Environment.GetEnvironmentVariable("BLOGS_DB_DATABASE");
+    var username = Environment.GetEnvironmentVariable("BLOGS_DB_USERNAME");
+    var password = Environment.GetEnvironmentVariable("BLOGS_DB_PASSWORD");
     
     var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
     options.UseNpgsql(connectionString);
@@ -117,6 +114,7 @@ var app = builder.Build();
 
 // Configure port based on environment variable
 var port = Environment.GetEnvironmentVariable("BLOG_SERVICE_PORT") ?? "5001";
+System.Console.WriteLine($"Blog Service running on port: {port}");
 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
 {
     app.Urls.Clear();
@@ -137,7 +135,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Always run migrations and seeding (not just in development)
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
@@ -154,5 +151,14 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
+    await context.Database.MigrateAsync();
+    
+    await BlogDataSeeder.SeedAsync(context);
+}
 
 app.Run();

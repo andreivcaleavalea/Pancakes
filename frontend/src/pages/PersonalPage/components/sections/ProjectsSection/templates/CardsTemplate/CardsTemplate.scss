@@ -1,0 +1,63 @@
+.cards-template {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+
+  // Override default styles when advanced settings are active
+  &--custom {
+    // Use CSS custom properties for advanced settings
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-top: var(--advanced-margin-top, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+    // KEEP position relative for settings button - DO NOT inherit
+    position: relative !important;
+  }
+
+  &__title {
+    margin-bottom: 16px;
+  }
+
+  &__project-card {
+    padding: 16px;
+    border-radius: 8px;
+    height: 100%;
+
+    .cards-template__project-name {
+      font-size: 16px;
+    }
+
+    .cards-template__project-description {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .cards-template__project-tech {
+      font-size: 12px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .cards-template {
+    &__project-card {
+      padding: 14px;
+
+      .cards-template__project-name {
+        font-size: 15px;
+      }
+
+      .cards-template__project-description {
+        font-size: 13px;
+      }
+    }
+  }
+} 

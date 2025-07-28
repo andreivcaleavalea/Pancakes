@@ -1,0 +1,139 @@
+.professional-template {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+
+  // Override default styles when advanced settings are active
+  &--custom {
+    // Use CSS custom properties for advanced settings
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-top: var(--advanced-margin-top, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+    // KEEP position relative for settings button - DO NOT inherit
+    position: relative !important;
+  }
+
+  &__header {
+    height: 120px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .professional-template__title {
+      color: white;
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+  }
+
+  &__content {
+    padding: 40px;
+  }
+
+  &__job-item {
+    &:not(:last-child) {
+      margin-bottom: 32px;
+      padding-bottom: 32px;
+    }
+  }
+
+  &__job-position {
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  &__company {
+    font-size: 16px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  &__location-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+
+    .professional-template__location-icon {
+      font-size: 16px;
+      margin-right: 12px;
+    }
+  }
+
+  &__description-card {
+    margin-top: 16px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+
+    .professional-template__description {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #555;
+      margin: 0;
+    }
+  }
+
+  &__icon-container {
+    text-align: center;
+
+    .professional-template__icon {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+    }
+
+    .professional-template__date-badge {
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: inline-block;
+
+      .professional-template__date-text {
+        font-size: 12px;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .professional-template {
+    &__header {
+      height: 100px;
+
+      .professional-template__title {
+        font-size: 20px;
+      }
+    }
+
+    &__content {
+      padding: 24px;
+    }
+
+    &__job-item:not(:last-child) {
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+    }
+
+    &__icon-container .professional-template__icon {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+    }
+  }
+} 

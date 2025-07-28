@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "../../router/RouterProvider";
+import { getProfilePictureUrl } from "../../utils/imageUtils";
 import "./Header.scss";
 
 const { Header: AntHeader } = Layout;
@@ -18,13 +19,33 @@ const Header: React.FC = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+  const handleMenuClick = (key: string) => {
+    switch (key) {
+      case 'home':
+        navigate('home');
+        break;
+      case 'profile':
+        navigate('profile');
+        break;
+      case 'explore':
+      case 'blogs':
+      case 'saved':
+      case 'friends':
+        // These pages don't exist yet, so we'll just log for now
+        console.log(`Navigate to ${key} - not implemented yet`);
+        break;
+      default:
+        break;
+    }
+  };
+
   const menuItems = [
-    { key: "home", label: "Home" },
-    { key: "explore", label: "Explore" },
-    { key: "blogs", label: "My blogs" },
-    { key: "saved", label: "Saved" },
-    { key: "friends", label: "Friends" },
-    { key: "profile", label: "Profile" },
+    { key: 'home', label: 'Home' },
+    { key: 'explore', label: 'Explore' },
+    { key: 'blogs', label: 'My blogs' },
+    { key: 'saved', label: 'Saved' },
+    { key: 'friends', label: 'Friends' },
+    { key: 'profile', label: 'Profile' },
   ];
 
   useEffect(() => {
@@ -49,32 +70,18 @@ const Header: React.FC = () => {
     navigate("home");
   };
 
-  const handleMenuClick = (key: string) => {
-    switch (key) {
-      case "home":
-        navigate("home");
-        break;
-      case "saved":
-        navigate("saved");
-        break;
-      case "friends":
-        navigate("friends");
-        break;
-      case "blogs":
-      case "explore":
-      case "profile":
-        // TODO: Implement these pages
-        console.log(`Navigate to ${key}`);
-        break;
-    }
-  };
-
   const handleLogout = () => {
     signOut();
     navigate("home");
   };
 
   const userMenuItems = [
+    {
+      key: "profile",
+      label: "Profile",
+      icon: <UserOutlined />,
+      onClick: () => navigate("profile"),
+    },
     {
       key: "logout",
       label: "Logout",
@@ -87,10 +94,13 @@ const Header: React.FC = () => {
     if (isAuthenticated && user) {
       return (
         <div className="header__user">
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+          <Dropdown
+            menu={{ items: userMenuItems }}
+            placement="bottomRight"
+          >
             <div className="header__user-profile">
               <Avatar
-                src={user.image}
+                src={getProfilePictureUrl(user.image)}
                 alt={user.name}
                 size="default"
                 icon={<UserOutlined />}
@@ -127,13 +137,24 @@ const Header: React.FC = () => {
         <div className="header__mobile-user">
           <div className="header__user-profile">
             <Avatar
-              src={user.image}
+              src={getProfilePictureUrl(user.image)}
               alt={user.name}
               size="default"
               icon={<UserOutlined />}
             />
             <span className="header__user-name">{user.name}</span>
           </div>
+          <Button
+            block
+            className="header__btn header__btn--secondary"
+            icon={<UserOutlined />}
+            onClick={() => {
+              navigate('profile');
+              setDrawerVisible(false);
+            }}
+          >
+            Profile
+          </Button>
           <Button
             block
             className="header__btn header__btn--primary"
@@ -200,7 +221,7 @@ const Header: React.FC = () => {
               className="header__menu"
               selectedKeys={["blogs"]}
               disabledOverflow={true}
-              onClick={({ key }) => handleMenuClick(key)}
+              onSelect={({ key }) => handleMenuClick(key)}
             />
           </div>
         )}
@@ -240,9 +261,10 @@ const Header: React.FC = () => {
             mode="vertical"
             items={menuItems}
             className="header__mobile-menu-items"
-            onClick={({ key }) => {
+            selectedKeys={["blogs"]}
+            onSelect={({ key }) => {
               handleMenuClick(key);
-              setDrawerVisible(false);
+              setDrawerVisible(false); // Close drawer on mobile after selection
             }}
           />
 

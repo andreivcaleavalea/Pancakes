@@ -1,0 +1,126 @@
+// CareerTemplate static styles
+.career-template {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+
+  // Override default styles when advanced settings are active
+  &--custom {
+    // Use CSS custom properties for advanced settings
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-top: var(--advanced-margin-top, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+    // KEEP position relative for settings button - DO NOT inherit
+    position: relative !important;
+  }
+
+  &__title {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  &__timeline {
+    position: relative;
+
+    .career-template__timeline-line {
+      position: absolute;
+      left: 24px;
+      top: 20px;
+      bottom: 20px;
+      width: 2px;
+      z-index: 1;
+    }
+  }
+
+  &__job-item {
+    position: relative;
+    margin-bottom: 24px;
+    padding-left: 60px;
+
+    .career-template__milestone {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 2;
+    }
+
+    .career-template__job-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+      .career-template__job-title {
+        margin-bottom: 4px;
+      }
+
+      .career-template__company {
+        font-size: 16px;
+      }
+
+      .career-template__location {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .career-template__dates {
+        font-size: 14px;
+      }
+
+      .career-template__description {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #666;
+      }
+    }
+
+    .career-template__icon-container {
+      text-align: center;
+
+      .career-template__icon {
+        border-radius: 8px;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .career-template {
+    &__job-item {
+      padding-left: 50px;
+
+      .career-template__milestone {
+        left: 12px;
+      }
+
+      .career-template__job-card {
+        padding: 16px;
+      }
+    }
+
+    &__timeline .career-template__timeline-line {
+      left: 20px;
+    }
+  }
+} 
