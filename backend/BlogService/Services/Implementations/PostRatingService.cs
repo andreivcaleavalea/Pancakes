@@ -11,15 +11,24 @@ public class PostRatingService : IPostRatingService
     private readonly IPostRatingRepository _ratingRepository;
     private readonly IBlogPostRepository _blogPostRepository;
     private readonly IMapper _mapper;
+    private readonly IUserContextService _userContextService;
+    private readonly IModelValidationService _modelValidationService;
+    private readonly ILogger<PostRatingService> _logger;
 
     public PostRatingService(
         IPostRatingRepository ratingRepository,
         IBlogPostRepository blogPostRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IUserContextService userContextService,
+        IModelValidationService modelValidationService,
+        ILogger<PostRatingService> logger)
     {
         _ratingRepository = ratingRepository;
         _blogPostRepository = blogPostRepository;
         _mapper = mapper;
+        _userContextService = userContextService;
+        _modelValidationService = modelValidationService;
+        _logger = logger;
     }
 
     public async Task<PostRatingStatsDto> GetRatingStatsAsync(Guid blogPostId, string? UserId = null)
@@ -92,5 +101,56 @@ public class PostRatingService : IPostRatingService
         }
 
         await _ratingRepository.DeleteAsync(existingRating.Id);
+    }
+
+    // New HttpContext-aware methods that handle all business logic
+    public async Task<PostRatingStatsDto> GetRatingStatsAsync(Guid blogPostId, HttpContext httpContext)
+    {
+        // Allow both authenticated and unauthenticated access to rating stats
+        var userId = _userContextService.GetCurrentUserId(httpContext);
+        
+        _logger.LogInformation("Getting rating stats for blog post {BlogPostId}, user {UserId}", 
+            blogPostId, userId ?? "anonymous");
+
+        return await GetRatingStatsAsync(blogPostId, userId);
+    }
+
+    public async Task<PostRatingDto> CreateOrUpdateRatingAsync(CreatePostRatingDto createDto, HttpContext httpContext, Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary modelState)
+    {
+        if (createDto == null)
+        {
+            _logger.LogWarning("Received null createDto");
+            throw new ArgumentException("Request body is required");
+        }
+
+        _logger.LogInformation("Received rating request: BlogPostId={BlogPostId}, Rating={Rating}, UserAgent={UserAgent}", 
+            createDto.BlogPostId, createDto.Rating, httpContext.Request.Headers.UserAgent.ToString());
+
+        // Validate model state
+        var validationResult = _modelValidationService.ValidateModel(modelState);
+        if (!validationResult.IsValid)
+        {
+            _logger.LogWarning("Model state invalid: {Errors}", validationResult.ErrorMessage);
+            throw new ArgumentException(validationResult.ErrorMessage);
+        }
+
+        // Set user identifier using context service
+        _logger.LogInformation("Attempting to get user ID...");
+        createDto.UserId = _userContextService.GetCurrentUserId(httpContext);
+        _logger.LogInformation("Successfully extracted user ID: {UserId}", createDto.UserId);
+
+        return await CreateOrUpdateRatingAsync(createDto);
+    }
+
+    public async Task DeleteRatingAsync(Guid blogPostId, HttpContext httpContext)
+    {
+        var userId = _userContextService.GetCurrentUserId(httpContext);
+        if (userId == null)
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+
+        _logger.LogInformation("User {UserId} deleting rating for blog post {BlogPostId}", userId, blogPostId);
+        await DeleteRatingAsync(blogPostId, userId);
     }
 } 
