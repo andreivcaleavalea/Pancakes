@@ -21,6 +21,7 @@ interface ModernTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode: boolean;
 }
 
 const ModernTemplate: React.FC<ModernTemplateProps> = ({
@@ -31,6 +32,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {

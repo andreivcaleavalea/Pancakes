@@ -21,6 +21,7 @@ interface ProfessionalTemplateProps {
   onSectionSettingsChange: any;
   templateOptions: any;
   advancedSettings?: AdvancedSectionSettings;
+  editMode: boolean;
 }
 
 const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
@@ -31,6 +32,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
   onSectionSettingsChange,
   templateOptions,
   advancedSettings,
+  editMode,
 }) => {
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {

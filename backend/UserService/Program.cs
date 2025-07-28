@@ -17,8 +17,17 @@ DotNetEnv.Env.Load("../../.env");
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
-    ?? "Host=localhost;Port=5432;Database=PancakesBlogDB;Username=postgres;Password=postgres123";
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (string.IsNullOrEmpty(connectionString))
+{
+    var host = Environment.GetEnvironmentVariable("USERS_DB_HOST") ?? "localhost";
+    var dbPort = Environment.GetEnvironmentVariable("USERS_DB_PORT") ?? "5433";
+    var database = Environment.GetEnvironmentVariable("USERS_DB_DATABASE") ?? "PancakesUserDB";
+    var username = Environment.GetEnvironmentVariable("USERS_DB_USERNAME") ?? "postgres";
+    var password = Environment.GetEnvironmentVariable("USERS_DB_PASSWORD") ?? "team";
+    
+    connectionString = $"Host={host};Port={dbPort};Database={database};Username={username};Password={password}";
+}
 
 builder.Services.AddDbContext<UserDbContext>(options =>
     options.UseNpgsql(connectionString));

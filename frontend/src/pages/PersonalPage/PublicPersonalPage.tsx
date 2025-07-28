@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Spin, Alert, Button } from 'antd';
+import { Typography, Spin, Alert, Button } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { PersonalSection, EducationSection, JobsSection, ProjectsSection, HobbiesSection } from './components/sections';
 import { PersonalPageService, type PublicPersonalPage } from '../../services/personalPageService';
-import type { SectionVisibility, User, Education, Job, Project, Hobby } from './types';
+import type { SectionVisibility } from './types';
 import './PersonalPage.scss';
 
 const { Text, Title } = Typography;
