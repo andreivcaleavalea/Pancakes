@@ -1,16 +1,39 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.FileProviders;
 using System.Text;
+using UserService.Data;
 using UserService.Services;
+using UserService.Repositories.Interfaces;
+using UserService.Repositories.Implementations;
+using UserService.Services.Interfaces;
+using UserService.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load environment variables from .env file
-DotNetEnv.Env.Load();
+DotNetEnv.Env.Load("../../.env");
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (string.IsNullOrEmpty(connectionString))
+{
+    var host = Environment.GetEnvironmentVariable("USERS_DB_HOST") ?? "localhost";
+    var dbPort = Environment.GetEnvironmentVariable("USERS_DB_PORT") ?? "5433";
+    var database = Environment.GetEnvironmentVariable("USERS_DB_DATABASE") ?? "PancakesUserDB";
+    var username = Environment.GetEnvironmentVariable("USERS_DB_USERNAME") ?? "postgres";
+    var password = Environment.GetEnvironmentVariable("USERS_DB_PASSWORD") ?? "team";
+    
+    connectionString = $"Host={host};Port={dbPort};Database={database};Username={username};Password={password}";
+}
+
+builder.Services.AddDbContext<UserDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(UserService.Helpers.MappingProfile));
 
 // Add HttpContextAccessor for current user service
 builder.Services.AddHttpContextAccessor();
@@ -18,7 +41,24 @@ builder.Services.AddHttpContextAccessor();
 // Add HttpClient for OAuth service
 builder.Services.AddHttpClient<OAuthService>();
 
-// Add custom services
+// Register Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEducationRepository, EducationRepository>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();
+builder.Services.AddScoped<IHobbyRepository, HobbyRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IPersonalPageSettingsRepository, PersonalPageSettingsRepository>();
+
+// Register Services
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IEducationService, EducationService>();
+builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<IHobbyService, HobbyService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IPersonalPageService, PersonalPageService>();
+
+// Auth Services (keeping existing for now)
 builder.Services.AddScoped<OAuthService>();
 builder.Services.AddScoped<UserManagementService>();
 builder.Services.AddScoped<JwtService>();
@@ -86,6 +126,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
+
+// Serve static files (profile pictures)
+var assetsPath = Path.Combine(app.Environment.ContentRootPath, "assets");
+if (!Directory.Exists(assetsPath))
+{
+    Directory.CreateDirectory(assetsPath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(assetsPath),
+    RequestPath = "/assets"
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

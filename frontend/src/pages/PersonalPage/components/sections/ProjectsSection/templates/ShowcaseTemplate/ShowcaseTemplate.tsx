@@ -1,0 +1,146 @@
+import React from 'react';
+import { Card, Typography, Row, Col, Tag } from 'antd';
+import SectionSettingsPopover from '../../../../SectionSettingsPopover';
+import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
+import './ShowcaseTemplate.scss';
+
+const { Title, Text, Paragraph } = Typography;
+
+interface AdvancedSectionSettings {
+  layout: any;
+  background: any;
+  typography: any;
+  styling: any;
+  spacing: any;
+  animation: any;
+}
+
+interface ShowcaseTemplateProps {
+  projects: any[];
+  sectionKey: string;
+  sectionPrimaryColor: string;
+  currentSectionSettings: any;
+  onSectionSettingsChange: any;
+  templateOptions: any;
+  advancedSettings?: AdvancedSectionSettings;
+  editMode?: boolean;
+}
+
+const ShowcaseTemplate: React.FC<ShowcaseTemplateProps> = ({
+  projects,
+  sectionKey,
+  sectionPrimaryColor,
+  currentSectionSettings,
+  onSectionSettingsChange,
+  templateOptions,
+  advancedSettings,
+  editMode = true,
+}) => {
+  // Build card styles with advanced settings overrides
+  const getCardStyles = () => {
+    const defaultStyles = {
+      marginBottom: '32px',
+      borderRadius: '16px',
+      position: 'relative' as const,
+    };
+
+    if (!advancedSettings) return defaultStyles;
+
+    const { layout, background, styling } = advancedSettings;
+
+    // Generate CSS custom properties for advanced settings
+    const cssCustomProperties = {
+      '--advanced-background': (background.color || background.pattern !== 'none') ? 
+        getBackgroundWithPattern(background.color || '#ffffff', background.pattern, background.opacity) :
+        undefined,
+      '--advanced-background-size': getBackgroundSize(background.pattern),
+      '--advanced-border-radius': styling.roundCorners ? styling.borderRadius : '0px',
+      '--advanced-box-shadow': styling.shadow ? getShadowStyle(styling.shadowIntensity) : 'none',
+      '--advanced-margin-bottom': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
+      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
+      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
+      '--advanced-border': styling.border.enabled 
+        ? `${styling.border.width} ${styling.border.style} ${styling.border.color}`
+        : 'none',
+      '--advanced-overflow': 'hidden',
+      '--advanced-width': layout.fullscreen ? '100vw' : 'auto',
+    } as React.CSSProperties;
+
+    // Add animation and transition as regular inline styles
+    const finalStyles = {
+      ...cssCustomProperties,
+      position: 'relative' as const,
+      transition: 'none', // Animation disabled
+    };
+
+    return finalStyles;
+  };
+
+  // Build content styles
+  const getContentStyles = () => {
+    if (!advancedSettings) return {};
+    const { spacing } = advancedSettings;
+    return {
+      padding: '32px' // Default padding,
+    };
+  };
+
+  // Build typography styles
+  const getTypographyStyles = () => {
+    if (!advancedSettings) return {};
+    const { typography } = advancedSettings;
+    return {
+      fontSize: typography.fontSize ? getFontSize(typography.fontSize) : undefined,
+      color: typography.fontColor || undefined,
+      fontWeight: typography.fontWeight ? getFontWeight(typography.fontWeight) : undefined,
+    };
+  };
+
+  const cardStyles = getCardStyles();
+  const cardClassName = advancedSettings ? 'showcase-template showcase-template--custom' : 'showcase-template';
+
+  return (
+    <Card 
+      key="projects" 
+      className={cardClassName}
+      style={cardStyles}
+    >
+      <SectionSettingsPopover
+        sectionKey={sectionKey}
+        sectionSettings={currentSectionSettings}
+        onSettingsChange={onSectionSettingsChange}
+        templateOptions={templateOptions}
+        editMode={editMode}
+      />
+      
+      <Title level={2} className="showcase-template__title" style={{ color: sectionPrimaryColor }}>
+        Projects
+      </Title>
+       
+      {projects.map((project: any, index: number) => (
+        <div 
+          key={index} 
+          className="showcase-template__project-item"
+          style={{ 
+            borderBottom: index < projects.length - 1 ? `1px solid ${sectionPrimaryColor}20` : 'none' 
+          }}
+        >
+          <Text strong className="showcase-template__project-name">{project.name}</Text>
+          <br />
+          {project.description && (
+            <Paragraph className="showcase-template__project-description">
+              {project.description}
+            </Paragraph>
+          )}
+          {project.technologies && (
+            <Text type="secondary" className="showcase-template__project-tech">
+              {project.technologies}
+            </Text>
+          )}
+        </div>
+      ))}
+    </Card>
+  );
+};
+
+export default ShowcaseTemplate; 

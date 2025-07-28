@@ -39,8 +39,8 @@ namespace UserService.Controllers
                     return BadRequest(new { message = "Failed to get user information" });
                 }
 
-                // Create user object (stateless - no persistence)
-                var user = _userService.CreateUserFromOAuth(userInfo, request.Provider);
+                // Create or update user in database
+                var user = await _userService.CreateOrUpdateUserFromOAuthAsync(userInfo, request.Provider);
                 var token = _jwtService.GenerateToken(user);
 
                 var response = new LoginResponse
@@ -89,8 +89,6 @@ namespace UserService.Controllers
                     Console.WriteLine($"User {currentUser.Name} logged out");
                 }
                 
-                // In a stateless system, logout is handled on the frontend by removing the token
-                // No server-side state to clear
                 return Ok(new { message = "Logged out successfully" });
             }
             catch (Exception ex)

@@ -1,0 +1,69 @@
+.colorful-template {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  position: relative;
+
+  // Override default styles when advanced settings are active
+  &--custom {
+    // Use CSS custom properties for advanced settings
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-top: var(--advanced-margin-top, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+    // KEEP position relative for settings button - DO NOT inherit
+    position: relative !important;
+  }
+
+  &__title {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  &__hobby-card {
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    .colorful-template__icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .colorful-template__hobby-name {
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .colorful-template {
+    &__hobby-card {
+      padding: 12px;
+
+      .colorful-template__icon {
+        font-size: 20px;
+        margin-bottom: 6px;
+      }
+
+      .colorful-template__hobby-name {
+        font-size: 11px;
+      }
+    }
+  }
+} 
