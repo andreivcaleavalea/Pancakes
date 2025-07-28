@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using UserService.Models;
+using UserService.Models.Requests;
+using UserService.Models.Responses;
 using UserService.Services.Interfaces;
 
 namespace UserService.Services.Implementations;

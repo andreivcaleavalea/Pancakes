@@ -1,5 +1,6 @@
 using AutoMapper;
-using UserService.Models;
+using UserService.Models.Entities;
+using UserService.Models.Authentication;
 using UserService.Models.DTOs;
 using UserService.Repositories.Interfaces;
 using UserService.Services.Interfaces;

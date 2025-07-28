@@ -1,4 +1,4 @@
-using UserService.Models;
+using UserService.Models.Authentication;
 using UserService.Models.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

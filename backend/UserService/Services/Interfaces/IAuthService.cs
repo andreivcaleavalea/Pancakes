@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using UserService.Models;
+using UserService.Models.Requests;
 
 namespace UserService.Services.Interfaces;
 

@@ -1,5 +1,6 @@
 using System.Security.Claims;
-using UserService.Models;
+using Microsoft.AspNetCore.Http;
+using UserService.Models.Entities;
 using UserService.Services.Interfaces;
 
 namespace UserService.Services.Implementations
