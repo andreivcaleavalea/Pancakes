@@ -10,16 +10,16 @@ public class SavedBlogsController : ControllerBase
 {
     private readonly ISavedBlogService _savedBlogService;
     private readonly ILogger<SavedBlogsController> _logger;
-    private readonly IUserServiceClient _userServiceClient;
+    private readonly IAuthorizationService _authorizationService;
 
     public SavedBlogsController(
         ISavedBlogService savedBlogService,
         ILogger<SavedBlogsController> logger,
-        IUserServiceClient userServiceClient)
+        IAuthorizationService authorizationService)
     {
         _savedBlogService = savedBlogService;
         _logger = logger;
-        _userServiceClient = userServiceClient;
+        _authorizationService = authorizationService;
     }
 
     [HttpGet]
@@ -27,22 +27,11 @@ public class SavedBlogsController : ControllerBase
     {
         try
         {
-            // Extract the JWT token from Authorization header
-            var authHeader = Request.Headers.Authorization.FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-            {
-                _logger.LogWarning("Missing or invalid authorization header");
-                return Unauthorized("Authorization token is required");
-            }
-
-            var token = authHeader.Substring("Bearer ".Length);
-            
-            // Get current user from UserService
-            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
+            // Get current user using authorization service
+            var currentUser = await _authorizationService.GetCurrentUserAsync(HttpContext);
             if (currentUser == null)
             {
-                _logger.LogWarning("Failed to get current user from UserService");
-                return Unauthorized("Invalid or expired token");
+                return Unauthorized("Authorization token is required or invalid");
             }
 
             var savedBlogs = await _savedBlogService.GetSavedBlogsByUserIdAsync(currentUser.Id);
@@ -65,22 +54,11 @@ public class SavedBlogsController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            // Extract the JWT token from Authorization header
-            var authHeader = Request.Headers.Authorization.FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-            {
-                _logger.LogWarning("Missing or invalid authorization header");
-                return Unauthorized("Authorization token is required");
-            }
-
-            var token = authHeader.Substring("Bearer ".Length);
-            
-            // Get current user from UserService
-            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
+            // Get current user using authorization service
+            var currentUser = await _authorizationService.GetCurrentUserAsync(HttpContext);
             if (currentUser == null)
             {
-                _logger.LogWarning("Failed to get current user from UserService");
-                return Unauthorized("Invalid or expired token");
+                return Unauthorized("Authorization token is required or invalid");
             }
 
             var savedBlog = await _savedBlogService.SaveBlogAsync(currentUser.Id, createDto);
@@ -102,22 +80,11 @@ public class SavedBlogsController : ControllerBase
     {
         try
         {
-            // Extract the JWT token from Authorization header
-            var authHeader = Request.Headers.Authorization.FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-            {
-                _logger.LogWarning("Missing or invalid authorization header");
-                return Unauthorized("Authorization token is required");
-            }
-
-            var token = authHeader.Substring("Bearer ".Length);
-            
-            // Get current user from UserService
-            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
+            // Get current user using authorization service
+            var currentUser = await _authorizationService.GetCurrentUserAsync(HttpContext);
             if (currentUser == null)
             {
-                _logger.LogWarning("Failed to get current user from UserService");
-                return Unauthorized("Invalid or expired token");
+                return Unauthorized("Authorization token is required or invalid");
             }
 
             await _savedBlogService.UnsaveBlogAsync(currentUser.Id, blogPostId);
@@ -139,22 +106,11 @@ public class SavedBlogsController : ControllerBase
     {
         try
         {
-            // Extract the JWT token from Authorization header
-            var authHeader = Request.Headers.Authorization.FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-            {
-                _logger.LogWarning("Missing or invalid authorization header");
-                return Unauthorized("Authorization token is required");
-            }
-
-            var token = authHeader.Substring("Bearer ".Length);
-            
-            // Get current user from UserService
-            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
+            // Get current user using authorization service
+            var currentUser = await _authorizationService.GetCurrentUserAsync(HttpContext);
             if (currentUser == null)
             {
-                _logger.LogWarning("Failed to get current user from UserService");
-                return Unauthorized("Invalid or expired token");
+                return Unauthorized("Authorization token is required or invalid");
             }
 
             var isBookmarked = await _savedBlogService.IsBookmarkedAsync(currentUser.Id, blogPostId);

@@ -10,18 +10,17 @@ namespace BlogService.Controllers;
 public class BlogPostsController : ControllerBase
 {
     private readonly IBlogPostService _blogPostService;
-    private readonly IUserServiceClient _userServiceClient;
     private readonly ILogger<BlogPostsController> _logger;
-    private readonly IFriendshipService _friendshipService;
-    private readonly IJwtUserService _jwtUserService;
+    private readonly IFriendsPostService _friendsPostService;
 
-    public BlogPostsController(IBlogPostService blogPostService, IUserServiceClient userServiceClient, ILogger<BlogPostsController> logger, IFriendshipService friendshipService, IJwtUserService jwtUserService)
+    public BlogPostsController(
+        IBlogPostService blogPostService, 
+        ILogger<BlogPostsController> logger,
+        IFriendsPostService friendsPostService)
     {
         _blogPostService = blogPostService;
-        _userServiceClient = userServiceClient;
         _logger = logger;
-        _friendshipService = friendshipService;
-        _jwtUserService = jwtUserService;
+        _friendsPostService = friendsPostService;
     }
 
     [HttpGet]
@@ -109,49 +108,8 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Received blog post creation request: Title={Title}, AuthorId={AuthorId}", 
-                createDto?.Title ?? "null", createDto?.AuthorId ?? "null");
-
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-                    .Where(x => x.Value?.Errors.Count > 0)
-                    .Select(x => $"{x.Key}: {string.Join(", ", x.Value.Errors.Select(e => e.ErrorMessage))}")
-                    .ToArray();
-                
-                _logger.LogWarning("Model state invalid: {Errors}", string.Join("; ", errors));
-                return BadRequest(ModelState);
-            }
-
-            // Extract the JWT token from Authorization header
-            var authHeader = Request.Headers.Authorization.FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-            {
-                _logger.LogWarning("Missing or invalid authorization header");
-                return Unauthorized("Authorization token is required");
-            }
-
-            var token = authHeader.Substring("Bearer ".Length);
-            _logger.LogInformation("Extracted token length: {TokenLength}", token.Length);
-            
-            // Get current user from UserService
-            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
-            if (currentUser == null)
-            {
-                _logger.LogWarning("Failed to get current user from UserService");
-                return Unauthorized("Invalid or expired token");
-            }
-
-            _logger.LogInformation("Current user retrieved: Id={UserId}, Name={UserName}", 
-                currentUser.Id, currentUser.Name);
-
-            // Override AuthorId with current user's ID to ensure security
-            createDto.AuthorId = currentUser.Id;
-            _logger.LogInformation("Updated createDto.AuthorId to: {AuthorId}", createDto.AuthorId);
-
-            var blogPost = await _blogPostService.CreateAsync(createDto);
+            var blogPost = await _blogPostService.CreateAsync(createDto, HttpContext);
             _logger.LogInformation("Blog post created successfully with ID: {BlogPostId}", blogPost.Id);
-            
             return CreatedAtAction(nameof(GetBlogPost), new { id = blogPost.Id }, blogPost);
         }
         catch (ArgumentException ex)
@@ -171,42 +129,7 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Received blog post update request for ID: {Id}", id);
-
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-                    .Where(x => x.Value?.Errors.Count > 0)
-                    .Select(x => $"{x.Key}: {string.Join(", ", x.Value.Errors.Select(e => e.ErrorMessage))}")
-                    .ToArray();
-                
-                _logger.LogWarning("Model state invalid: {Errors}", string.Join("; ", errors));
-                return BadRequest(ModelState);
-            }
-
-            // Extract the JWT token from Authorization header
-            var authHeader = Request.Headers.Authorization.FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-            {
-                _logger.LogWarning("Missing or invalid authorization header");
-                return Unauthorized("Authorization token is required");
-            }
-
-            var token = authHeader.Substring("Bearer ".Length);
-            _logger.LogInformation("Extracted token for update operation");
-            
-            // Get current user from UserService
-            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
-            if (currentUser == null)
-            {
-                _logger.LogWarning("Failed to get current user from UserService");
-                return Unauthorized("Invalid or expired token");
-            }
-
-            _logger.LogInformation("Current user retrieved for update: Id={UserId}, Name={UserName}", 
-                currentUser.Id, currentUser.Name);
-
-            var blogPost = await _blogPostService.UpdateAsync(id, updateDto, currentUser.Id);
+            var blogPost = await _blogPostService.UpdateAsync(id, updateDto, HttpContext);
             return Ok(blogPost);
         }
         catch (ArgumentException ex)
@@ -230,31 +153,7 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Received blog post delete request for ID: {Id}", id);
-
-            // Extract the JWT token from Authorization header
-            var authHeader = Request.Headers.Authorization.FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-            {
-                _logger.LogWarning("Missing or invalid authorization header");
-                return Unauthorized("Authorization token is required");
-            }
-
-            var token = authHeader.Substring("Bearer ".Length);
-            _logger.LogInformation("Extracted token for delete operation");
-            
-            // Get current user from UserService
-            var currentUser = await _userServiceClient.GetCurrentUserAsync(token);
-            if (currentUser == null)
-            {
-                _logger.LogWarning("Failed to get current user from UserService");
-                return Unauthorized("Invalid or expired token");
-            }
-
-            _logger.LogInformation("Current user retrieved for delete: Id={UserId}, Name={UserName}", 
-                currentUser.Id, currentUser.Name);
-
-            await _blogPostService.DeleteAsync(id, currentUser.Id);
+            await _blogPostService.DeleteAsync(id, HttpContext);
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -278,24 +177,12 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            var currentUserId = _jwtUserService.GetCurrentUserId();
-            if (currentUserId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
-
-            // Get friends list
-            var friends = await _friendshipService.GetUserFriendsAsync(currentUserId);
-            var friendUserIds = friends.Select(f => f.UserId).ToList();
-
-            if (!friendUserIds.Any())
-            {
-                // Return empty result if user has no friends
-                return Ok(new { posts = new List<BlogPostDto>(), totalCount = 0, page, pageSize });
-            }
-
-            var result = await _blogPostService.GetFriendsPostsAsync(friendUserIds, page, pageSize);
+            var result = await _friendsPostService.GetFriendsPostsAsync(HttpContext, page, pageSize);
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {

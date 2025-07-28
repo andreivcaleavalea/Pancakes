@@ -9,16 +9,16 @@ namespace BlogService.Controllers;
 public class PostRatingsController : ControllerBase
 {
     private readonly IPostRatingService _ratingService;
-    private readonly IJwtUserService _jwtUserService;
+    private readonly IUserContextService _userContextService;
     private readonly ILogger<PostRatingsController> _logger;
 
     public PostRatingsController(
         IPostRatingService ratingService, 
-        IJwtUserService jwtUserService,
+        IUserContextService userContextService,
         ILogger<PostRatingsController> logger)
     {
         _ratingService = ratingService;
-        _jwtUserService = jwtUserService;
+        _userContextService = userContextService;
         _logger = logger;
     }
 
@@ -28,9 +28,9 @@ public class PostRatingsController : ControllerBase
         try
         {
             // Allow both authenticated and unauthenticated access to rating stats
-            var UserId = _jwtUserService.GetCurrentUserId();
+            var userId = _userContextService.GetCurrentUserId(HttpContext);
 
-            var stats = await _ratingService.GetRatingStatsAsync(blogPostId, UserId);
+            var stats = await _ratingService.GetRatingStatsAsync(blogPostId, userId);
             return Ok(stats);
         }
         catch (Exception ex)
@@ -66,25 +66,13 @@ public class PostRatingsController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            // Set user identifier from validated token
-            _logger.LogInformation("Attempting to get user ID from JWT token...");
-            try
-            {
-                createDto.UserId = GetUserId();
-                _logger.LogInformation("Successfully extracted user ID: {UserId}", createDto.UserId);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogWarning("Failed to extract user ID from JWT token: {Message}", ex.Message);
-                return Unauthorized(ex.Message);
-            }
+            // Set user identifier using context service
+            _logger.LogInformation("Attempting to get user ID...");
+            createDto.UserId = _userContextService.GetCurrentUserId(HttpContext);
+            _logger.LogInformation("Successfully extracted user ID: {UserId}", createDto.UserId);
 
             var rating = await _ratingService.CreateOrUpdateRatingAsync(createDto);
             return Ok(rating);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
         }
         catch (ArgumentException ex)
         {
@@ -102,13 +90,9 @@ public class PostRatingsController : ControllerBase
     {
         try
         {
-            var UserId = GetUserId();
-            await _ratingService.DeleteRatingAsync(blogPostId, UserId);
+            var userId = _userContextService.GetCurrentUserId(HttpContext);
+            await _ratingService.DeleteRatingAsync(blogPostId, userId);
             return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ex.Message);
         }
         catch (ArgumentException ex)
         {
@@ -119,26 +103,5 @@ public class PostRatingsController : ControllerBase
             _logger.LogError(ex, "Error deleting rating for blog post {BlogPostId}", blogPostId);
             return StatusCode(500, "An error occurred while deleting the rating");
         }
-    }
-
-    private string GetUserId()
-    {
-        // Log the authorization header for debugging
-        var authHeader = Request.Headers.Authorization.FirstOrDefault();
-        _logger.LogInformation("Authorization header present: {HasAuth}, StartsWith Bearer: {IsBearer}", 
-            !string.IsNullOrEmpty(authHeader), 
-            authHeader?.StartsWith("Bearer ") == true);
-
-        // Try to get user ID from JWT token first
-        var userId = _jwtUserService.GetCurrentUserId();
-        if (!string.IsNullOrEmpty(userId))
-        {
-            _logger.LogInformation("JWT validation successful, user ID: {UserId}", userId);
-            return userId;
-        }
-
-        // If no valid JWT token, throw unauthorized exception for rating operations
-        _logger.LogWarning("JWT validation failed - no valid user ID found");
-        throw new UnauthorizedAccessException("Authorization token is required for rating operations. Please log in to rate blog posts.");
     }
 } 

@@ -67,6 +67,12 @@ builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 // Add JWT User Service for extracting user info from tokens
 builder.Services.AddScoped<IJwtUserService, JwtUserService>();
 
+// Add new authorization and context services
+builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
+builder.Services.AddScoped<IUserContextService, UserContextService>();
+builder.Services.AddScoped<IModelValidationService, ModelValidationService>();
+builder.Services.AddScoped<IFriendsPostService, FriendsPostService>();
+
 // Add HttpClient for UserService communication
 builder.Services.AddHttpClient<IUserServiceClient, UserServiceClient>();
 builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();

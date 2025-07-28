@@ -11,15 +11,21 @@ public class CommentLikeService : ICommentLikeService
     private readonly ICommentLikeRepository _likeRepository;
     private readonly ICommentRepository _commentRepository;
     private readonly IMapper _mapper;
+    private readonly IUserContextService _userContextService;
+    private readonly IModelValidationService _modelValidationService;
 
     public CommentLikeService(
         ICommentLikeRepository likeRepository,
         ICommentRepository commentRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IUserContextService userContextService,
+        IModelValidationService modelValidationService)
     {
         _likeRepository = likeRepository;
         _commentRepository = commentRepository;
         _mapper = mapper;
+        _userContextService = userContextService;
+        _modelValidationService = modelValidationService;
     }
 
     public async Task<CommentLikeStatsDto> GetLikeStatsAsync(Guid commentId, string? UserId = null)
@@ -84,5 +90,33 @@ public class CommentLikeService : ICommentLikeService
         }
 
         await _likeRepository.DeleteAsync(existingLike.Id);
+    }
+
+    // New HttpContext-aware methods that handle all business logic
+    public async Task<CommentLikeStatsDto> GetLikeStatsAsync(Guid commentId, HttpContext httpContext)
+    {
+        var userId = _userContextService.GetCurrentUserId(httpContext);
+        return await GetLikeStatsAsync(commentId, userId);
+    }
+
+    public async Task<CommentLikeDto> CreateOrUpdateLikeAsync(CreateCommentLikeDto createDto, HttpContext httpContext, Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary modelState)
+    {
+        // Validate model state
+        var validationResult = _modelValidationService.ValidateModel(modelState);
+        if (!validationResult.IsValid)
+        {
+            throw new ArgumentException(validationResult.ErrorMessage);
+        }
+
+        // Set user identifier using context service
+        createDto.UserId = _userContextService.GetCurrentUserId(httpContext);
+
+        return await CreateOrUpdateLikeAsync(createDto);
+    }
+
+    public async Task DeleteLikeAsync(Guid commentId, HttpContext httpContext)
+    {
+        var userId = _userContextService.GetCurrentUserId(httpContext);
+        await DeleteLikeAsync(commentId, userId);
     }
 } 
