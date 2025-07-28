@@ -8,25 +8,22 @@ namespace UserService.Services.Implementations;
 
 public class AuthService : IAuthService
 {
-    private readonly OAuthService _oauthService;
-    private readonly UserManagementService _userService;
-    private readonly JwtService _jwtService;
-    private readonly CurrentUserService _currentUserService;
+    private readonly IOAuthService _oauthService;
+    private readonly IJwtService _jwtService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _persistentUserService;
     private readonly IUserMappingService _userMappingService;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
-        OAuthService oauthService,
-        UserManagementService userService,
-        JwtService jwtService,
-        CurrentUserService currentUserService,
+        IOAuthService oauthService,
+        IJwtService jwtService,
+        ICurrentUserService currentUserService,
         IUserService persistentUserService,
         IUserMappingService userMappingService,
         ILogger<AuthService> logger)
     {
         _oauthService = oauthService;
-        _userService = userService;
         _jwtService = jwtService;
         _currentUserService = currentUserService;
         _persistentUserService = persistentUserService;

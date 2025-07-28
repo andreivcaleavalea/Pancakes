@@ -3,10 +3,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using UserService.Models;
+using UserService.Services.Interfaces;
 
-namespace UserService.Services
+namespace UserService.Services.Implementations
 {
-    public class JwtService
+    public class JwtService : IJwtService
     {
         private readonly IConfiguration _configuration;
 
@@ -122,6 +123,17 @@ namespace UserService.Services
         public bool ValidateToken(string token)
         {
             return GetUserFromToken(token) != null;
+        }
+
+        /// <summary>
+        /// Decodes a JWT token and returns the user information.
+        /// Alias for GetUserFromToken to match interface.
+        /// </summary>
+        /// <param name="token">JWT token string</param>
+        /// <returns>User object if token is valid, null otherwise</returns>
+        public User? DecodeToken(string token)
+        {
+            return GetUserFromToken(token);
         }
     }
 }

@@ -15,14 +15,14 @@ public class FriendshipService : IFriendshipService
     private readonly IFriendshipRepository _friendshipRepository;
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
-    private readonly CurrentUserService _currentUserService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<FriendshipService> _logger;
 
     public FriendshipService(
         IFriendshipRepository friendshipRepository,
         IUserRepository userRepository,
         IMapper mapper,
-        CurrentUserService currentUserService,
+        ICurrentUserService currentUserService,
         ILogger<FriendshipService> logger)
     {
         _friendshipRepository = friendshipRepository;

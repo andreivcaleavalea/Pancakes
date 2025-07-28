@@ -40,10 +40,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 
 // Add custom services
-builder.Services.AddScoped<OAuthService>();
-builder.Services.AddScoped<UserManagementService>();
-builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<CurrentUserService>();
+builder.Services.AddScoped<IOAuthService, OAuthService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IUserService, UserService.Services.Implementations.UserService>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
