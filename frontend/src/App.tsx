@@ -1,5 +1,5 @@
 import React from "react";
-import { ConfigProvider, App as AntdApp } from "antd";
+import { ConfigProvider, App as AntApp } from "antd";
 import { RouterProvider } from "./router/RouterProvider";
 import MainLayout from "./layouts/MainLayout/MainLayout";
 import PageRenderer from "./router/PageRenderer";
@@ -26,13 +26,13 @@ const App: React.FC = () => {
         },
       }}
     >
-      <AntdApp>
+      <AntApp>
         <RouterProvider>
           <MainLayout>
             <PageRenderer />
           </MainLayout>
         </RouterProvider>
-      </AntdApp>
+      </AntApp>
     </ConfigProvider>
   );
 };

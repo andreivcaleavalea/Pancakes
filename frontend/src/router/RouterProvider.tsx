@@ -13,12 +13,16 @@ export type PageType =
   | "blog-view"
   | "edit-blog"
   | "saved"
-  | "friends";
+  | "friends"
+  | "profile"
+    | "personal-page" 
+    | "public";
 export type LoginMode = "signin" | "register";
 
 interface RouterContextType {
   currentPage: PageType;
   loginMode: LoginMode;
+  publicSlug?: string;
   blogId?: string;
   navigate: (page: PageType, mode?: LoginMode, blogId?: string) => void;
 }
@@ -41,10 +45,13 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
   const [loginMode, setLoginMode] = useState<LoginMode>("signin");
   const [blogId, setBlogId] = useState<string | undefined>();
+  const [publicSlug, setPublicSlug] = useState<string | undefined>();
 
   useEffect(() => {
     const handleRouteChange = () => {
       const path = window.location.pathname;
+  const updatePageFromPath = () => {
+    const path = window.location.pathname;
 
       // Handle auth callback
       if (path === "/auth/callback") {
@@ -68,6 +75,23 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       } else {
         setCurrentPage("home");
       }
+    // Handle public pages
+    if (path.startsWith("/public/")) {
+      const slug = path.replace("/public/", "");
+      setCurrentPage("public");
+      setPublicSlug(slug);
+      return;
+    }
+
+    if (path === "/login") {
+      setCurrentPage("login");
+    } else if (path === "/profile") {
+      setCurrentPage("profile");
+    } else if (path === "/personal-page") {
+      setCurrentPage("personal-page");
+    } else {
+      setCurrentPage("home");
+    }
 
       const params = new URLSearchParams(window.location.search);
       const mode = params.get("mode");
@@ -88,6 +112,27 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
+    };
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    if (mode === "register" || mode === "signin") {
+      setLoginMode(mode);
+    }
+  };
+
+  useEffect(() => {
+    // Update page on initial load
+    updatePageFromPath();
+
+    // Listen for back/forward navigation
+    const handlePopState = () => {
+      updatePageFromPath();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
     };
   }, []);
 
@@ -114,6 +159,7 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
   };
 
   return (
+    <RouterContext.Provider value={{ currentPage, loginMode, publicSlug, navigate }}>
     <RouterContext.Provider
       value={{ currentPage, loginMode, blogId, navigate }}
     >

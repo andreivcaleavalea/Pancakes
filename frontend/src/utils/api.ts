@@ -1,5 +1,4 @@
-import { API_CONFIG, ERROR_MESSAGES } from "./constants";
-
+import { API_CONFIG, ERROR_MESSAGES } from './constants';
 // API Error handling
 export class ApiError extends Error {
   public status: number;
@@ -19,6 +18,8 @@ export const apiRequest = async <T>(
   options: RequestInit = {}
 ): Promise<T> => {
   const url = `${API_CONFIG.BLOG_API_URL}${endpoint}`;
+  
+  
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);

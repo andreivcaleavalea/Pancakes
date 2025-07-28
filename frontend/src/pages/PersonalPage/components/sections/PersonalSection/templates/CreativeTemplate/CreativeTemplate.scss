@@ -1,0 +1,138 @@
+.creative-template {
+  margin-bottom: 32px;
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+
+  // Override default styles when advanced settings are active
+  &--custom {
+    // Use CSS custom properties for advanced settings
+    background: var(--advanced-background, none);
+    background-size: var(--advanced-background-size, auto);
+    border-radius: var(--advanced-border-radius, inherit);
+    box-shadow: var(--advanced-box-shadow, inherit);
+    margin-top: var(--advanced-margin-top, inherit);
+    margin-bottom: var(--advanced-margin-bottom, inherit);
+    margin-left: var(--advanced-margin-left, inherit);
+    margin-right: var(--advanced-margin-right, inherit);
+    border: var(--advanced-border, inherit);
+    overflow: var(--advanced-overflow, inherit);
+    width: var(--advanced-width, inherit);
+    // KEEP position relative for settings button - DO NOT inherit
+    position: relative !important;
+  }
+
+  &__bg-pattern {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    transform: translate(50px, -50px);
+  }
+
+  &__content {
+    padding: 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__avatar-container {
+    text-align: center;
+    margin-bottom: 20px;
+
+    .creative-template__avatar-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .creative-template__rotating-ring {
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      right: -15px;
+      bottom: -15px;
+      border-radius: 50%;
+      animation: rotate 8s linear infinite;
+      z-index: 1;
+    }
+
+    .creative-template__pulsing-ring {
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      right: -8px;
+      bottom: -8px;
+      border-radius: 50%;
+      animation: pulse 3s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    .creative-template__avatar {
+      border: 3px solid white;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      animation: rotate 6s linear infinite;
+    }
+  }
+
+  &__name {
+    margin-bottom: 12px;
+    font-weight: 700;
+    font-size: 28px;
+    color: #2c3e50;
+  }
+
+  &__contact-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    .creative-template__contact-tag {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+  }
+
+  &__bio {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #666;
+    margin: 0;
+    font-style: italic;
+  }
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+  .creative-template {
+    &__content {
+      padding: 24px;
+    }
+
+    &__name {
+      font-size: 24px;
+    }
+
+    &__contact-tags {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+} 
