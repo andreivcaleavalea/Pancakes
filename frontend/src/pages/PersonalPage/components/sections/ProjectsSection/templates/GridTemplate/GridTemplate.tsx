@@ -147,7 +147,7 @@ const GridTemplate: React.FC<GridTemplateProps> = ({
                 </Paragraph>
               )}
               
-              {project.technologies && (
+              {project.technologies && typeof project.technologies === 'string' && (
                 <div className="grid-template__tech-container">
                   <Tag color={sectionPrimaryColor} className="grid-template__tech-tag">
                     {project.technologies.split(',')[0]?.trim()}

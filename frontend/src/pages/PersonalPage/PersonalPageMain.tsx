@@ -2,6 +2,7 @@ import React from 'react';
 import { usePersonalPageComposed } from './hooks';
 import { PersonalPageSections } from './components/PersonalPageSections';
 import SectionOrderControl from './components/SectionOrderControl';
+import PublicSettingsControl from './components/PublicSettingsControl';
 import { LoadingState } from './components/ui/LoadingState';
 import { ErrorState } from './components/ui/ErrorState';
 import { PersonalPageActions } from './components/ui/PersonalPageActions';
@@ -9,7 +10,7 @@ import { PersonalPageFooter } from './components/ui/PersonalPageFooter';
 import './PersonalPage.scss';
 
 
-const PersonalPageRefactored: React.FC = () => {
+const PersonalPage: React.FC = () => {
   const {
     user,
     // Data
@@ -26,6 +27,8 @@ const PersonalPageRefactored: React.FC = () => {
     sectionVisibility,
     colorScheme,
     visibleSectionCount,
+    isPublic,
+    pageSlug,
     
     // State
     hasUnsavedChanges,
@@ -37,6 +40,8 @@ const PersonalPageRefactored: React.FC = () => {
     updateSectionOrder,
     updateSectionVisibility,
     updateSectionSettings,
+    updatePublicToggle,
+    updatePageSlug,
   } = usePersonalPageComposed();
 
   // Loading state
@@ -77,6 +82,14 @@ const PersonalPageRefactored: React.FC = () => {
           onSectionVisibilityChange={updateSectionVisibility}
         />
         
+        {/* Public/Private Settings */}
+        <PublicSettingsControl
+          isPublic={isPublic}
+          pageSlug={pageSlug}
+          onPublicToggle={updatePublicToggle}
+          onPageSlugChange={updatePageSlug}
+        />
+        
         {/* Render all sections */}
         <PersonalPageSections
           sectionOrder={sectionOrder}
@@ -108,4 +121,4 @@ const PersonalPageRefactored: React.FC = () => {
   );
 };
 
-export default PersonalPageRefactored;
+export default PersonalPage; 

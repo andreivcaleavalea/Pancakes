@@ -42,7 +42,7 @@ const HeroTemplate: React.FC<PersonalTemplateProps> = ({
           <Col xs={24} md={8} style={{ textAlign: 'center' }}>
             <Avatar
               size={120}
-              src={user.avatar ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.avatar}` : undefined}
+              src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
               className="hero-template__avatar"
               style={{ 
                 marginBottom: '16px', 

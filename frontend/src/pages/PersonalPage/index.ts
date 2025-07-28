@@ -1,4 +1,4 @@
-export { default as PersonalPageRefactored } from './PersonalPageRefactored';
+export { default as PersonalPage } from './PersonalPageMain';
 export { default as PublicPersonalPage } from './PublicPersonalPage';
 
 export * from './hooks';

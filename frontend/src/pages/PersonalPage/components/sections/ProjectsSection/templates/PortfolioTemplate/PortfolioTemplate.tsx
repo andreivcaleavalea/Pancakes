@@ -165,7 +165,7 @@ const PortfolioTemplate: React.FC<PortfolioTemplateProps> = ({
                   )}
                   
                   {/* Tech Stack */}
-                  {project.technologies && (
+                  {project.technologies && typeof project.technologies === 'string' && (
                     <div className="portfolio-template__tech-stack">
                       <Text className="portfolio-template__tech-label">
                         TECH STACK:

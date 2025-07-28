@@ -45,7 +45,7 @@ const CardTemplate: React.FC<PersonalTemplateProps> = ({
       <div style={getContentStyles()}>
         <Avatar
           size={120}
-          src={user.avatar ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.avatar}` : undefined}
+          src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
           className="card-template__avatar"
         />
         <Title level={2} style={getTypographyStyles()}>

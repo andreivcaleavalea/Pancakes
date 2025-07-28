@@ -2,6 +2,10 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
+  
+  // Performance optimizations for touch devices
+  touch-action: manipulation;
+  -webkit-overflow-scrolling: touch;
 
   &__loading,
   &__error {
