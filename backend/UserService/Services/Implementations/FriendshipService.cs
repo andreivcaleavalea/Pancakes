@@ -3,6 +3,10 @@ using UserService.Models;
 using UserService.Models.DTOs;
 using UserService.Repositories.Interfaces;
 using UserService.Services.Interfaces;
+using UserService.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace UserService.Services.Implementations;
 
@@ -11,15 +15,21 @@ public class FriendshipService : IFriendshipService
     private readonly IFriendshipRepository _friendshipRepository;
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
+    private readonly CurrentUserService _currentUserService;
+    private readonly ILogger<FriendshipService> _logger;
 
     public FriendshipService(
         IFriendshipRepository friendshipRepository,
         IUserRepository userRepository,
-        IMapper mapper)
+        IMapper mapper,
+        CurrentUserService currentUserService,
+        ILogger<FriendshipService> logger)
     {
         _friendshipRepository = friendshipRepository;
         _userRepository = userRepository;
         _mapper = mapper;
+        _currentUserService = currentUserService;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<FriendDto>> GetUserFriendsAsync(string userId)
@@ -210,5 +220,202 @@ public class FriendshipService : IFriendshipService
     public async Task<bool> AreFriendsAsync(string userId1, string userId2)
     {
         return await _friendshipRepository.AreFriendsAsync(userId1, userId2);
+    }
+
+    // HttpContext-aware methods for controller use
+    public async Task<IActionResult> GetFriendsAsync(HttpContext httpContext)
+    {
+        try
+        {
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return new UnauthorizedObjectResult("User not authenticated");
+            }
+
+            var friends = await GetUserFriendsAsync(currentUserId);
+            return new OkObjectResult(friends);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving friends");
+            return new ObjectResult(new { message = "Error retrieving friends" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> GetPendingRequestsAsync(HttpContext httpContext)
+    {
+        try
+        {
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return new UnauthorizedObjectResult("User not authenticated");
+            }
+
+            var requests = await GetPendingRequestsAsync(currentUserId);
+            return new OkObjectResult(requests);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving friend requests");
+            return new ObjectResult(new { message = "Error retrieving friend requests" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> GetAvailableUsersAsync(HttpContext httpContext)
+    {
+        try
+        {
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return new UnauthorizedObjectResult("User not authenticated");
+            }
+
+            var availableUsers = await GetAvailableUsersAsync(currentUserId);
+            return new OkObjectResult(availableUsers);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving available users");
+            return new ObjectResult(new { message = "Error retrieving available users" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> SendFriendRequestAsync(HttpContext httpContext, CreateFriendRequestDto request)
+    {
+        try
+        {
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return new UnauthorizedObjectResult("User not authenticated");
+            }
+
+            var friendship = await SendFriendRequestAsync(currentUserId, request.ReceiverId);
+            return new OkObjectResult(friendship);
+        }
+        catch (ArgumentException ex)
+        {
+            return new BadRequestObjectResult(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return new ConflictObjectResult(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending friend request");
+            return new ObjectResult(new { message = "Error sending friend request" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> AcceptFriendRequestAsync(HttpContext httpContext, Guid friendshipId)
+    {
+        try
+        {
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return new UnauthorizedObjectResult("User not authenticated");
+            }
+
+            var friendship = await AcceptFriendRequestAsync(friendshipId, currentUserId);
+            return new OkObjectResult(friendship);
+        }
+        catch (ArgumentException ex)
+        {
+            return new NotFoundObjectResult(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return new ForbidResult(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return new BadRequestObjectResult(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error accepting friend request");
+            return new ObjectResult(new { message = "Error accepting friend request" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> RejectFriendRequestAsync(HttpContext httpContext, Guid friendshipId)
+    {
+        try
+        {
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return new UnauthorizedObjectResult("User not authenticated");
+            }
+
+            var friendship = await RejectFriendRequestAsync(friendshipId, currentUserId);
+            return new OkObjectResult(friendship);
+        }
+        catch (ArgumentException ex)
+        {
+            return new NotFoundObjectResult(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return new ForbidResult(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return new BadRequestObjectResult(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error rejecting friend request");
+            return new ObjectResult(new { message = "Error rejecting friend request" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> RemoveFriendAsync(HttpContext httpContext, string friendUserId)
+    {
+        try
+        {
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return new UnauthorizedObjectResult("User not authenticated");
+            }
+
+            await RemoveFriendAsync(currentUserId, friendUserId);
+            return new NoContentResult();
+        }
+        catch (ArgumentException ex)
+        {
+            return new NotFoundObjectResult(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing friend");
+            return new ObjectResult(new { message = "Error removing friend" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> CheckFriendshipAsync(HttpContext httpContext, string userId)
+    {
+        try
+        {
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return new UnauthorizedObjectResult("User not authenticated");
+            }
+
+            var areFriends = await AreFriendsAsync(currentUserId, userId);
+            return new OkObjectResult(areFriends);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking friendship");
+            return new ObjectResult(new { message = "Error checking friendship" }) { StatusCode = 500 };
+        }
     }
 } 
