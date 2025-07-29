@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using System.Text;
 using UserService.Data;
@@ -10,7 +9,6 @@ using UserService.Repositories.Interfaces;
 using UserService.Repositories.Implementations;
 using UserService.Services.Interfaces;
 using UserService.Services.Implementations;
-using UserService.Services.Interfaces;
 using UserService.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,19 +43,16 @@ builder.Services.AddHttpContextAccessor();
 // Add HttpClient for OAuth service
 builder.Services.AddHttpClient<OAuthService>();
 
-// Add AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// Add Entity Framework
-var connectionString = Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING") 
-    ?? throw new InvalidOperationException("POSTGRES_CONNECTION_STRING must be set in environment variables");
-
-builder.Services.AddDbContext<UserDbContext>(options =>
-    options.UseNpgsql(connectionString));
 
 // Add repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
+builder.Services.AddScoped<IEducationRepository, EducationRepository>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();
+builder.Services.AddScoped<IHobbyRepository, HobbyRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IPersonalPageSettingsRepository, PersonalPageSettingsRepository>();
 
 // Add custom services
 builder.Services.AddScoped<IOAuthService, OAuthService>();
@@ -67,6 +62,13 @@ builder.Services.AddScoped<IUserService, UserService.Services.Implementations.Us
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserMappingService, UserMappingService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IEducationService, EducationService>();
+builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<IHobbyService, HobbyService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IPersonalPageService, PersonalPageService>();
 
 // Add CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 

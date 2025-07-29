@@ -13,7 +13,7 @@ import { useRouter } from "./RouterProvider";
 import { PersonalPage } from "@/pages/PersonalPage";
 
 const PageRenderer: React.FC = () => {
-  const { currentPage, loginMode } = useRouter();
+  const { currentPage, loginMode, publicSlug } = useRouter();
 
   // Handle auth callback
   if (window.location.pathname === "/auth/callback") {

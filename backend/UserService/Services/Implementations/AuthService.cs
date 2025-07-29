@@ -78,13 +78,13 @@ public class AuthService : IAuthService
         {
             _logger.LogInformation("OAuth callback received for {Provider}", provider);
             
-            var frontendUrl = $"http://localhost:5173/auth/callback?code={code}&state={state}&provider={provider}";
+            var frontendUrl = $"http://localhost:3000/auth/callback?code={code}&state={state}&provider={provider}";
             return new RedirectResult(frontendUrl);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "OAuth callback error: {Message}", ex.Message);
-            return new RedirectResult("http://localhost:5173/login?error=callback_failed");
+            return new RedirectResult("http://localhost:3000/login?error=callback_failed");
         }
     }
 

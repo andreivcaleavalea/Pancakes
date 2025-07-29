@@ -2,18 +2,12 @@ import React from 'react';
 import { Card, Avatar, Typography, Row, Col } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
 import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
+import type { AdvancedSectionSettings } from '../../../../../../../services/personalPageService';
 import './CreativeTemplate.scss';
 
 const { Title, Text, Paragraph } = Typography;
 
-interface AdvancedSectionSettings {
-  layout: any;
-  background: any;
-  typography: any;
-  styling: any;
-  spacing: any;
-  animation: any;
-}
+
 
 interface CreativeTemplateProps {
   user: any;

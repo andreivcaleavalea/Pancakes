@@ -23,7 +23,7 @@ interface HobbiesSectionProps {
 const HobbiesSection: React.FC<HobbiesSectionProps> = ({
   sectionKey,
   hobbies,
-  primaryColor,
+
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,

@@ -11,12 +11,12 @@ namespace UserService.Controllers;
 public class PersonalPageController : ControllerBase
 {
     private readonly IPersonalPageService _personalPageService;
-    private readonly CurrentUserService _currentUserService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<PersonalPageController> _logger;
 
     public PersonalPageController(
         IPersonalPageService personalPageService,
-        CurrentUserService currentUserService,
+        ICurrentUserService currentUserService,
         ILogger<PersonalPageController> logger)
     {
         _personalPageService = personalPageService;

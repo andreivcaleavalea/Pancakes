@@ -2,18 +2,12 @@ import React from 'react';
 import { Card, Typography, Row, Col, Tag } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
 import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
+import type { AdvancedSectionSettings } from '../../../../../../../services/personalPageService';
 import './ExperienceTemplate.scss';
 
 const { Title, Text, Paragraph } = Typography;
 
-interface AdvancedSectionSettings {
-  layout: any;
-  background: any;
-  typography: any;
-  styling: any;
-  spacing: any;
-  animation: any;
-}
+
 
 interface ExperienceTemplateProps {
   jobs: any[];
@@ -79,7 +73,7 @@ const ExperienceTemplate: React.FC<ExperienceTemplateProps> = ({
   // Build content styles
   const getContentStyles = () => {
     if (!advancedSettings) return {};
-    const { spacing } = advancedSettings;
+
     return {
       padding: '32px' // Default padding,
     };
@@ -204,7 +198,7 @@ const ExperienceTemplate: React.FC<ExperienceTemplateProps> = ({
               )}
               
               <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                <Tag size="small" color={sectionPrimaryColor}>
+                <Tag color={sectionPrimaryColor}>
                   {job.startDate} - {job.endDate || 'Present'}
                 </Tag>
               </div>

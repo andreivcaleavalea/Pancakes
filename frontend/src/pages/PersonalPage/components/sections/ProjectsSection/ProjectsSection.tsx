@@ -23,7 +23,7 @@ interface ProjectsSectionProps {
 const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   sectionKey,
   projects,
-  primaryColor,
+
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,

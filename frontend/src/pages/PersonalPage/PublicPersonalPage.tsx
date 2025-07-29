@@ -6,7 +6,7 @@ import { PersonalPageService, type PublicPersonalPage } from '../../services/per
 import type { SectionVisibility } from './types';
 import './PersonalPage.scss';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 interface PublicPersonalPageProps {
   pageSlug: string;
@@ -71,27 +71,11 @@ const PublicPersonalPageComponent: React.FC<PublicPersonalPageProps> = ({ pageSl
   const { user, educations, jobs, projects, hobbies, settings } = publicPage;
   const { sectionOrder, sectionVisibility } = settings;
 
-  // Get section data helper
-  const getSectionData = (sectionKey: string) => {
-    switch (sectionKey) {
-      case 'personal':
-        return user;
-      case 'education':
-        return educations;
-      case 'jobs':
-        return jobs;
-      case 'projects':
-        return projects;
-      case 'hobbies':
-        return hobbies;
-      default:
-        return [];
-    }
-  };
+
 
   // Render section helper
   const renderSection = (sectionKey: string) => {
-    const data = getSectionData(sectionKey);
+
     const currentSectionSettings = {
       template: settings.sectionTemplates?.[sectionKey] || 'card',
       color: settings.sectionColors?.[sectionKey] || 'blue',

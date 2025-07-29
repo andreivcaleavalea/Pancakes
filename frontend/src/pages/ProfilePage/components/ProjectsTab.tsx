@@ -16,11 +16,7 @@ const ProjectsTab: React.FC = () => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
 
-  const statusColors = {
-    'In Progress': 'processing',
-    'Completed': 'success',
-    'On Hold': 'warning'
-  };
+
 
   const showModal = (project?: Project) => {
     setEditingProject(project || null);

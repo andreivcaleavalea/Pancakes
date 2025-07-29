@@ -15,8 +15,8 @@ export type PageType =
   | "saved"
   | "friends"
   | "profile"
-    | "personal-page" 
-    | "public";
+  | "personal-page" 
+  | "public";
 export type LoginMode = "signin" | "register";
 
 interface RouterContextType {
@@ -47,34 +47,14 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
   const [blogId, setBlogId] = useState<string | undefined>();
   const [publicSlug, setPublicSlug] = useState<string | undefined>();
 
-  useEffect(() => {
-    const handleRouteChange = () => {
-      const path = window.location.pathname;
   const updatePageFromPath = () => {
     const path = window.location.pathname;
 
-      // Handle auth callback
-      if (path === "/auth/callback") {
-        return; // Let AuthCallback component handle this
-      }
+    // Handle auth callback
+    if (path === "/auth/callback") {
+      return; // Let AuthCallback component handle this
+    }
 
-      if (path === "/login") {
-        setCurrentPage("login");
-      } else if (path === "/create-blog") {
-        setCurrentPage("create-blog");
-      } else if (path === "/friends") {
-        setCurrentPage("friends");
-      } else if (path === "/saved") {
-        setCurrentPage("saved");
-      } else if (path.startsWith("/edit-blog/")) {
-        setCurrentPage("edit-blog");
-        setBlogId(path.replace("/edit-blog/", ""));
-      } else if (path.startsWith("/blog/")) {
-        setCurrentPage("blog-view");
-        setBlogId(path.replace("/blog/", ""));
-      } else {
-        setCurrentPage("home");
-      }
     // Handle public pages
     if (path.startsWith("/public/")) {
       const slug = path.replace("/public/", "");
@@ -83,8 +63,28 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       return;
     }
 
+    // Handle blog pages
+    if (path.startsWith("/edit-blog/")) {
+      setCurrentPage("edit-blog");
+      setBlogId(path.replace("/edit-blog/", ""));
+      return;
+    }
+
+    if (path.startsWith("/blog/")) {
+      setCurrentPage("blog-view");
+      setBlogId(path.replace("/blog/", ""));
+      return;
+    }
+
+    // Handle other pages
     if (path === "/login") {
       setCurrentPage("login");
+    } else if (path === "/create-blog") {
+      setCurrentPage("create-blog");
+    } else if (path === "/friends") {
+      setCurrentPage("friends");
+    } else if (path === "/saved") {
+      setCurrentPage("saved");
     } else if (path === "/profile") {
       setCurrentPage("profile");
     } else if (path === "/personal-page") {
@@ -93,26 +93,7 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       setCurrentPage("home");
     }
 
-      const params = new URLSearchParams(window.location.search);
-      const mode = params.get("mode");
-      if (mode === "register" || mode === "signin") {
-        setLoginMode(mode);
-      }
-    };
-
-    // Handle initial route
-    handleRouteChange();
-
-    // Listen for browser back/forward navigation
-    const handlePopState = () => {
-      handleRouteChange();
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
+    // Handle query parameters
     const params = new URLSearchParams(window.location.search);
     const mode = params.get("mode");
     if (mode === "register" || mode === "signin") {
@@ -159,10 +140,7 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
   };
 
   return (
-    <RouterContext.Provider value={{ currentPage, loginMode, publicSlug, navigate }}>
-    <RouterContext.Provider
-      value={{ currentPage, loginMode, blogId, navigate }}
-    >
+    <RouterContext.Provider value={{ currentPage, loginMode, publicSlug, blogId, navigate }}>
       {children}
     </RouterContext.Provider>
   );
