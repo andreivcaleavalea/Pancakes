@@ -2,18 +2,12 @@ import React from 'react';
 import { Card, Typography } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
 import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
+import type { AdvancedSectionSettings } from '../../../../../../../services/personalPageService';
 import './TimelineTemplate.scss';
 
 const { Title, Text, Paragraph } = Typography;
 
-interface AdvancedSectionSettings {
-  layout: any;
-  background: any;
-  typography: any;
-  styling: any;
-  spacing: any;
-  animation: any;
-}
+
 
 interface TimelineTemplateProps {
   jobs: any[];
@@ -79,7 +73,7 @@ const TimelineTemplate: React.FC<TimelineTemplateProps> = ({
   // Build content styles
   const getContentStyles = () => {
     if (!advancedSettings) return {};
-    const { spacing } = advancedSettings;
+
     return {
       padding: '32px' // Default padding,
     };

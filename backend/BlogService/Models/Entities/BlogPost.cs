@@ -19,16 +19,9 @@ public class BlogPost
     public PostStatus Status { get; set; } = PostStatus.Draft;
     
     [Required]
-    public Guid AuthorId { get; set; }
+    public string AuthorId { get; set; } = string.Empty;
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? PublishedAt { get; set; }
-}
-
-public enum PostStatus
-{
-    Draft = 0,
-    Published = 1,
-    Archived = 2
 }

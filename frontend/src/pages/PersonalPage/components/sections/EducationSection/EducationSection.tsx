@@ -23,7 +23,7 @@ interface EducationSectionProps {
 const EducationSection: React.FC<EducationSectionProps> = ({
   sectionKey,
   educations,
-  primaryColor,
+
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,

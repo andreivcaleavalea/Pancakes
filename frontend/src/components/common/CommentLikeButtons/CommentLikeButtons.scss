@@ -1,0 +1,131 @@
+.comment-like-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &__like,
+  &__dislike {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    box-shadow: none;
+    color: #8c8c8c;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
+  &__like {
+    &:hover {
+      color: #1890ff;
+      background-color: rgba(24, 144, 255, 0.1);
+    }
+
+    &--active {
+      color: #1890ff;
+      background-color: rgba(24, 144, 255, 0.1);
+
+      &:hover {
+        color: #40a9ff;
+        background-color: rgba(24, 144, 255, 0.15);
+      }
+    }
+  }
+
+  &__dislike {
+    &:hover {
+      color: #ff4d4f;
+      background-color: rgba(255, 77, 79, 0.1);
+    }
+
+    &--active {
+      color: #ff4d4f;
+      background-color: rgba(255, 77, 79, 0.1);
+
+      &:hover {
+        color: #ff7875;
+        background-color: rgba(255, 77, 79, 0.15);
+      }
+    }
+  }
+
+  &__count {
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 2px;
+  }
+
+  // Size variations
+  &--small {
+    .comment-like-buttons__like,
+    .comment-like-buttons__dislike {
+      padding: 2px 6px;
+      height: 24px;
+      font-size: 12px;
+
+      .anticon {
+        font-size: 12px;
+      }
+    }
+
+    .comment-like-buttons__count {
+      font-size: 11px;
+    }
+  }
+
+  &--medium {
+    .comment-like-buttons__like,
+    .comment-like-buttons__dislike {
+      padding: 4px 8px;
+      height: 28px;
+      font-size: 14px;
+
+      .anticon {
+        font-size: 14px;
+      }
+    }
+
+    .comment-like-buttons__count {
+      font-size: 12px;
+    }
+  }
+
+  &--large {
+    .comment-like-buttons__like,
+    .comment-like-buttons__dislike {
+      padding: 6px 12px;
+      height: 32px;
+      font-size: 16px;
+
+      .anticon {
+        font-size: 16px;
+      }
+    }
+
+    .comment-like-buttons__count {
+      font-size: 13px;
+    }
+  }
+
+  // Mobile responsiveness
+  @media (max-width: 768px) {
+    gap: 2px;
+
+    &__like,
+    &__dislike {
+      min-width: 36px;
+      padding: 4px 6px;
+    }
+
+    &__count {
+      font-size: 11px;
+    }
+  }
+}

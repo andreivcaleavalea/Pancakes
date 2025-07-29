@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Avatar, Typography, Row, Col, Tag } from 'antd';
+import { Card, Avatar, Typography, Row, Col } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
 import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
 import './ProfessionalTemplate.scss';

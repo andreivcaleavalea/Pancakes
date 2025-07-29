@@ -2,7 +2,7 @@ import React, { useState, memo } from 'react';
 import { Card, Button, Typography, Space, Tooltip, message, Switch } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, MenuOutlined, ReloadOutlined, SettingOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 interface SectionOrderControlProps {
   sectionOrder: string[];

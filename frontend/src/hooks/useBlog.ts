@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { BlogService } from '@/services/blogService';
-import type { BlogPost, FeaturedPost } from '@/types/blog';
+import { useState, useEffect, useCallback } from "react";
+import { BlogService } from "@/services/blogService";
+import type { BlogPost, FeaturedPost } from "@/types/blog";
 
 /**
  * Custom hook for managing blog data on the home page
@@ -13,7 +13,7 @@ export const useBlogData = () => {
   }>({
     featuredPosts: [],
     horizontalPosts: [],
-    gridPosts: []
+    gridPosts: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export const useBlogData = () => {
       const blogData = await BlogService.getHomePageData();
       setData(blogData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load blog data');
+      setError(err instanceof Error ? err.message : "Failed to load blog data");
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export const usePaginatedPosts = (page: number, pageSize: number) => {
     totalPages: 0,
     totalItems: 0,
     hasNextPage: false,
-    hasPreviousPage: false
+    hasPreviousPage: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +62,7 @@ export const usePaginatedPosts = (page: number, pageSize: number) => {
       setData(result.data);
       setPagination(result.pagination);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load posts');
+      setError(err instanceof Error ? err.message : "Failed to load posts");
     } finally {
       setLoading(false);
     }
@@ -89,36 +89,102 @@ export const useResponsive = (breakpoint: number = 768) => {
     // Set initial value
     handleResize();
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [breakpoint]);
 
   return isMobile;
 };
 
 /**
- * Custom hook for managing favorite status
+ * Custom hook for fetching a single blog post by ID
  */
-export const useFavorite = (postId: string, initialState: boolean = false) => {
-  const [isFavorite, setIsFavorite] = useState(initialState);
-  const [loading, setLoading] = useState(false);
+export const useBlogPost = (id: string | undefined) => {
+  const [data, setData] = useState<BlogPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleFavorite = async () => {
-    setLoading(true);
+  const fetchPost = useCallback(async () => {
+    if (!id) {
+      setError("No blog ID provided");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const success = await BlogService.toggleFeaturedStatus(postId);
-      if (success) {
-        setIsFavorite(!isFavorite);
-        return true;
+      setLoading(true);
+      setError(null);
+      const post = await BlogService.getPostById(id);
+      setData(post);
+      if (!post) {
+        setError("Blog post not found");
       }
-      return false;
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      return false;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load blog post");
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchPost();
+  }, [fetchPost]);
+
+  return { data, loading, error, refetch: fetchPost };
+};
+
+/**
+ * Custom hook for favorite/save functionality
+ */
+export const useFavorite = (
+  blogId: string,
+  initialIsFavorite: boolean = false
+) => {
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
+  const [loading, setLoading] = useState(false);
+
+  const toggleFavorite = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      // Import here to avoid circular dependency
+      const { savedBlogsApi } = await import("../services/savedBlogApi");
+
+      if (isFavorite) {
+        // Unsave the blog
+        await savedBlogsApi.unsave(blogId);
+        setIsFavorite(false);
+      } else {
+        // Save the blog
+        await savedBlogsApi.save({ blogPostId: blogId });
+        setIsFavorite(true);
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      // Re-throw the error so the BlogCard can handle it
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [blogId, isFavorite]);
+
+  // Check initial favorite status
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      try {
+        const { savedBlogsApi } = await import("../services/savedBlogApi");
+        const result = await savedBlogsApi.isBookmarked(blogId);
+        setIsFavorite(result.isBookmarked);
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
+        // Keep the initial value if API call fails
+      }
+    };
+
+    if (blogId) {
+      checkFavoriteStatus();
+    }
+  }, [blogId]);
 
   return { isFavorite, loading, toggleFavorite };
 };

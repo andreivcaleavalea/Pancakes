@@ -11,5 +11,20 @@ public class MappingProfile : Profile
         CreateMap<BlogPost, BlogPostDto>();
         CreateMap<CreateBlogPostDto, BlogPost>();
         CreateMap<UpdateBlogPostDto, BlogPost>();
+        
+        CreateMap<Comment, CommentDto>();
+        CreateMap<CreateCommentDto, Comment>();
+        
+        CreateMap<PostRating, PostRatingDto>();
+        CreateMap<CreatePostRatingDto, PostRating>();
+        
+        CreateMap<CommentLike, CommentLikeDto>();
+        CreateMap<CreateCommentLikeDto, CommentLike>();
+        
+        CreateMap<SavedBlog, SavedBlogDto>();
+        CreateMap<CreateSavedBlogDto, SavedBlog>();
+        
+        CreateMap<Friendship, FriendshipDto>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
     }
 }

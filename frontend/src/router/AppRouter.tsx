@@ -3,6 +3,9 @@ import { useRouter } from "./RouterProvider";
 import HomePage from "@pages/HomePage/HomePage";
 import LoginPage from "@pages/LoginPage/LoginPage";
 import AuthCallback from "@pages/AuthCallback/AuthCallback";
+import CreateBlogPage from "@pages/CreateBlogPage/CreateBlogPage";
+import FriendsPage from "@pages/FriendsPage/FriendsPage";
+import SavedBlogsPage from "@pages/SavedBlogsPage/SavedBlogsPage";
 import ProfilePage from "@pages/ProfilePage/ProfilePage";
 import PublicPersonalPage from "@pages/PersonalPage/PublicPersonalPage";
 
@@ -19,6 +22,12 @@ const AppRouter: React.FC = () => {
   switch (currentPage) {
     case "login":
       return <LoginPage initialMode={loginMode} />;
+    case "create-blog":
+      return <CreateBlogPage />;
+    case "friends":
+      return <FriendsPage />;
+    case "saved":
+      return <SavedBlogsPage />;
     case "profile":
       return <ProfilePage />;
     case "personal-page":

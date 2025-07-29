@@ -1,25 +1,29 @@
-import { blogPostsApi } from './blogApi';
-import type { BlogPost, FeaturedPost, PaginatedResult, BlogPostQueryParams } from '@/types/blog';
-import { ApiError } from '@/utils/api';
+import { blogPostsApi } from "./blogApi";
+import type {
+  BlogPost,
+  FeaturedPost,
+  PaginatedResult,
+  BlogPostQueryParams,
+} from "@/types/blog";
+import { ApiError } from "@/utils/api";
 
 /**
  * Blog Service - Centralized business logic for blog operations
  * This service handles data transformation and business rules
  */
 export class BlogService {
-  
   /**
    * Transform BlogPost to include legacy fields for backward compatibility
    */
   private static transformBlogPost(post: BlogPost): BlogPost {
     return {
       ...post,
-      description: post.excerpt || post.content.substring(0, 150) + '...',
+      description: post.excerpt || post.content.substring(0, 150) + "...",
       date: post.publishedAt || post.createdAt,
-      image: post.featuredImage || '/placeholder-image.jpg',
-      // Note: author and authorAvatar will need to be fetched from UserService later
-      author: 'Author Name', // TODO: Implement user service integration
-      authorAvatar: '/default-avatar.png' // TODO: Implement user service integration
+      image: post.featuredImage || "/placeholder-image.jpg",
+      // Use the author information from the backend (already populated by UserService)
+      author: post.authorName || "Unknown Author",
+      authorAvatar: post.authorImage || "/default-avatar.png",
     };
   }
 
@@ -34,9 +38,9 @@ export class BlogService {
     try {
       // Fetch featured posts
       const featuredPostsData = await blogPostsApi.getFeatured(3);
-      const featuredPosts = featuredPostsData.map(post => ({
+      const featuredPosts = featuredPostsData.map((post) => ({
         ...this.transformBlogPost(post),
-        isFeatured: true as const
+        isFeatured: true as const,
       })) as FeaturedPost[];
 
       // Fetch horizontal posts (popular posts)
@@ -48,8 +52,8 @@ export class BlogService {
         page: 1,
         pageSize: 6,
         isFeatured: false,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        sortBy: "createdAt",
+        sortOrder: "desc",
       };
       const gridPostsResult = await blogPostsApi.getAll(gridPostsParams);
       const gridPosts = gridPostsResult.data.map(this.transformBlogPost);
@@ -57,11 +61,11 @@ export class BlogService {
       return {
         featuredPosts,
         horizontalPosts,
-        gridPosts
+        gridPosts,
       };
     } catch (error) {
-      console.error('Error fetching home page data:', error);
-      throw new Error('Failed to load blog data');
+      console.error("Error fetching home page data:", error);
+      throw new Error("Failed to load blog data");
     }
   }
 
@@ -76,19 +80,19 @@ export class BlogService {
       const params: BlogPostQueryParams = {
         page,
         pageSize,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        sortBy: "createdAt",
+        sortOrder: "desc",
       };
-      
+
       const result = await blogPostsApi.getAll(params);
-      
+
       return {
         data: result.data.map(this.transformBlogPost),
-        pagination: result.pagination
+        pagination: result.pagination,
       };
     } catch (error) {
-      console.error('Error fetching paginated posts:', error);
-      throw new Error('Failed to load posts');
+      console.error("Error fetching paginated posts:", error);
+      throw new Error("Failed to load posts");
     }
   }
 
@@ -104,7 +108,7 @@ export class BlogService {
         return null;
       }
       console.error(`Error fetching blog post ${id}:`, error);
-      throw new Error('Failed to load blog post');
+      throw new Error("Failed to load blog post");
     }
   }
 
@@ -134,19 +138,19 @@ export class BlogService {
         page,
         pageSize,
         search: searchTerm,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        sortBy: "createdAt",
+        sortOrder: "desc",
       };
-      
+
       const result = await blogPostsApi.getAll(params);
-      
+
       return {
         data: result.data.map(this.transformBlogPost),
-        pagination: result.pagination
+        pagination: result.pagination,
       };
     } catch (error) {
-      console.error('Error searching posts:', error);
-      throw new Error('Failed to search posts');
+      console.error("Error searching posts:", error);
+      throw new Error("Failed to search posts");
     }
   }
 }

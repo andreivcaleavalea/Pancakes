@@ -16,7 +16,7 @@ public class ProfileController : ControllerBase
     private readonly IJobService _jobService;
     private readonly IHobbyService _hobbyService;
     private readonly IProjectService _projectService;
-    private readonly CurrentUserService _currentUserService;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<ProfileController> _logger;
 
     public ProfileController(
@@ -25,7 +25,7 @@ public class ProfileController : ControllerBase
         IJobService jobService,
         IHobbyService hobbyService,
         IProjectService projectService,
-        CurrentUserService currentUserService,
+        ICurrentUserService currentUserService,
         ILogger<ProfileController> logger)
     {
         _profileService = profileService;

@@ -1,13 +1,13 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import { AuthProvider } from './contexts/AuthContext'
-import './styles/globals.scss'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import { AuthProvider } from "./contexts/AuthContext";
+import "./styles/globals.scss";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AuthProvider>
       <App />
     </AuthProvider>
   </React.StrictMode>
-)
+);
