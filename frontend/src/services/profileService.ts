@@ -2,7 +2,7 @@ import type { UserProfile, Education, Job, Hobby, Project, ProfileData } from '.
 import { authenticatedFetch } from '../lib/api';
 
 export class ProfileService {
-  private static readonly BASE_URL = import.meta.env.VITE_USER_API_URL || 'http://localhost:5141';
+
 
   // Get complete profile data
   static async getProfileData(): Promise<ProfileData> {

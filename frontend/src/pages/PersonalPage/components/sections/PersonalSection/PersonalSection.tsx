@@ -23,7 +23,7 @@ interface PersonalSectionProps {
 const PersonalSection: React.FC<PersonalSectionProps> = ({
   sectionKey,
   user,
-  primaryColor,
+
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,

@@ -11,7 +11,7 @@ public class MappingProfile : Profile
     {
         // User mappings
         CreateMap<User, UserDto>();
-        CreateMap<CreateUserDto, User>()
+        CreateMap<CreateUserDto, User>();
         CreateMap<User, UserProfileDto>()
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Image))
             .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => 
@@ -37,20 +37,15 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.UserId, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.LastLoginAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
-        CreateMap<UpdateUserDto, User>()
+        CreateMap<UpdateUserDto, User>();
 
         // Hobby mappings
         CreateMap<Hobby, HobbyDto>();
         CreateMap<HobbyDto, Hobby>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Email, opt => opt.Ignore())
-            .ForMember(dest => dest.Provider, opt => opt.Ignore())
-            .ForMember(dest => dest.ProviderUserId, opt => opt.Ignore())
             .ForMember(dest => dest.UserId, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.LastLoginAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
 
         // Friendship mappings

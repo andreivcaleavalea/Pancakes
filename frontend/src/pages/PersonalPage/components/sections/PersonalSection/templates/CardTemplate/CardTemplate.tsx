@@ -10,7 +10,7 @@ const { Title, Text, Paragraph } = Typography;
 const CardTemplate: React.FC<PersonalTemplateProps> = ({
   user,
   sectionKey,
-  sectionPrimaryColor,
+
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,

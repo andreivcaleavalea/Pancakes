@@ -23,7 +23,7 @@ interface JobsSectionProps {
 const JobsSection: React.FC<JobsSectionProps> = ({
   sectionKey,
   jobs,
-  primaryColor,
+
   currentSectionSettings,
   onSectionSettingsChange,
   templateOptions,

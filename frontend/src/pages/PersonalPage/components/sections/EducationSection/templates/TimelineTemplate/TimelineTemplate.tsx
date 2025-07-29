@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Typography, Timeline } from 'antd';
+import { Card, Typography } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
 import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
 import './TimelineTemplate.scss';

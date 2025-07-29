@@ -79,7 +79,7 @@ export interface PublicPersonalPage {
 }
 
 export class PersonalPageService {
-  private static readonly BASE_URL = import.meta.env.VITE_USER_API_URL || 'http://localhost:5141';
+
 
   // Get personal page settings
   static async getSettings(): Promise<PersonalPageSettings> {
