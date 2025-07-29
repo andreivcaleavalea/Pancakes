@@ -15,24 +15,39 @@ const { Header: AntHeader } = Layout;
 
 const Header: React.FC = () => {
   const { user, isAuthenticated, signOut } = useAuth();
-  const { navigate } = useRouter();
+  const { navigate, currentPage } = useRouter();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Function to get the selected menu key based on current page
+  const getSelectedKey = () => {
+    switch (currentPage) {
+      case 'home':
+        return ['home'];
+      case 'saved':
+        return ['saved'];
+      case 'friends':
+        return ['friends'];
+      case 'profile':
+        return ['profile'];
+      default:
+        return [];
+    }
+  };
 
   const handleMenuClick = (key: string) => {
     switch (key) {
       case 'home':
         navigate('home');
         break;
+      case 'saved':
+        navigate('saved');
+        break;
+      case 'friends':
+        navigate('friends');
+        break;
       case 'profile':
         navigate('profile');
-        break;
-      case 'explore':
-      case 'blogs':
-      case 'saved':
-      case 'friends':
-        // These pages don't exist yet, so we'll just log for now
-        console.log(`Navigate to ${key} - not implemented yet`);
         break;
       default:
         break;
@@ -41,8 +56,6 @@ const Header: React.FC = () => {
 
   const menuItems = [
     { key: 'home', label: 'Home' },
-    { key: 'explore', label: 'Explore' },
-    { key: 'blogs', label: 'My blogs' },
     { key: 'saved', label: 'Saved' },
     { key: 'friends', label: 'Friends' },
     { key: 'profile', label: 'Profile' },
@@ -219,7 +232,7 @@ const Header: React.FC = () => {
               mode="horizontal"
               items={menuItems}
               className="header__menu"
-              selectedKeys={["blogs"]}
+              selectedKeys={getSelectedKey()}
               disabledOverflow={true}
               onSelect={({ key }) => handleMenuClick(key)}
             />
@@ -261,7 +274,7 @@ const Header: React.FC = () => {
             mode="vertical"
             items={menuItems}
             className="header__mobile-menu-items"
-            selectedKeys={["blogs"]}
+            selectedKeys={getSelectedKey()}
             onSelect={({ key }) => {
               handleMenuClick(key);
               setDrawerVisible(false); // Close drawer on mobile after selection
