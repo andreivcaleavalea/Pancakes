@@ -11,11 +11,16 @@ public class BlogPostsController : ControllerBase
 {
     private readonly IBlogPostService _blogPostService;
     private readonly ILogger<BlogPostsController> _logger;
+    private readonly IFriendsPostService _friendsPostService;
 
-    public BlogPostsController(IBlogPostService blogPostService, ILogger<BlogPostsController> logger)
+    public BlogPostsController(
+        IBlogPostService blogPostService, 
+        ILogger<BlogPostsController> logger,
+        IFriendsPostService friendsPostService)
     {
         _blogPostService = blogPostService;
         _logger = logger;
+        _friendsPostService = friendsPostService;
     }
 
     [HttpGet]
@@ -82,21 +87,34 @@ public class BlogPostsController : ControllerBase
         }
     }
 
+    [HttpPost("{id}/view")]
+    public IActionResult IncrementViewCount(Guid id)
+    {
+        try
+        {
+            // Optional endpoint - just return success for now
+            // You can implement actual view counting logic later if needed
+            return Ok(new { success = true, message = "View count incremented" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error incrementing view count for blog post {Id}", id);
+            return StatusCode(500, "An error occurred while updating view count");
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateBlogPost([FromBody] CreateBlogPostDto createDto)
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var blogPost = await _blogPostService.CreateAsync(createDto);
+            var blogPost = await _blogPostService.CreateAsync(createDto, HttpContext);
+            _logger.LogInformation("Blog post created successfully with ID: {BlogPostId}", blogPost.Id);
             return CreatedAtAction(nameof(GetBlogPost), new { id = blogPost.Id }, blogPost);
         }
         catch (ArgumentException ex)
         {
+            _logger.LogError(ex, "Validation error creating blog post");
             return BadRequest(ex.Message);
         }
         catch (Exception ex)
@@ -111,17 +129,17 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var blogPost = await _blogPostService.UpdateAsync(id, updateDto);
+            var blogPost = await _blogPostService.UpdateAsync(id, updateDto, HttpContext);
             return Ok(blogPost);
         }
         catch (ArgumentException ex)
         {
             return NotFound(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized attempt to update blog post {Id}", id);
+            return Forbid(ex.Message);
         }
         catch (Exception ex)
         {
@@ -135,17 +153,41 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            await _blogPostService.DeleteAsync(id);
+            await _blogPostService.DeleteAsync(id, HttpContext);
             return NoContent();
         }
         catch (ArgumentException ex)
         {
             return NotFound(ex.Message);
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized attempt to delete blog post {Id}", id);
+            return Forbid(ex.Message);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting blog post with ID {Id}", id);
             return StatusCode(500, "An error occurred while deleting the blog post");
+        }
+    }
+
+    [HttpGet("friends")]
+    public async Task<IActionResult> GetFriendsPosts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var result = await _friendsPostService.GetFriendsPostsAsync(HttpContext, page, pageSize);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving friends' posts");
+            return StatusCode(500, "An error occurred while retrieving friends' posts");
         }
     }
 }

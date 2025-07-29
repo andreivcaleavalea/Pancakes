@@ -2,18 +2,12 @@ import React from 'react';
 import { Card, Typography, Tag } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
 import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
+import type { AdvancedSectionSettings } from '../../../../../../../services/personalPageService';
 import './TagsTemplate.scss';
 
 const { Title } = Typography;
 
-interface AdvancedSectionSettings {
-  layout: any;
-  background: any;
-  typography: any;
-  styling: any;
-  spacing: any;
-  animation: any;
-}
+
 
 interface TagsTemplateProps {
   hobbies: any[];
@@ -79,7 +73,7 @@ const TagsTemplate: React.FC<TagsTemplateProps> = ({
   // Build content styles
   const getContentStyles = () => {
     if (!advancedSettings) return {};
-    const { spacing } = advancedSettings;
+
     return {
       padding: '32px' // Default padding,
     };

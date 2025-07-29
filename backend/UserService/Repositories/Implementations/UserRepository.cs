@@ -16,22 +16,28 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByIdAsync(string id)
     {
-        return await _context.Users
-            .Include(u => u.Educations)
-            .Include(u => u.Jobs)
-            .Include(u => u.Hobbies)
-            .Include(u => u.Projects)
-            .FirstOrDefaultAsync(u => u.Id == id);
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public async Task<User?> GetByProviderUserIdAsync(string provider, string providerUserId)
+    public async Task<User?> GetByEmailAsync(string email)
     {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+    }
+
+    public async Task<User?> GetByProviderAndProviderUserIdAsync(string provider, string providerUserId)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => 
+            u.Provider == provider && u.ProviderUserId == providerUserId);
+    }
+
+    public async Task<IEnumerable<User>> GetAllAsync(int page = 1, int pageSize = 10)
+    {
+        var skip = (page - 1) * pageSize;
         return await _context.Users
-            .Include(u => u.Educations)
-            .Include(u => u.Jobs)
-            .Include(u => u.Hobbies)
-            .Include(u => u.Projects)
-            .FirstOrDefaultAsync(u => u.Provider == provider && u.ProviderUserId == providerUserId);
+            .OrderBy(u => u.Name)
+            .Skip(skip)
+            .Take(pageSize)
+            .ToListAsync();
     }
 
     public async Task<User> CreateAsync(User user)
@@ -63,4 +69,15 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.AnyAsync(u => u.Id == id);
     }
-} 
+
+    public async Task<bool> ExistsByEmailAsync(string email)
+    {
+        return await _context.Users.AnyAsync(u => u.Email == email);
+    }
+
+    public async Task<bool> ExistsByProviderAndProviderUserIdAsync(string provider, string providerUserId)
+    {
+        return await _context.Users.AnyAsync(u => 
+            u.Provider == provider && u.ProviderUserId == providerUserId);
+    }
+}

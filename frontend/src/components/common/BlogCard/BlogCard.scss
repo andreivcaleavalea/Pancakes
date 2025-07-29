@@ -7,17 +7,17 @@
   height: 100%;
   cursor: pointer;
   background-color: var(--color-bg-card);
-  
+
   @media (max-width: 768px) {
     padding: 12px;
     background: var(--color-bg-card);
     border-radius: 8px;
   }
-  
+
   &:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 16px rgba(177, 107, 47, 0.15);
-    
+
     @media (max-width: 768px) {
       transform: none;
       box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1);
@@ -105,28 +105,28 @@
     color: var(--color-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
-    
+
     &:hover {
       color: var(--color-primary);
       transform: scale(1.1);
     }
-    
+
     &--active {
       color: var(--color-primary);
-      
+
       &:hover {
         color: var(--color-error);
       }
     }
   }
-  
+
   &__author-info {
     display: flex;
     align-items: center;
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid rgba(177, 107, 47, 0.1);
-    
+
     @media (max-width: 768px) {
       margin-top: 8px;
       padding-top: 8px;
@@ -137,9 +137,24 @@
     font-size: 14px;
     color: var(--color-text-secondary);
     font-weight: 500;
-    
+
     @media (max-width: 768px) {
       font-size: 13px;
+    }
+  }
+
+  &__user-rating {
+    margin-top: 8px;
+    padding: 6px 0 0;
+    border-top: 1px solid rgba(177, 107, 47, 0.1);
+
+    .user-rating-display {
+      justify-content: flex-start;
+    }
+
+    @media (max-width: 768px) {
+      margin-top: 6px;
+      padding-top: 4px;
     }
   }
 
@@ -154,7 +169,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   &--horizontal {
     display: flex;
     gap: 12px;
@@ -167,14 +182,14 @@
       background: var(--color-bg-card);
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      
+
       .blog-card__image--horizontal {
         border-radius: 8px 8px 0 0;
       }
 
       .blog-card__content {
         padding: 10px 12px;
-        
+
         @media (max-width: 768px) {
           padding: 10px 12px;
         }
@@ -189,11 +204,11 @@
 
   &--featured {
     box-shadow: 0 2px 12px rgba(177, 107, 47, 0.12);
-    
+
     @media (max-width: 768px) {
       box-shadow: 0 2px 8px rgba(177, 107, 47, 0.1);
     }
-    
+
     .blog-card__image {
       height: 220px;
 
@@ -219,13 +234,13 @@
       }
     }
   }
-  
+
   // Override Ant Design Card styles on mobile
   @media (max-width: 768px) {
     .ant-card-body {
       padding: 0 !important;
     }
-    
+
     &.ant-card {
       background-color: transparent !important;
       box-shadow: none !important;

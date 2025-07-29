@@ -9,9 +9,11 @@ using UserService.Repositories.Interfaces;
 using UserService.Repositories.Implementations;
 using UserService.Services.Interfaces;
 using UserService.Services.Implementations;
+using UserService.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load environment variables from .env file
 DotNetEnv.Env.Load("../../.env");
 
 builder.Services.AddControllers();
@@ -41,15 +43,25 @@ builder.Services.AddHttpContextAccessor();
 // Add HttpClient for OAuth service
 builder.Services.AddHttpClient<OAuthService>();
 
-// Register Repositories
+
+
+// Add repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 builder.Services.AddScoped<IEducationRepository, EducationRepository>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IHobbyRepository, HobbyRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IPersonalPageSettingsRepository, PersonalPageSettingsRepository>();
 
-// Register Services
+// Add custom services
+builder.Services.AddScoped<IOAuthService, OAuthService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IUserService, UserService.Services.Implementations.UserService>();
+builder.Services.AddScoped<IFriendshipService, FriendshipService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserMappingService, UserMappingService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IEducationService, EducationService>();
 builder.Services.AddScoped<IJobService, JobService>();
@@ -58,65 +70,49 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IPersonalPageService, PersonalPageService>();
 
-// Auth Services (keeping existing for now)
-builder.Services.AddScoped<OAuthService>();
-builder.Services.AddScoped<UserManagementService>();
-builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<CurrentUserService>();
-
 // Add CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
     ?? new[] { "http://localhost:5173", "http://localhost:3000" };
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowSpecificOrigins", builder =>
     {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        builder.WithOrigins(allowedOrigins)
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
-// Add JWT Authentication from environment variables
-var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
-    ?? throw new InvalidOperationException("JWT_SECRET_KEY must be set in environment variables");
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog";
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers";
+// Add JWT Authentication
+var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+    ?? throw new InvalidOperationException("JWT_SECRET must be set in environment variables");
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+var key = Encoding.ASCII.GetBytes(jwtKey);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSecretKey))
-        };
-    });
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
 
 var app = builder.Build();
-
-// Configure port based on environment variable
-var port = Environment.GetEnvironmentVariable("USER_SERVICE_PORT") ?? "5141";
-if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
-{
-    // Running in container, listen on all interfaces
-    app.Urls.Clear();
-    app.Urls.Add("http://0.0.0.0:80");
-}
-else if (app.Environment.IsDevelopment())
-{
-    // Running locally for development
-    app.Urls.Clear();
-    app.Urls.Add($"http://localhost:{port}");
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -125,23 +121,30 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
 
-// Serve static files (profile pictures)
-var assetsPath = Path.Combine(app.Environment.ContentRootPath, "assets");
-if (!Directory.Exists(assetsPath))
-{
-    Directory.CreateDirectory(assetsPath);
-}
+// Use CORS before authentication
+app.UseCors("AllowSpecificOrigins");
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(assetsPath),
-    RequestPath = "/assets"
-});
-
+// Use authentication
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
+// Apply database migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+        context.Database.Migrate();
+        Console.WriteLine("Database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error applying database migrations: {ex.Message}");
+    }
+}
+
+Console.WriteLine($"Starting UserService on port 5141");
 app.Run();

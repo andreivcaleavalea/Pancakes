@@ -1,0 +1,105 @@
+.comment-form {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+
+  &__reply-header {
+    margin-bottom: 12px;
+    color: #666;
+    font-size: 14px;
+
+    strong {
+      color: #e9833a;
+    }
+  }
+
+  &__submit {
+    margin-bottom: 0;
+    text-align: right;
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+
+    .ant-btn {
+      min-width: 100px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    .ant-btn-primary {
+      min-width: 140px;
+    }
+  }
+
+  // Reply form styling
+  &--reply {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    border-left: 3px solid #e9833a;
+
+    .ant-form-item {
+      margin-bottom: 12px;
+    }
+
+    .ant-input {
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+
+      &:focus {
+        border-color: #e9833a;
+        box-shadow: 0 0 0 3px rgba(233, 131, 58, 0.1);
+      }
+    }
+
+    // Smaller button styling for replies
+    .ant-btn {
+      height: 32px;
+      padding: 4px 12px;
+      font-size: 13px;
+    }
+  }
+
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .ant-input {
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+
+    &:focus,
+    &:hover {
+      border-color: #e9833a;
+    }
+  }
+
+  .ant-input-data-count {
+    bottom: 8px;
+    right: 12px;
+    color: #666;
+    font-size: 12px;
+  }
+
+  // Mobile styles
+  @media (max-width: 768px) {
+    padding: 16px;
+    margin-bottom: 24px;
+
+    &__submit {
+      text-align: center;
+
+      .ant-btn {
+        width: 100%;
+      }
+    }
+  }
+}

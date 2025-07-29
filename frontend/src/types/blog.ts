@@ -2,10 +2,10 @@
 export const PostStatus = {
   Draft: 0,
   Published: 1,
-  Archived: 2
+  Archived: 2,
 } as const;
 
-export type PostStatus = typeof PostStatus[keyof typeof PostStatus];
+export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus];
 
 // Core interfaces matching BlogService DTOs
 export interface BlogPost {
@@ -17,12 +17,20 @@ export interface BlogPost {
   featuredImage?: string;
   status: PostStatus;
   authorId: string;
+  authorName: string;
+  authorImage: string;
   viewCount: number;
   isFeatured: boolean;
   isPopular: boolean;
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;
+  // Legacy/computed fields for backward compatibility
+  description?: string;
+  date?: string;
+  image?: string;
+  author?: string;
+  authorAvatar?: string;
 }
 
 export interface FeaturedPost extends BlogPost {
@@ -54,7 +62,7 @@ export interface BlogPostQueryParams {
   isFeatured?: boolean;
   isPopular?: boolean;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   dateFrom?: string;
   dateTo?: string;
 }
@@ -62,18 +70,24 @@ export interface BlogPostQueryParams {
 export interface CreateBlogPostDto {
   title: string;
   content: string;
-  excerpt?: string;
   featuredImage?: string;
   status: PostStatus;
-  authorId: string;
-  isFeatured?: boolean;
+  authorId: string; // GUID string - will be overridden by backend with current user's ID
+  publishedAt?: string;
+}
+
+export interface UpdateBlogPostDto {
+  title?: string;
+  content?: string;
+  featuredImage?: string;
+  status?: PostStatus;
   publishedAt?: string;
 }
 
 // UI Props types
 export interface BlogCardProps {
   post: BlogPost;
-  variant?: 'default' | 'horizontal' | 'featured';
+  variant?: "default" | "horizontal" | "featured";
   onClick?: (post: BlogPost) => void;
 }
 
@@ -95,4 +109,15 @@ export interface UsePaginatedPostsResult {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+}
+
+export interface SavedBlog {
+  userId: string;
+  blogPostId: string;
+  savedAt: string;
+  blogPost?: BlogPost;
+}
+
+export interface CreateSavedBlogDto {
+  blogPostId: string;
 }

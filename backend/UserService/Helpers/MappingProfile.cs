@@ -10,6 +10,8 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         // User mappings
+        CreateMap<User, UserDto>();
+        CreateMap<CreateUserDto, User>();
         CreateMap<User, UserProfileDto>()
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Image))
             .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => 
@@ -36,6 +38,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.UserId, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+        CreateMap<UpdateUserDto, User>();
 
         // Hobby mappings
         CreateMap<Hobby, HobbyDto>();
@@ -45,6 +48,12 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
 
+        // Friendship mappings
+        CreateMap<Friendship, FriendshipDto>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+        CreateMap<FriendshipDto, Friendship>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => 
+                Enum.Parse<FriendshipStatus>(src.Status, true)));
         // Project mappings
         CreateMap<Project, ProjectDto>();
         CreateMap<ProjectDto, Project>()

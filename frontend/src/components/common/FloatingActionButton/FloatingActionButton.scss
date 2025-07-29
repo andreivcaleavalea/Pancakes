@@ -1,0 +1,63 @@
+.floating-action-button {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1000;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: none;
+  box-shadow: 0 4px 12px rgba(233, 131, 58, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: var(--color-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(233, 131, 58, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 4px 12px rgba(233, 131, 58, 0.3),
+      0 0 0 4px rgba(233, 131, 58, 0.1);
+  }
+
+  .anticon {
+    font-size: 20px;
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    width: 48px;
+    height: 48px;
+    bottom: 20px;
+    left: 20px;
+
+    .anticon {
+      font-size: 18px;
+    }
+  }
+}
+
+.floating-action-button.ant-btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+
+  &:hover {
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+  }
+
+  &:focus {
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+  }
+}

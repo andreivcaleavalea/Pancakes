@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
-import { Popover, Button, Form, Select, App, Collapse, Switch, Slider, Input, ColorPicker } from 'antd';
-import { SettingOutlined, SettingFilled } from '@ant-design/icons';
+import { Popover, Button, Form, Select, Collapse, Switch, Slider, ColorPicker } from 'antd';
+import { SettingOutlined } from '@ant-design/icons';
 import type { SectionSettingsPopoverProps } from '../types';
 import type { AdvancedSectionSettings } from '../../../services/personalPageService';
 import { SECTION_COLORS } from '../constants';
@@ -49,7 +49,7 @@ const SectionSettingsPopover: React.FC<SectionSettingsPopoverProps> = ({
   if (!editMode) {
     return null;
   }
-  const { message } = App.useApp();
+
   const [form] = Form.useForm();
 
   // Default advanced settings

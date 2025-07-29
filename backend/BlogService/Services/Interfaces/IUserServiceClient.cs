@@ -1,0 +1,11 @@
+using BlogService.Models.DTOs;
+
+namespace BlogService.Services.Interfaces;
+
+public interface IUserServiceClient
+{
+    Task<UserInfoDto?> GetCurrentUserAsync(string authToken);
+    Task<UserInfoDto?> GetUserByIdAsync(string userId);
+    Task<UserInfoDto?> GetUserByIdAsync(string userId, string authToken);
+    Task<IEnumerable<UserInfoDto>> GetAllUsersAsync();
+}

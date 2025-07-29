@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Typography, Progress, Row, Col } from 'antd';
+import { Card, Typography, Row, Col } from 'antd';
 import SectionSettingsPopover from '../../../../SectionSettingsPopover';
 import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
 import './ProgressTemplate.scss';
