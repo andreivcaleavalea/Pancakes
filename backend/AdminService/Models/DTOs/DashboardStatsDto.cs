@@ -2,17 +2,10 @@ namespace AdminService.Models.DTOs
 {
     public class DashboardStatsDto
     {
-        public int TotalUsers { get; set; }
-        public int ActiveUsers { get; set; }
-        public int TotalBlogPosts { get; set; }
-        public int TotalComments { get; set; }
-        public int PendingFlags { get; set; }
-        public int PendingReports { get; set; }
-        public int DailySignups { get; set; }
-        public int BlogPostsCreatedToday { get; set; }
-        public int CommentsPostedToday { get; set; }
-        public SystemResourcesDto SystemResources { get; set; } = new();
-        public List<DailyMetricDto> RecentMetrics { get; set; } = new();
+        public UserStatsDto UserStats { get; set; } = new UserStatsDto();
+        public ContentStatsDto ContentStats { get; set; } = new ContentStatsDto();
+        public ModerationStatsDto ModerationStats { get; set; } = new ModerationStatsDto();
+        public SystemStatsDto SystemStats { get; set; } = new SystemStatsDto();
     }
 
     public class SystemResourcesDto

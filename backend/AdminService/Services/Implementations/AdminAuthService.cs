@@ -75,7 +75,9 @@ namespace AdminService.Services.Implementations
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_configuration["JWT_SECRET_KEY"]!);
+                var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+                    ?? throw new InvalidOperationException("JWT_SECRET_KEY environment variable is required");
+                var key = Encoding.ASCII.GetBytes(secretKey);
 
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
@@ -83,8 +85,8 @@ namespace AdminService.Services.Implementations
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidIssuer = _configuration["JWT_ISSUER"],
-                    ValidAudience = _configuration["JWT_AUDIENCE"],
+                    ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesAdmin",
+                    ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesAdminUsers",
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
@@ -284,7 +286,9 @@ namespace AdminService.Services.Implementations
         public string GenerateJwtToken(AdminUserDto admin)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["JWT_SECRET_KEY"]!);
+            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+                ?? throw new InvalidOperationException("JWT_SECRET_KEY environment variable is required");
+            var key = Encoding.ASCII.GetBytes(secretKey);
 
             var permissions = admin.Roles.SelectMany(r => r.Permissions).Distinct().ToList();
 
@@ -313,8 +317,8 @@ namespace AdminService.Services.Implementations
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddHours(24),
-                Issuer = _configuration["JWT_ISSUER"],
-                Audience = _configuration["JWT_AUDIENCE"],
+                Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesAdmin",
+                Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesAdminUsers",
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -354,6 +358,53 @@ namespace AdminService.Services.Implementations
             var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(saltedPassword));
             var hashedPassword = Convert.ToBase64String(hashedBytes);
             return $"{hashedPassword}:{salt}";
+        }
+
+        public async Task<bool> HasAdminUsersAsync()
+        {
+            return await _context.AdminUsers.AnyAsync();
+        }
+
+        public async Task<AdminUserDto> CreateBootstrapAdminAsync(CreateAdminUserRequest request)
+        {
+            // For bootstrap, we ensure this is the first admin user
+            var existingAdmins = await _context.AdminUsers.AnyAsync();
+            if (existingAdmins)
+            {
+                throw new InvalidOperationException("Admin users already exist. Use regular admin creation endpoint.");
+            }
+
+            // Get the SuperAdmin role
+            var superAdminRole = await _context.AdminRoles
+                .FirstOrDefaultAsync(r => r.Name == "SuperAdmin");
+            
+            if (superAdminRole == null)
+            {
+                throw new InvalidOperationException("SuperAdmin role not found. Please ensure database is properly seeded.");
+            }
+
+            var adminUser = new AdminUser
+            {
+                Id = Guid.NewGuid().ToString(),
+                Email = request.Email,
+                Name = request.Name,
+                PasswordHash = HashPassword(request.Password),
+                AdminLevel = 4, // SuperAdmin level
+                IsActive = true,
+                RequirePasswordChange = false,
+                TwoFactorEnabled = false,
+                CreatedBy = "SYSTEM",
+                CreatedAt = DateTime.UtcNow,
+                LastLoginAt = DateTime.UtcNow,
+                PasswordChangedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Roles = new List<AdminRole> { superAdminRole }
+            };
+
+            _context.AdminUsers.Add(adminUser);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<AdminUserDto>(adminUser);
         }
     }
 }

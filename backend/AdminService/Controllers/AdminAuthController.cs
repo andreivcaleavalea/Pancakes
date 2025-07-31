@@ -24,6 +24,45 @@ namespace AdminService.Controllers
             _logger = logger;
         }
 
+        [HttpPost("bootstrap")]
+        public async Task<IActionResult> Bootstrap([FromBody] CreateAdminUserRequest request)
+        {
+            try
+            {
+                // Check if any admin users already exist
+                var hasAdmins = await _adminAuthService.HasAdminUsersAsync();
+                if (hasAdmins)
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Admin users already exist. Bootstrap is only available for initial setup."
+                    });
+                }
+
+                var admin = await _adminAuthService.CreateBootstrapAdminAsync(request);
+                
+                await _auditService.LogActionAsync("SYSTEM", "BOOTSTRAP_ADMIN_CREATED", "AdminUser", admin.Id,
+                    new { request.Email, request.Name, request.AdminLevel }, GetClientIpAddress(), GetUserAgent());
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Data = admin,
+                    Message = "Bootstrap admin user created successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating bootstrap admin user");
+                return StatusCode(500, new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "An error occurred while creating bootstrap admin user"
+                });
+            }
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AdminLoginRequest request)
         {

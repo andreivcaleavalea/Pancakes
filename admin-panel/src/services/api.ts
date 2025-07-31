@@ -1,136 +1,48 @@
 import axios from 'axios'
-
-const API_BASE_URL = import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:5002'
+import type { 
+  AdminUser, 
+  LoginResponse, 
+  ApiResponse, 
+  PagedResponse, 
+  DashboardStats, 
+  UserOverview, 
+  ContentFlag 
+} from '../types'
+import { API_CONFIG } from '../constants'
 
 // Create axios instance
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
+  baseURL: `${API_CONFIG.BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: API_CONFIG.TIMEOUT,
 })
 
-// Types
-export interface AdminUser {
-  id: string
-  email: string
-  name: string
-  adminLevel: number
-  isActive: boolean
-  requirePasswordChange: boolean
-  twoFactorEnabled: boolean
-  createdAt: string
-  lastLoginAt: string
-  roles: AdminRole[]
-}
-
-export interface AdminRole {
-  id: string
-  name: string
-  description: string
-  level: number
-  permissions: string[]
-  isActive: boolean
-}
-
-export interface LoginResponse {
-  token: string
-  adminUser: AdminUser
-  expiresAt: string
-  requirePasswordChange: boolean
-  requireTwoFactor: boolean
-}
-
-export interface ApiResponse<T> {
-  success: boolean
-  message: string
-  data: T
-  errors: string[]
-}
-
-export interface PagedResponse<T> {
-  data: T[]
-  totalCount: number
-  page: number
-  pageSize: number
-  totalPages: number
-  hasNext: boolean
-  hasPrevious: boolean
-}
-
-export interface DashboardStats {
-  userStats: {
-    totalUsers: number
-    activeUsers: number
-    onlineUsers: number
-    dailySignups: number
-    weeklySignups: number
-    monthlySignups: number
-    growthRate: number
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle different error types
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('Request timeout - please check your connection and try again');
+    } else if (error.code === 'ERR_NETWORK') {
+      throw new Error('Network error - please check if the admin service is running');
+    } else if (error.response?.status === 401) {
+      throw new Error('Invalid credentials');
+    } else if (error.response?.status === 403) {
+      throw new Error('Access denied');
+    } else if (error.response?.status >= 500) {
+      throw new Error('Server error - please try again later');
+    }
+    
+    return Promise.reject(error);
   }
-  contentStats: {
-    totalBlogPosts: number
-    publishedBlogPosts: number
-    draftBlogPosts: number
-    blogPostsToday: number
-    totalComments: number
-    commentsToday: number
-    averageRating: number
-  }
-  moderationStats: {
-    totalReports: number
-    pendingReports: number
-    totalFlags: number
-    pendingFlags: number
-    bannedUsers: number
-    deletedPosts: number
-    deletedComments: number
-  }
-  systemStats: {
-    cpuUsage: number
-    memoryUsage: number
-    diskUsage: number
-    averageResponseTime: number
-    errorsLastHour: number
-  }
-}
-
-export interface UserOverview {
-  id: string
-  name: string
-  email: string
-  provider: string
-  createdAt: string
-  lastLoginAt: string
-  isActive: boolean
-  totalBlogPosts: number
-  totalComments: number
-  reportsCount: number
-  isBanned: boolean
-}
-
-export interface ContentFlag {
-  id: string
-  contentType: string
-  contentId: string
-  flagType: string
-  flaggedBy?: string
-  autoDetected: boolean
-  severity: number
-  status: string
-  reviewedBy?: string
-  reviewedAt?: string
-  reviewNotes?: string
-  description: string
-  createdAt: string
-}
+);
 
 // API Service
 class AdminApiService {
-  private authToken = ''
-
   setAuthToken(token: string) {
-    this.authToken = token
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
     } else {

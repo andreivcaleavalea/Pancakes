@@ -56,4 +56,20 @@ public class UsersController : ControllerBase
     {
         return await _userService.DeleteAsync(HttpContext, id);
     }
+
+    [HttpPost("{id}/ban")]
+    [Authorize]
+    public async Task<IActionResult> BanUser(string id, [FromBody] BanUserRequest request)
+    {
+        request.UserId = id; // Ensure the ID from route is used
+        return await _userService.BanUserAsync(HttpContext, request);
+    }
+
+    [HttpPost("{id}/unban")]
+    [Authorize]
+    public async Task<IActionResult> UnbanUser(string id, [FromBody] UnbanUserRequest request)
+    {
+        request.UserId = id; // Ensure the ID from route is used
+        return await _userService.UnbanUserAsync(HttpContext, request);
+    }
 }

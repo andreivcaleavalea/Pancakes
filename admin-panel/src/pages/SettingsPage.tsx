@@ -1,22 +1,25 @@
 import React from 'react';
-import { Typography, Card } from 'antd';
+import { Typography, Card, Alert } from 'antd';
+import { ClockCircleOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
-export const SettingsPage: React.FC = () => {
+const SettingsPage: React.FC = () => {
   return (
     <div>
       <Title level={2}>Settings</Title>
       <Card>
-        <p>Settings functionality will be implemented here.</p>
-        <p>This page will allow administrators to:</p>
-        <ul>
-          <li>Configure system settings</li>
-          <li>Manage application preferences</li>
-          <li>Update security settings</li>
-          <li>Configure email notifications</li>
-        </ul>
+        <Alert
+          message="Feature Coming Soon"
+          description="Will be implemented soon"
+          type="info"
+          icon={<ClockCircleOutlined />}
+          showIcon
+          style={{ textAlign: 'center' }}
+        />
       </Card>
     </div>
   );
 };
+
+export default SettingsPage;

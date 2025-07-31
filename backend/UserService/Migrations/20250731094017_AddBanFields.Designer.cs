@@ -12,8 +12,8 @@ using UserService.Data;
 namespace UserService.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20250728143651_UpdateSchema")]
-    partial class UpdateSchema
+    [Migration("20250731094017_AddBanFields")]
+    partial class AddBanFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -320,6 +320,18 @@ namespace UserService.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
+                    b.Property<DateTime?>("BanExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BanReason")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("BannedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("BannedBy")
+                        .HasColumnType("text");
+
                     b.Property<string>("Bio")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -340,6 +352,9 @@ namespace UserService.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsBanned")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("LastLoginAt")
                         .HasColumnType("timestamp with time zone");

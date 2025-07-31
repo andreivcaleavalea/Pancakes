@@ -1,0 +1,34 @@
+.header {
+  background: #fff;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &__title {
+    margin: 0;
+    color: #1890ff;
+  }
+
+  &__user-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .user-welcome {
+      color: #595959;
+      font-weight: 500;
+    }
+  }
+
+  &__logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    &:hover {
+      color: #ff4d4f;
+    }
+  }
+}

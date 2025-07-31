@@ -1,66 +1,7 @@
 namespace AdminService.Models.DTOs
 {
-    public class DashboardStatsDto
-    {
-        public UserStatsDto UserStats { get; set; } = new UserStatsDto();
-        public ContentStatsDto ContentStats { get; set; } = new ContentStatsDto();
-        public ModerationStatsDto ModerationStats { get; set; } = new ModerationStatsDto();
-        public SystemStatsDto SystemStats { get; set; } = new SystemStatsDto();
-    }
-
-    public class UserStatsDto
-    {
-        public int TotalUsers { get; set; }
-        public int ActiveUsers { get; set; }
-        public int OnlineUsers { get; set; }
-        public int DailySignups { get; set; }
-        public int WeeklySignups { get; set; }
-        public int MonthlySignups { get; set; }
-        public double GrowthRate { get; set; }
-        public List<DailyMetricDto> DailyGrowth { get; set; } = new List<DailyMetricDto>();
-    }
-
-    public class ContentStatsDto
-    {
-        public int TotalBlogPosts { get; set; }
-        public int PublishedBlogPosts { get; set; }
-        public int DraftBlogPosts { get; set; }
-        public int BlogPostsToday { get; set; }
-        public int TotalComments { get; set; }
-        public int CommentsToday { get; set; }
-        public double AverageRating { get; set; }
-        public List<DailyMetricDto> DailyContent { get; set; } = new List<DailyMetricDto>();
-        public List<TopContentDto> TopPosts { get; set; } = new List<TopContentDto>();
-    }
-
-    public class ModerationStatsDto
-    {
-        public int TotalReports { get; set; }
-        public int PendingReports { get; set; }
-        public int TotalFlags { get; set; }
-        public int PendingFlags { get; set; }
-        public int BannedUsers { get; set; }
-        public int DeletedPosts { get; set; }
-        public int DeletedComments { get; set; }
-        public List<ModerationActivityDto> RecentActivity { get; set; } = new List<ModerationActivityDto>();
-    }
-
-    public class SystemStatsDto
-    {
-        public double CpuUsage { get; set; }
-        public double MemoryUsage { get; set; }
-        public double DiskUsage { get; set; }
-        public double AverageResponseTime { get; set; }
-        public int ErrorsLastHour { get; set; }
-        public List<ServiceStatusDto> ServiceStatuses { get; set; } = new List<ServiceStatusDto>();
-    }
-
-    public class DailyMetricDto
-    {
-        public DateTime Date { get; set; }
-        public int Value { get; set; }
-        public string MetricType { get; set; } = string.Empty;
-    }
+    // Note: Main DTO classes are defined in their individual files
+    // This file contains supporting DTOs used by the main analytics DTOs
 
     public class TopContentDto
     {

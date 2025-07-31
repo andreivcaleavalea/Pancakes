@@ -33,7 +33,7 @@ const { Title, Text } = Typography;
 const { confirm } = Modal;
 const { TextArea } = Input;
 
-export const UsersPage: React.FC = () => {
+const UsersPage: React.FC = () => {
   const { 
     users, 
     loading, 
@@ -341,3 +341,5 @@ export const UsersPage: React.FC = () => {
     </div>
   );
 };
+
+export default UsersPage;

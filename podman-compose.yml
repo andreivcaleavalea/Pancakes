@@ -7,7 +7,7 @@ services:
     environment:
       - POSTGRES_DB=PancakesBlogDB
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres123
+      - POSTGRES_PASSWORD=team
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -20,7 +20,7 @@ services:
     environment:
       - POSTGRES_DB=PancakesAdminDB
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres123
+      - POSTGRES_PASSWORD=team
     ports:
       - "${ADMIN_POSTGRES_PORT:-5434}:5432"
     volumes:
@@ -35,7 +35,7 @@ services:
       - ADMIN_DB_PORT=5432
       - ADMIN_DB_DATABASE=PancakesAdminDB
       - ADMIN_DB_USERNAME=postgres
-      - ADMIN_DB_PASSWORD=postgres123
+      - ADMIN_DB_PASSWORD=team
       - USER_SERVICE_URL=http://user-service:80
       - BLOG_SERVICE_URL=http://blog-service:80
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}

@@ -16,6 +16,8 @@ namespace AdminService.Services.Interfaces
         Task<bool> ActivateAdminAsync(string adminId, string activatedBy);
         Task<PagedResponse<AdminUserDto>> GetAdminUsersAsync(int page, int pageSize);
         Task<bool> ValidateTokenAsync(string token);
+        Task<bool> HasAdminUsersAsync();
+        Task<AdminUserDto> CreateBootstrapAdminAsync(CreateAdminUserRequest request);
         string GenerateJwtToken(AdminUserDto admin);
         bool VerifyPassword(string password, string hashedPassword);
         string HashPassword(string password);

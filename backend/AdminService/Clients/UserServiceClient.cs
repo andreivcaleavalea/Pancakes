@@ -1,4 +1,5 @@
 using AdminService.Models.DTOs;
+using AdminService.Services.Interfaces;
 using System.Text.Json;
 
 namespace AdminService.Clients
@@ -7,21 +8,30 @@ namespace AdminService.Clients
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<UserServiceClient> _logger;
+        private readonly IServiceJwtService _serviceJwtService;
 
-        public UserServiceClient(HttpClient httpClient, ILogger<UserServiceClient> logger)
+        public UserServiceClient(HttpClient httpClient, ILogger<UserServiceClient> logger, IServiceJwtService serviceJwtService)
         {
             _httpClient = httpClient;
             _logger = logger;
+            _serviceJwtService = serviceJwtService;
 
             var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
             _httpClient.BaseAddress = new Uri(userServiceUrl);
+        }
+
+        private void AddAuthenticationHeader()
+        {
+            var token = _serviceJwtService.GenerateServiceToken();
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
 
         public async Task<UserOverviewDto?> GetUserAsync(string userId)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/users/{userId}");
+                AddAuthenticationHeader();
+                var response = await _httpClient.GetAsync($"/users/{userId}");
                 if (!response.IsSuccessStatusCode)
                     return null;
 
@@ -40,7 +50,8 @@ namespace AdminService.Clients
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/users/{userId}/details");
+                AddAuthenticationHeader();
+                var response = await _httpClient.GetAsync($"/users/{userId}");
                 if (!response.IsSuccessStatusCode)
                     return null;
 
@@ -59,13 +70,17 @@ namespace AdminService.Clients
         {
             try
             {
+                AddAuthenticationHeader();
                 var query = $"?page={page}&pageSize={pageSize}";
                 if (!string.IsNullOrEmpty(searchTerm))
                     query += $"&search={Uri.EscapeDataString(searchTerm)}";
 
-                var response = await _httpClient.GetAsync($"/api/users/search{query}");
+                var response = await _httpClient.GetAsync($"/users{query}");
                 if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to get users from UserService. Status: {StatusCode}", response.StatusCode);
                     return new List<UserOverviewDto>();
+                }
 
                 var json = await response.Content.ReadAsStringAsync();
                 var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -83,6 +98,7 @@ namespace AdminService.Clients
         {
             try
             {
+                AddAuthenticationHeader();
                 var request = new
                 {
                     userId,
@@ -94,7 +110,7 @@ namespace AdminService.Clients
                 var json = JsonSerializer.Serialize(request);
                 var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"/api/users/{userId}/ban", content);
+                var response = await _httpClient.PostAsync($"/users/{userId}/ban", content);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -108,6 +124,7 @@ namespace AdminService.Clients
         {
             try
             {
+                AddAuthenticationHeader();
                 var request = new
                 {
                     userId,
@@ -118,7 +135,7 @@ namespace AdminService.Clients
                 var json = JsonSerializer.Serialize(request);
                 var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"/api/users/{userId}/unban", content);
+                var response = await _httpClient.PostAsync($"/users/{userId}/unban", content);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -132,7 +149,8 @@ namespace AdminService.Clients
         {
             try
             {
-                var response = await _httpClient.GetAsync("/api/users/statistics");
+                AddAuthenticationHeader();
+                var response = await _httpClient.GetAsync("/users/statistics");
                 if (!response.IsSuccessStatusCode)
                     return new Dictionary<string, object>();
 

@@ -23,7 +23,11 @@ export const LoginPage: React.FC = () => {
       message.success('Login successful!');
       navigate('/dashboard');
     } catch (error) {
-      message.error('Login failed. Please check your credentials.');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Login failed. Please check your credentials and try again.';
+      
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }

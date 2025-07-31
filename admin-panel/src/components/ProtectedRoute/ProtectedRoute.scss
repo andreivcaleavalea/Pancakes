@@ -1,0 +1,22 @@
+.protected-route {
+  &__loading {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f5f5f5;
+
+    .ant-spin {
+      .ant-spin-dot {
+        font-size: 24px;
+      }
+    }
+  }
+
+  &__loading-text {
+    margin-top: 16px;
+    color: #595959;
+    font-size: 16px;
+    text-align: center;
+  }
+}
