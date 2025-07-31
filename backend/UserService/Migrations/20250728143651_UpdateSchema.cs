@@ -11,6 +11,23 @@ namespace UserService.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Drop existing tables if they exist (Replace operation)
+            migrationBuilder.DropTable(
+                name: "Educations");
+
+            migrationBuilder.DropTable(
+                name: "Hobbies");
+
+            migrationBuilder.DropTable(
+                name: "Jobs");
+
+            migrationBuilder.DropTable(
+                name: "PersonalPageSettings");
+
+            migrationBuilder.DropTable(
+                name: "Projects");
+
+            // Recreate tables with updated schema
             migrationBuilder.CreateTable(
                 name: "Educations",
                 columns: table => new

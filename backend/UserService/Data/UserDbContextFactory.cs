@@ -15,12 +15,12 @@ public class UserDbContextFactory : IDesignTimeDbContextFactory<UserDbContext>
         if (string.IsNullOrEmpty(connectionString))
         {
             // Fallback connection string for design time
-            var host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
-            var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
-            var database = Environment.GetEnvironmentVariable("POSTGRES_DATABASE") ?? "pancakes";
-            var username = Environment.GetEnvironmentVariable("POSTGRES_USERNAME") ?? "postgres";
-            var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password";
-            
+            var host = Environment.GetEnvironmentVariable("USERS_DB_HOST") ?? "localhost";
+            var port = Environment.GetEnvironmentVariable("USERS_DB_PORT") ?? "5433";
+            var database = Environment.GetEnvironmentVariable("USERS_DB_DATABASE") ?? "PancakesUserDB";
+            var username = Environment.GetEnvironmentVariable("USERS_DB_USERNAME") ?? "postgres";
+            var password = Environment.GetEnvironmentVariable("USERS_DB_PASSWORD") ?? "postgres123";
+
             connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
         }
 
