@@ -24,4 +24,6 @@ public interface IUserService
     Task<IActionResult> CreateAsync(HttpContext httpContext, CreateUserDto createDto, ModelStateDictionary modelState);
     Task<IActionResult> UpdateAsync(HttpContext httpContext, string id, UpdateUserDto updateDto, ModelStateDictionary modelState);
     Task<IActionResult> DeleteAsync(HttpContext httpContext, string id);
+    Task<IActionResult> BanUserAsync(HttpContext httpContext, BanUserRequest request);
+    Task<IActionResult> UnbanUserAsync(HttpContext httpContext, UnbanUserRequest request);
 }

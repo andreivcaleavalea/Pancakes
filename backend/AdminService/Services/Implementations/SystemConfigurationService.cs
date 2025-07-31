@@ -1,8 +1,13 @@
 using AdminService.Data;
 using AdminService.Models.Entities;
+using AdminService.Models.DTOs;
+using AdminService.Models.Requests;
+using AdminService.Models.Responses;
 using AdminService.Services.Interfaces;
+using AdminService.Helpers;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using AutoMapper;
 
 namespace AdminService.Services.Implementations
 {
@@ -10,11 +15,13 @@ namespace AdminService.Services.Implementations
     {
         private readonly AdminDbContext _context;
         private readonly ILogger<SystemConfigurationService> _logger;
+        private readonly IMapper _mapper;
 
-        public SystemConfigurationService(AdminDbContext context, ILogger<SystemConfigurationService> logger)
+        public SystemConfigurationService(AdminDbContext context, ILogger<SystemConfigurationService> logger, IMapper mapper)
         {
             _context = context;
             _logger = logger;
+            _mapper = mapper;
         }
 
         public async Task<List<SystemConfiguration>> GetAllConfigurationsAsync()
@@ -33,6 +40,12 @@ namespace AdminService.Services.Implementations
         {
             return await _context.SystemConfigurations
                 .FirstOrDefaultAsync(c => c.Key == key);
+        }
+
+        public async Task<SystemConfiguration?> GetConfigurationAsync(Guid id)
+        {
+            return await _context.SystemConfigurations
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task<T?> GetConfigurationValueAsync<T>(string key)
@@ -179,6 +192,96 @@ namespace AdminService.Services.Implementations
             {
                 return false;
             }
+        }
+
+        public async Task<bool> DeleteConfigurationAsync(Guid id)
+        {
+            try
+            {
+                var config = await GetConfigurationAsync(id);
+                if (config == null)
+                    return false;
+
+                _context.SystemConfigurations.Remove(config);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting configuration with ID {Id}", id);
+                return false;
+            }
+        }
+
+        public async Task<PagedResponse<SystemConfigurationDto>> GetConfigurationsAsync(int page, int pageSize, string? category = null)
+        {
+            var query = _context.SystemConfigurations.AsQueryable();
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                query = query.Where(c => c.Category == category);
+            }
+
+            var totalCount = await query.CountAsync();
+            var configurations = await query
+                .OrderBy(c => c.Category)
+                .ThenBy(c => c.Key)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var configDtos = _mapper.Map<List<SystemConfigurationDto>>(configurations);
+
+            return new PagedResponse<SystemConfigurationDto>
+            {
+                Data = configDtos,
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                HasNextPage = page < (int)Math.Ceiling((double)totalCount / pageSize),
+                HasPreviousPage = page > 1
+            };
+        }
+
+        public async Task<SystemConfigurationDto> CreateConfigurationAsync(CreateSystemConfigurationRequest request, string updatedBy)
+        {
+            var configuration = new SystemConfiguration
+            {
+                Key = request.Key,
+                Value = request.Value,
+                Category = request.Category,
+                Description = request.Description,
+                DataType = request.DataType,
+                IsSecret = request.IsSecret,
+                UpdatedBy = updatedBy,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.SystemConfigurations.Add(configuration);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<SystemConfigurationDto>(configuration);
+        }
+
+        public async Task<SystemConfigurationDto> UpdateConfigurationAsync(Guid id, UpdateSystemConfigurationRequest request, string updatedBy)
+        {
+            var configuration = await GetConfigurationAsync(id);
+            if (configuration == null)
+                throw new ArgumentException($"Configuration with ID {id} not found");
+
+            configuration.Value = request.Value;
+            configuration.Category = request.Category;
+            configuration.Description = request.Description;
+            configuration.DataType = request.DataType;
+            configuration.IsSecret = request.IsSecret;
+            configuration.UpdatedBy = updatedBy;
+            configuration.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<SystemConfigurationDto>(configuration);
         }
 
         private static bool IsValidJson(string jsonString)

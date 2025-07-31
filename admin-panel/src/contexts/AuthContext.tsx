@@ -58,7 +58,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       adminApi.setAuthToken(token)
       setUser(adminUser)
     } catch (error) {
-      throw error
+      // Provide user-friendly error messages
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      } else if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as any;
+        if (axiosError.response?.data?.message) {
+          throw new Error(axiosError.response.data.message);
+        }
+      }
+      
+      throw new Error('Login failed. Please check your connection and try again.');
     }
   }
 

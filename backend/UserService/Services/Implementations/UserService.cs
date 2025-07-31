@@ -336,4 +336,66 @@ public class UserService : IUserService
             return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
         }
     }
+
+    public async Task<IActionResult> BanUserAsync(HttpContext httpContext, BanUserRequest request)
+    {
+        try
+        {
+            var user = await _userRepository.GetByIdAsync(request.UserId);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { message = "User not found" });
+            }
+
+            user.IsBanned = true;
+            user.BanReason = request.Reason;
+            user.BannedAt = DateTime.UtcNow;
+            user.BannedBy = request.BannedBy;
+            user.BanExpiresAt = request.ExpiresAt;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+            
+            _logger.LogInformation("User {UserId} banned by {BannedBy} for reason: {Reason}", 
+                request.UserId, request.BannedBy, request.Reason);
+
+            return new OkObjectResult(new { message = "User banned successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ban user error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> UnbanUserAsync(HttpContext httpContext, UnbanUserRequest request)
+    {
+        try
+        {
+            var user = await _userRepository.GetByIdAsync(request.UserId);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { message = "User not found" });
+            }
+
+            user.IsBanned = false;
+            user.BanReason = null;
+            user.BannedAt = null;
+            user.BannedBy = null;
+            user.BanExpiresAt = null;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+            
+            _logger.LogInformation("User {UserId} unbanned by {UnbannedBy} for reason: {Reason}", 
+                request.UserId, request.UnbannedBy, request.Reason);
+
+            return new OkObjectResult(new { message = "User unbanned successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unban user error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
 }

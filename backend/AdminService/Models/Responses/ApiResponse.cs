@@ -12,10 +12,13 @@ namespace AdminService.Models.Responses
     {
         public List<T> Data { get; set; } = new();
         public int CurrentPage { get; set; }
+        public int Page { get => CurrentPage; set => CurrentPage = value; }
         public int PageSize { get; set; }
         public int TotalCount { get; set; }
         public int TotalPages { get; set; }
         public bool HasNextPage { get; set; }
+        public bool HasNext { get => HasNextPage; set => HasNextPage = value; }
         public bool HasPreviousPage { get; set; }
+        public bool HasPrevious { get => HasPreviousPage; set => HasPreviousPage = value; }
     }
 }

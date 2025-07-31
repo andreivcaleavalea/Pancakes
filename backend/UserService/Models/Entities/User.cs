@@ -38,5 +38,12 @@ namespace UserService.Models.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime LastLoginAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        
+        // Ban-related fields
+        public bool IsBanned { get; set; } = false;
+        public string? BanReason { get; set; }
+        public DateTime? BannedAt { get; set; }
+        public string? BannedBy { get; set; }
+        public DateTime? BanExpiresAt { get; set; }
     }
 }

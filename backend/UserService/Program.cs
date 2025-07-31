@@ -23,7 +23,7 @@ var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 if (string.IsNullOrEmpty(connectionString))
 {
     var host = Environment.GetEnvironmentVariable("USERS_DB_HOST") ?? "localhost";
-    var dbPort = Environment.GetEnvironmentVariable("USERS_DB_PORT") ?? "5433";
+    var dbPort = Environment.GetEnvironmentVariable("USERS_DB_PORT") ?? "5432";
     var database = Environment.GetEnvironmentVariable("USERS_DB_DATABASE") ?? "PancakesUserDB";
     var username = Environment.GetEnvironmentVariable("USERS_DB_USERNAME") ?? "postgres";
     var password = Environment.GetEnvironmentVariable("USERS_DB_PASSWORD") ?? "team";
@@ -145,12 +145,15 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+        Console.WriteLine($"Attempting to migrate database: {connectionString}");
         context.Database.Migrate();
         Console.WriteLine("Database migrations applied successfully.");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error applying database migrations: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        Console.WriteLine($"Connection string: {connectionString}");
     }
 }
 

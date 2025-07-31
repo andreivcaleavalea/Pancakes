@@ -1,25 +1,18 @@
 import React from 'react';
-import { Row, Col, Card, Statistic, Typography, Spin, Alert, Button, Progress, Badge } from 'antd';
+import { Row, Col, Card, Statistic, Typography, Spin, Alert, Button, Badge } from "antd";
 import { 
   UserOutlined, 
-  FileTextOutlined, 
-  CommentOutlined, 
-  LikeOutlined,
   ReloadOutlined,
-  WarningOutlined,
   CheckCircleOutlined,
-  ClockCircleOutlined,
-  StarOutlined,
-  BugOutlined,
   ThunderboltOutlined,
-  DatabaseOutlined,
-  HeartOutlined
+  HeartOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons';
 import { useDashboard } from '../hooks/useDashboard';
 
 const { Title, Text } = Typography;
 
-export const DashboardPage: React.FC = () => {
+const DashboardPage: React.FC = () => {
   const { stats, loading, error, refresh } = useDashboard();
 
   if (loading) {
@@ -57,7 +50,7 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
-  const { userStats, contentStats, moderationStats, systemStats } = stats;
+  const { userStats } = stats;
 
   return (
     <div>
@@ -78,12 +71,12 @@ export const DashboardPage: React.FC = () => {
           <Card>
             <Statistic
               title="Total Users"
-              value={userStats.totalUsers}
+              value={userStats?.totalUsers || 0}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#3f8600' }}
               suffix={
                 <Badge 
-                  count={`+${userStats.dailySignups}`} 
+                  count={`+${userStats?.dailySignups || 0}`} 
                   style={{ backgroundColor: '#52c41a' }} 
                   title="New today"
                 />
@@ -95,10 +88,10 @@ export const DashboardPage: React.FC = () => {
           <Card>
             <Statistic
               title="Active Users"
-              value={userStats.activeUsers}
+              value={userStats?.activeUsers || 0}
               prefix={<CheckCircleOutlined />}
               valueStyle={{ color: '#1890ff' }}
-              suffix={<Text type="secondary">({Math.round((userStats.activeUsers / userStats.totalUsers) * 100)}%)</Text>}
+              suffix={<Text type="secondary">({userStats ? Math.round((userStats.activeUsers / userStats.totalUsers) * 100) : 0}%)</Text>}
             />
           </Card>
         </Col>
@@ -106,7 +99,7 @@ export const DashboardPage: React.FC = () => {
           <Card>
             <Statistic
               title="Online Now"
-              value={userStats.onlineUsers}
+              value={userStats?.onlineUsers || 0}
               prefix={<ThunderboltOutlined />}
               valueStyle={{ color: '#722ed1' }}
             />
@@ -116,154 +109,42 @@ export const DashboardPage: React.FC = () => {
           <Card>
             <Statistic
               title="Growth Rate"
-              value={userStats.growthRate}
+              value={userStats?.growthRate || 0}
               prefix={<HeartOutlined />}
               suffix="%"
-              valueStyle={{ color: userStats.growthRate >= 0 ? '#3f8600' : '#cf1322' }}
+              valueStyle={{ color: (userStats?.growthRate || 0) >= 0 ? '#3f8600' : '#cf1322' }}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Content Statistics */}
-      <Title level={4} style={{ marginBottom: 16 }}>Content Statistics</Title>
-      <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Total Blog Posts"
-              value={contentStats.totalBlogPosts}
-              prefix={<FileTextOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-              suffix={
-                <Badge 
-                  count={`+${contentStats.blogPostsToday}`} 
-                  style={{ backgroundColor: '#1890ff' }} 
-                  title="New today"
-                />
-              }
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Published Posts"
-              value={contentStats.publishedBlogPosts}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Draft Posts"
-              value={contentStats.draftBlogPosts}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Average Rating"
-              value={contentStats.averageRating}
-              precision={1}
-              prefix={<StarOutlined />}
-              suffix="/ 5"
-              valueStyle={{ color: '#eb2f96' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Comments Statistics */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
+      {/* Other Features - Coming Soon */}
+      <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
           <Card>
-            <Statistic
-              title="Total Comments"
-              value={contentStats.totalComments}
-              prefix={<CommentOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-              suffix={
-                <Badge 
-                  count={`+${contentStats.commentsToday}`} 
-                  style={{ backgroundColor: '#722ed1' }} 
-                  title="New today"
-                />
-              }
+            <Alert
+              message="Content Analytics"
+              description="Will be implemented soon"
+              type="info"
+              icon={<ClockCircleOutlined />}
+              showIcon
             />
           </Card>
         </Col>
-      </Row>
-
-      {/* Moderation & System Overview */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
-        <Col xs={24} lg={12}>
-          <Card title="Moderation Overview" size="small">
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>Pending Reports: </Text>
-              <Badge count={moderationStats.pendingReports} style={{ backgroundColor: '#ff4d4f' }} />
-              <Text type="secondary"> / {moderationStats.totalReports} total</Text>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>Pending Flags: </Text>
-              <Badge count={moderationStats.pendingFlags} style={{ backgroundColor: '#faad14' }} />
-              <Text type="secondary"> / {moderationStats.totalFlags} total</Text>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>Banned Users: </Text>
-              <Badge count={moderationStats.bannedUsers} style={{ backgroundColor: '#ff7a45' }} />
-            </div>
-            <div>
-              <Text strong>Deleted Content: </Text>
-              <Text type="secondary">{moderationStats.deletedPosts} posts, {moderationStats.deletedComments} comments</Text>
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} lg={12}>
-          <Card title="System Health" size="small">
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>CPU Usage</Text>
-              <Progress 
-                percent={Math.round(systemStats.cpuUsage)} 
-                status={systemStats.cpuUsage > 80 ? 'exception' : systemStats.cpuUsage > 60 ? 'active' : 'success'}
-                size="small"
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>Memory Usage</Text>
-              <Progress 
-                percent={Math.round(systemStats.memoryUsage)} 
-                status={systemStats.memoryUsage > 80 ? 'exception' : systemStats.memoryUsage > 60 ? 'active' : 'success'}
-                size="small"
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <Text strong>Disk Usage</Text>
-              <Progress 
-                percent={Math.round(systemStats.diskUsage)} 
-                status={systemStats.diskUsage > 80 ? 'exception' : systemStats.diskUsage > 60 ? 'active' : 'success'}
-                size="small"
-              />
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <Text strong>Avg Response Time: </Text>
-              <Text type="secondary">{systemStats.averageResponseTime}ms</Text>
-            </div>
-            <div>
-              <Text strong>Errors (Last Hour): </Text>
-              <Badge 
-                count={systemStats.errorsLastHour} 
-                style={{ backgroundColor: systemStats.errorsLastHour > 0 ? '#ff4d4f' : '#52c41a' }} 
-              />
-            </div>
+        <Col xs={24} sm={12}>
+          <Card>
+            <Alert
+              message="System Monitoring"
+              description="Will be implemented soon"
+              type="info"
+              icon={<ClockCircleOutlined />}
+              showIcon
+            />
           </Card>
         </Col>
       </Row>
     </div>
   );
 };
+
+export default DashboardPage;

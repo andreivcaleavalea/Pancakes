@@ -60,6 +60,7 @@ builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 builder.Services.AddScoped<IContentModerationService, ContentModerationService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<ISystemConfigurationService, SystemConfigurationService>();
+builder.Services.AddScoped<IServiceJwtService, ServiceJwtService>();
 
 // Add HTTP Clients
 builder.Services.AddHttpClient<UserServiceClient>();
@@ -92,7 +93,7 @@ builder.Services.AddAuthorization();
 
 // Configure CORS
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
-    ?? new[] { "http://localhost:3001", "http://localhost:5174" };
+    ?? new[] { "http://localhost:3001", "http://localhost:3002", "http://localhost:5174" };
 
 builder.Services.AddCors(options =>
 {
