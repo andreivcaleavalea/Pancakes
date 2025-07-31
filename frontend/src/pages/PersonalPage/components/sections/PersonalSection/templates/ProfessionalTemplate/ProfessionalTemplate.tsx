@@ -122,7 +122,11 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
         <div className="professional-template__avatar-wrapper">
           <Avatar
             size={80}
-            src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
+            src={(() => {
+              const imageUrl = user.avatar || user.image;
+              if (!imageUrl) return undefined;
+              return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
+            })()}
             className="professional-template__avatar"
           />
         </div>
