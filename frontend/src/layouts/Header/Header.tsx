@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Button, Input, Menu, Drawer, Avatar, Dropdown } from "antd";
-import {
-  SearchOutlined,
-  MenuOutlined,
-  UserOutlined,
-  LogoutOutlined,
-} from "@ant-design/icons";
+import { Layout, Button, Menu, Drawer, Avatar, Dropdown } from "antd";
+import { MenuOutlined, UserOutlined, LogoutOutlined } from "@ant-design/icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "../../router/RouterProvider";
 import { getProfilePictureUrl } from "../../utils/imageUtils";
+import { SearchDropdown } from "../../components/common";
 import "./Header.scss";
 
 const { Header: AntHeader } = Layout;
@@ -22,14 +18,14 @@ const Header: React.FC = () => {
   // Function to get the selected menu key based on current page
   const getSelectedKey = () => {
     switch (currentPage) {
-      case 'home':
-        return ['home'];
-      case 'saved':
-        return ['saved'];
-      case 'friends':
-        return ['friends'];
-      case 'profile':
-        return ['profile'];
+      case "home":
+        return ["home"];
+      case "saved":
+        return ["saved"];
+      case "friends":
+        return ["friends"];
+      case "profile":
+        return ["profile"];
       default:
         return [];
     }
@@ -37,17 +33,17 @@ const Header: React.FC = () => {
 
   const handleMenuClick = (key: string) => {
     switch (key) {
-      case 'home':
-        navigate('home');
+      case "home":
+        navigate("home");
         break;
-      case 'saved':
-        navigate('saved');
+      case "saved":
+        navigate("saved");
         break;
-      case 'friends':
-        navigate('friends');
+      case "friends":
+        navigate("friends");
         break;
-      case 'profile':
-        navigate('profile');
+      case "profile":
+        navigate("profile");
         break;
       default:
         break;
@@ -55,10 +51,10 @@ const Header: React.FC = () => {
   };
 
   const menuItems = [
-    { key: 'home', label: 'Home' },
-    { key: 'saved', label: 'Saved' },
-    { key: 'friends', label: 'Friends' },
-    { key: 'profile', label: 'Profile' },
+    { key: "home", label: "Home" },
+    { key: "saved", label: "Saved" },
+    { key: "friends", label: "Friends" },
+    { key: "profile", label: "Profile" },
   ];
 
   useEffect(() => {
@@ -107,10 +103,7 @@ const Header: React.FC = () => {
     if (isAuthenticated && user) {
       return (
         <div className="header__user">
-          <Dropdown
-            menu={{ items: userMenuItems }}
-            placement="bottomRight"
-          >
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <div className="header__user-profile">
               <Avatar
                 src={getProfilePictureUrl(user.image)}
@@ -162,7 +155,7 @@ const Header: React.FC = () => {
             className="header__btn header__btn--secondary"
             icon={<UserOutlined />}
             onClick={() => {
-              navigate('profile');
+              navigate("profile");
               setDrawerVisible(false);
             }}
           >
@@ -216,9 +209,8 @@ const Header: React.FC = () => {
 
           {!showMobileMenu && (
             <div className="header__search header__search--desktop">
-              <Input
-                placeholder="Search..."
-                prefix={<SearchOutlined />}
+              <SearchDropdown
+                placeholder="Search blogs..."
                 className="header__search-input"
                 size="middle"
               />
@@ -263,11 +255,7 @@ const Header: React.FC = () => {
       >
         <div className="header__mobile-content">
           <div className="header__search header__search--mobile">
-            <Input
-              placeholder="Search..."
-              prefix={<SearchOutlined />}
-              size="middle"
-            />
+            <SearchDropdown placeholder="Search blogs..." size="middle" />
           </div>
 
           <Menu

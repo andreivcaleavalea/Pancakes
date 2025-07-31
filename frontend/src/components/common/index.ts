@@ -8,3 +8,4 @@ export { default as GlazeMeter } from "./GlazeMeter/GlazeMeter";
 export { default as UserRatingDisplay } from "./UserRatingDisplay/UserRatingDisplay";
 export { default as AverageRatingDisplay } from "./AverageRatingDisplay/AverageRatingDisplay";
 export { default as CachedAvatar } from "./CachedAvatar/CachedAvatar";
+export { default as SearchDropdown } from "./SearchDropdown/SearchDropdown";
