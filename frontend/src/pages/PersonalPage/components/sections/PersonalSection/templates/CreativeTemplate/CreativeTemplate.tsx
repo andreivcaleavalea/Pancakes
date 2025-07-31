@@ -152,7 +152,11 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
 
                 <Avatar
                   size={100}
-                  src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
+                  src={(() => {
+                    const imageUrl = user.avatar || user.image;
+                    if (!imageUrl) return undefined;
+                    return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
+                  })()}
                   className="creative-template__avatar"
                 />
               </div>
