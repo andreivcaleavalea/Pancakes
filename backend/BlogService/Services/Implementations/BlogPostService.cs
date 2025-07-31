@@ -322,7 +322,27 @@ public class BlogPostService : IBlogPostService
             if (user != null)
             {
                 blogPostDto.AuthorName = user.Name;
-                blogPostDto.AuthorImage = user.Image; // UserInfoDto.Image is already a string
+                
+                // Convert relative image path to full URL pointing to UserService
+                if (!string.IsNullOrEmpty(user.Image))
+                {
+                    var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
+                    if (user.Image.StartsWith("assets/profile-pictures/"))
+                    {
+                        // Convert relative path to full URL
+                        var filename = Path.GetFileName(user.Image);
+                        blogPostDto.AuthorImage = $"{userServiceUrl}/assets/profile-pictures/{filename}";
+                    }
+                    else
+                    {
+                        // If it's already a full URL or different format, use as is
+                        blogPostDto.AuthorImage = user.Image;
+                    }
+                }
+                else
+                {
+                    blogPostDto.AuthorImage = string.Empty;
+                }
             }
             else
             {
