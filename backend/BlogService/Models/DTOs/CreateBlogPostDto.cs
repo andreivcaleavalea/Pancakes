@@ -21,4 +21,7 @@ public class CreateBlogPostDto
     public string AuthorId { get; set; } = string.Empty;
     
     public DateTime? PublishedAt { get; set; }
+    
+    // Tags
+    public List<string> Tags { get; set; } = new List<string>();
 }

@@ -25,11 +25,7 @@ public class BlogPostRepository : IBlogPostRepository
         var query = _context.BlogPosts.AsQueryable();
         if (!string.IsNullOrEmpty(parameters.Search))
         {
-            var searchTerm = parameters.Search.Trim();
-            query = query.Where(bp => 
-                bp.Title.StartsWith(searchTerm) || // Titles that start with search term
-                bp.Title.Contains(" " + searchTerm) || // Titles that contain words starting with search term
-                bp.Content.Contains(searchTerm)); // Content that contains search term
+            query = query.Where(bp => bp.Title.Contains(parameters.Search) || bp.Content.Contains(parameters.Search));
         }
         if (!string.IsNullOrEmpty(parameters.AuthorId))
         {

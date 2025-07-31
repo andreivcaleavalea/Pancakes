@@ -13,7 +13,7 @@ interface BlogPostWithDisplay extends BlogPost {
 import { useFavorite } from "@/hooks/useBlog";
 import { useRouter } from "@/router/RouterProvider";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULTS } from "@/utils/constants";
-import { AverageRatingDisplay } from "@/components/common";
+import { AverageRatingDisplay, BlogTags } from "@/components/common";
 import "./BlogCard.scss";
 
 const { Title, Text, Paragraph } = Typography;
@@ -103,6 +103,14 @@ const BlogCard: React.FC<BlogCardProps> = ({
                 <Text className="blog-card__author">By {post.author}</Text>
               </div>
             )}
+            {post.tags && post.tags.length > 0 && (
+              <BlogTags
+                tags={post.tags}
+                maxVisible={2}
+                size="small"
+                className="blog-card__tags"
+              />
+            )}
             {averageRating && (
               <div className="blog-card__user-rating">
                 <AverageRatingDisplay
@@ -163,6 +171,14 @@ const BlogCard: React.FC<BlogCardProps> = ({
               </Avatar>
               <Text className="blog-card__author">By {post.author}</Text>
             </div>
+          )}
+          {post.tags && post.tags.length > 0 && (
+            <BlogTags
+              tags={post.tags}
+              maxVisible={variant === "featured" ? 4 : 3}
+              size={variant === "featured" ? "default" : "small"}
+              className="blog-card__tags"
+            />
           )}
           {post.description && (
             <Paragraph className="blog-card__description">
