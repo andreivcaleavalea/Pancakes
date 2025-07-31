@@ -43,6 +43,7 @@ public class BlogPostRepository : IBlogPostRepository
         {
             query = query.Where(bp => bp.CreatedAt <= parameters.DateTo);
         }
+        
         // Sorting
         if (!string.IsNullOrEmpty(parameters.SortBy))
         {
@@ -67,9 +68,27 @@ public class BlogPostRepository : IBlogPostRepository
         {
             query = query.OrderByDescending(bp => bp.CreatedAt);
         }
-        var totalCount = await query.CountAsync();
-        var posts = await query.Skip((parameters.Page - 1) * parameters.PageSize).Take(parameters.PageSize).ToListAsync();
-        return (posts, totalCount);
+
+        // Tag filtering - temporarily using client-side evaluation
+        if (parameters.Tags != null && parameters.Tags.Any())
+        {
+            // Convert to list for client-side evaluation
+            var allPosts = await query.ToListAsync();
+            
+            // Filter posts that contain ALL specified tags (AND logic)
+            var filteredPosts = allPosts.Where(bp => 
+                parameters.Tags.All(tag => bp.Tags != null && bp.Tags.Contains(tag))
+            ).ToList();
+            
+            var totalCount = filteredPosts.Count;
+            var posts = filteredPosts.Skip((parameters.Page - 1) * parameters.PageSize).Take(parameters.PageSize);
+            return (posts, totalCount);
+        }
+        
+        // Normal execution (no tag filtering)
+        var normalTotalCount = await query.CountAsync();
+        var normalPosts = await query.Skip((parameters.Page - 1) * parameters.PageSize).Take(parameters.PageSize).ToListAsync();
+        return (normalPosts, normalTotalCount);
     }
 
     // Today's special - returns the newest post

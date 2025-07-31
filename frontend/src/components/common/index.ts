@@ -10,3 +10,4 @@ export { default as AverageRatingDisplay } from "./AverageRatingDisplay/AverageR
 export { default as CachedAvatar } from "./CachedAvatar/CachedAvatar";
 export { default as BlogTags } from "./BlogTags/BlogTags";
 export { default as TagInput } from "./TagInput/TagInput";
+export { default as TagFilter } from "./TagFilter/TagFilter";

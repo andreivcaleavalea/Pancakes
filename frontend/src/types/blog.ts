@@ -67,6 +67,7 @@ export interface BlogPostQueryParams {
   sortOrder?: "asc" | "desc";
   dateFrom?: string;
   dateTo?: string;
+  tags?: string[]; // Filter by specific tags
 }
 
 export interface CreateBlogPostDto {

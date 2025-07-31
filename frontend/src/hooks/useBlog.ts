@@ -41,7 +41,11 @@ export const useBlogData = () => {
 /**
  * Custom hook for managing paginated posts
  */
-export const usePaginatedPosts = (page: number, pageSize: number) => {
+export const usePaginatedPosts = (
+  page: number,
+  pageSize: number,
+  tags?: string[]
+) => {
   const [data, setData] = useState<BlogPost[]>([]);
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -58,7 +62,7 @@ export const usePaginatedPosts = (page: number, pageSize: number) => {
     try {
       setLoading(true);
       setError(null);
-      const result = await BlogService.getPaginatedPosts(page, pageSize);
+      const result = await BlogService.getPaginatedPosts(page, pageSize, tags);
       setData(result.data);
       setPagination(result.pagination);
     } catch (err) {
@@ -66,7 +70,7 @@ export const usePaginatedPosts = (page: number, pageSize: number) => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, tags]);
 
   useEffect(() => {
     fetchPosts();
