@@ -21,7 +21,14 @@ export const blogPostsApi = {
 
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "") {
-        searchParams.append(key, value.toString());
+        // Handle arrays (like tags) by sending multiple parameters with the same name
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            searchParams.append(key, item.toString());
+          });
+        } else {
+          searchParams.append(key, value.toString());
+        }
       }
     });
 

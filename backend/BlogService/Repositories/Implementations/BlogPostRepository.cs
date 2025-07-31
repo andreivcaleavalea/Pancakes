@@ -72,13 +72,36 @@ public class BlogPostRepository : IBlogPostRepository
         // Tag filtering - temporarily using client-side evaluation
         if (parameters.Tags != null && parameters.Tags.Any())
         {
+            Console.WriteLine($"🔍 Tag filtering - Requested tags: [{string.Join(", ", parameters.Tags)}]");
+            
             // Convert to list for client-side evaluation
             var allPosts = await query.ToListAsync();
+            Console.WriteLine($"📊 Total posts before tag filtering: {allPosts.Count}");
             
             // Filter posts that contain ALL specified tags (AND logic)
             var filteredPosts = allPosts.Where(bp => 
-                parameters.Tags.All(tag => bp.Tags != null && bp.Tags.Contains(tag))
-            ).ToList();
+            {
+                if (bp.Tags == null || !bp.Tags.Any()) 
+                {
+                    return false;
+                }
+                
+                // Check if this post contains ALL requested tags (case-insensitive)
+                var postContainsAllTags = parameters.Tags.All(requestedTag => 
+                    bp.Tags.Any(postTag => 
+                        string.Equals(postTag, requestedTag, StringComparison.OrdinalIgnoreCase)
+                    )
+                );
+                
+                if (postContainsAllTags)
+                {
+                    Console.WriteLine($"✅ Post '{bp.Title}' matches - Has tags: [{string.Join(", ", bp.Tags)}]");
+                }
+                
+                return postContainsAllTags;
+            }).ToList();
+            
+            Console.WriteLine($"🎯 Posts after tag filtering: {filteredPosts.Count}");
             
             var totalCount = filteredPosts.Count;
             var posts = filteredPosts.Skip((parameters.Page - 1) * parameters.PageSize).Take(parameters.PageSize);
