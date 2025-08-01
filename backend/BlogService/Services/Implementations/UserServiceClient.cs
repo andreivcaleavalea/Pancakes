@@ -137,4 +137,40 @@ public class UserServiceClient : IUserServiceClient
             return new List<UserInfoDto>();
         }
     }
+
+    public async Task<IEnumerable<FriendDto>> GetUserFriendsAsync(string authToken)
+    {
+        try
+        {
+            // Set authorization header for this request
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+
+            var response = await _httpClient.GetAsync("/api/friendships/friends");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                var friends = JsonSerializer.Deserialize<List<FriendDto>>(jsonContent, options);
+                return friends ?? new List<FriendDto>();
+            }
+
+            _logger.LogWarning("Failed to get friends from UserService. Status: {StatusCode}", response.StatusCode);
+            return new List<FriendDto>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling UserService to get friends");
+            return new List<FriendDto>();
+        }
+        finally
+        {
+            // Clear the authorization header to avoid affecting other requests
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+        }
+    }
 }

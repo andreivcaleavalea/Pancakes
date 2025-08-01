@@ -8,4 +8,5 @@ public interface IUserServiceClient
     Task<UserInfoDto?> GetUserByIdAsync(string userId);
     Task<UserInfoDto?> GetUserByIdAsync(string userId, string authToken);
     Task<IEnumerable<UserInfoDto>> GetAllUsersAsync();
+    Task<IEnumerable<FriendDto>> GetUserFriendsAsync(string authToken);
 }
