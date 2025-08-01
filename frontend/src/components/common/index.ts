@@ -11,3 +11,4 @@ export { default as CachedAvatar } from "./CachedAvatar/CachedAvatar";
 export { default as BlogTags } from "./BlogTags/BlogTags";
 export { default as TagInput } from "./TagInput/TagInput";
 export { default as TagFilter } from "./TagFilter/TagFilter";
+export { default as SearchDropdown } from "./SearchDropdown/SearchDropdown";

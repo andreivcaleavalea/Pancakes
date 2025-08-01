@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Button, Input, Menu, Drawer, Avatar, Dropdown } from "antd";
-import {
-  SearchOutlined,
-  MenuOutlined,
-  UserOutlined,
-  LogoutOutlined,
-} from "@ant-design/icons";
+import { Layout, Button, Menu, Drawer, Avatar, Dropdown } from "antd";
+import { MenuOutlined, UserOutlined, LogoutOutlined } from "@ant-design/icons";
 import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "../../router/RouterProvider";
 import { getProfilePictureUrl } from "../../utils/imageUtils";
+import SearchDropdown from "../../components/common/SearchDropdown/SearchDropdown";
 import "./Header.scss";
 
 const { Header: AntHeader } = Layout;
@@ -213,12 +209,7 @@ const Header: React.FC = () => {
 
           {!showMobileMenu && (
             <div className="header__search header__search--desktop">
-              <Input
-                placeholder="Search..."
-                prefix={<SearchOutlined />}
-                className="header__search-input"
-                size="middle"
-              />
+              <SearchDropdown />
             </div>
           )}
         </div>
@@ -260,11 +251,7 @@ const Header: React.FC = () => {
       >
         <div className="header__mobile-content">
           <div className="header__search header__search--mobile">
-            <Input
-              placeholder="Search..."
-              prefix={<SearchOutlined />}
-              size="middle"
-            />
+            <SearchDropdown />
           </div>
 
           <Menu
