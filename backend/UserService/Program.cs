@@ -70,6 +70,11 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IPersonalPageService, PersonalPageService>();
 
+// Add profile picture strategy services
+builder.Services.AddScoped<IProfilePictureStrategy, UserService.Services.Implementations.ProfilePictureStrategies.OAuthProfilePictureStrategy>();
+builder.Services.AddScoped<IProfilePictureStrategy, UserService.Services.Implementations.ProfilePictureStrategies.SelfProvidedProfilePictureStrategy>();
+builder.Services.AddScoped<IProfilePictureStrategyFactory, UserService.Services.Implementations.ProfilePictureStrategies.ProfilePictureStrategyFactory>();
+
 // Add CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
     ?? new[] { "http://localhost:5173", "http://localhost:3000" };

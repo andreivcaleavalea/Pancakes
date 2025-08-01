@@ -10,6 +10,7 @@ import type { CommentItemProps, CreateCommentDto } from "@/types/comment";
 import CommentForm from "../CommentForm/CommentForm";
 import CommentLikeButtons from "../CommentLikeButtons/CommentLikeButtons";
 import { CachedAvatar } from "@/components/common";
+import { getProfilePictureUrl } from "@/utils/imageUtils";
 import "./CommentItem.scss";
 
 const { Text, Paragraph } = Typography;
@@ -81,7 +82,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         <div className="comment-item__avatar">
           <CachedAvatar
             size={depth > 0 ? 32 : 40}
-            src={comment.authorImage}
+            src={getProfilePictureUrl(comment.authorImage)}
             fallbackSrc="/default-avatar.png"
             icon={<UserOutlined />}
             alt={comment.authorName}

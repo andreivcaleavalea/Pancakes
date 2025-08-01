@@ -16,15 +16,18 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<UserService> _logger;
+    private readonly IProfilePictureStrategyFactory _profilePictureStrategyFactory;
 
     public UserService(
         IUserRepository userRepository,
         IMapper mapper,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger,
+        IProfilePictureStrategyFactory profilePictureStrategyFactory)
     {
         _userRepository = userRepository;
         _mapper = mapper;
         _logger = logger;
+        _profilePictureStrategyFactory = profilePictureStrategyFactory;
     }
 
     public async Task<UserDto?> GetByIdAsync(string id)
@@ -106,8 +109,11 @@ public class UserService : IUserService
             // Update existing user with latest OAuth info and last login
             existingUser.Name = oauthInfo.Name;
             existingUser.Email = oauthInfo.Email;
-            existingUser.Image = oauthInfo.Picture;
             existingUser.LastLoginAt = DateTime.UtcNow;
+            
+            // Use strategy pattern to determine if profile picture should be updated
+            var strategy = _profilePictureStrategyFactory.GetStrategy(existingUser.Provider);
+            strategy.ShouldUpdatePictureFromOAuth(existingUser, oauthInfo, provider);
             
             var updatedUser = await _userRepository.UpdateAsync(existingUser);
             return _mapper.Map<UserDto>(updatedUser);
@@ -121,9 +127,12 @@ public class UserService : IUserService
             // User exists with same email but different provider - link the accounts
             // Update the existing user to add this provider info and login
             existingUserByEmail.Name = oauthInfo.Name; // Update name in case it changed
-            existingUserByEmail.Image = oauthInfo.Picture; // Update image
             existingUserByEmail.LastLoginAt = DateTime.UtcNow;
             // Note: We keep the original Provider and ProviderUserId but allow login from multiple providers
+            
+            // Use strategy pattern to determine if profile picture should be updated
+            var strategy = _profilePictureStrategyFactory.GetStrategy(existingUserByEmail.Provider);
+            strategy.ShouldUpdatePictureFromOAuth(existingUserByEmail, oauthInfo, provider);
             
             var updatedUser = await _userRepository.UpdateAsync(existingUserByEmail);
             return _mapper.Map<UserDto>(updatedUser);

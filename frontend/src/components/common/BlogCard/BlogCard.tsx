@@ -2,6 +2,7 @@ import React from "react";
 import { Card, Typography, App, Avatar } from "antd";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import type { BlogPost } from "@/types/blog";
+import { getProfilePictureUrl } from "@/utils/imageUtils";
 
 interface BlogPostWithDisplay extends BlogPost {
   image?: string;
@@ -48,7 +49,12 @@ const BlogCard: React.FC<BlogCardProps> = ({
           : SUCCESS_MESSAGES.FAVORITE_REMOVED
       );
     } catch (error) {
-      message.error(ERROR_MESSAGES.FAVORITE_ERROR);
+      // Show specific error message for authentication issues
+      if (error instanceof Error && error.message.includes("log in")) {
+        message.error(error.message);
+      } else {
+        message.error(ERROR_MESSAGES.FAVORITE_ERROR);
+      }
     }
   };
 
@@ -94,7 +100,9 @@ const BlogCard: React.FC<BlogCardProps> = ({
             {post.author && (
               <div className="blog-card__author-info">
                 <Avatar
-                  src={post.authorAvatar || DEFAULTS.AVATAR}
+                  src={
+                    getProfilePictureUrl(post.authorAvatar) || DEFAULTS.AVATAR
+                  }
                   size={32}
                   style={{ marginRight: 8 }}
                 >
@@ -163,7 +171,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
           {post.author && (
             <div className="blog-card__author-info">
               <Avatar
-                src={post.authorAvatar}
+                src={getProfilePictureUrl(post.authorAvatar)}
                 size={variant === "featured" ? 40 : 32}
                 style={{ marginRight: 8 }}
               >

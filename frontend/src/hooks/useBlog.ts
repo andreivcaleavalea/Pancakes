@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { BlogService } from "@/services/blogService";
+import { isAuthenticated } from "@/lib/api";
 import type { BlogPost, FeaturedPost } from "@/types/blog";
 
 /**
@@ -148,6 +149,11 @@ export const useFavorite = (
   const [loading, setLoading] = useState(false);
 
   const toggleFavorite = useCallback(async () => {
+    // Check if user is authenticated before attempting to toggle favorite
+    if (!isAuthenticated()) {
+      throw new Error("Please log in to save blogs to your favorites.");
+    }
+
     try {
       setLoading(true);
 
@@ -172,9 +178,15 @@ export const useFavorite = (
     }
   }, [blogId, isFavorite]);
 
-  // Check initial favorite status
+  // Check initial favorite status (only for authenticated users)
   useEffect(() => {
     const checkFavoriteStatus = async () => {
+      // Skip favorite check for unauthenticated users
+      if (!isAuthenticated()) {
+        setIsFavorite(false);
+        return;
+      }
+
       try {
         const { savedBlogsApi } = await import("../services/savedBlogApi");
         const result = await savedBlogsApi.isBookmarked(blogId);
@@ -182,6 +194,7 @@ export const useFavorite = (
       } catch (error) {
         console.error("Error checking favorite status:", error);
         // Keep the initial value if API call fails
+        setIsFavorite(false);
       }
     };
 

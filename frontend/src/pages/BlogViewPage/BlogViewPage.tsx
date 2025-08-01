@@ -19,6 +19,7 @@ import {
 } from "@/components/common";
 import { blogPostsApi } from "@/services/blogApi";
 import { DEFAULTS } from "@/utils/constants";
+import { getProfilePictureUrl } from "@/utils/imageUtils";
 import "./BlogViewPage.scss";
 
 const { Title, Text } = Typography;
@@ -168,7 +169,7 @@ const BlogViewPage: React.FC = () => {
         <div className="blog-view__meta">
           <div className="blog-view__author">
             <CachedAvatar
-              src={blogWithDisplay.authorAvatar}
+              src={getProfilePictureUrl(blogWithDisplay.authorAvatar)}
               fallbackSrc={DEFAULTS.AVATAR}
               size={48}
               className="blog-view__author-avatar"
