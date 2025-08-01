@@ -34,6 +34,10 @@ namespace AdminService.Services.Implementations
         {
             var latestMetrics = await GetLatestSystemMetricsAsync();
             
+            // Calculate growth rate based on weekly data
+            var previousWeekMetrics = await GetMetricsFromDaysAgoAsync(7);
+            var growthRate = CalculateGrowthRate(latestMetrics?.TotalUsers ?? 0, previousWeekMetrics?.TotalUsers ?? 0);
+            
             return new DashboardStatsDto
             {
                 UserStats = new UserStatsDto
@@ -41,27 +45,42 @@ namespace AdminService.Services.Implementations
                     TotalUsers = latestMetrics?.TotalUsers ?? 0,
                     ActiveUsers = latestMetrics?.ActiveUsers ?? 0,
                     OnlineUsers = latestMetrics?.OnlineUsers ?? 0,
-                    DailySignups = latestMetrics?.DailySignups ?? 0
+                    DailySignups = latestMetrics?.DailySignups ?? 0,
+                    WeeklySignups = await GetSignupsInLastDaysAsync(7),
+                    MonthlySignups = await GetSignupsInLastDaysAsync(30),
+                    GrowthRate = growthRate,
+                    BannedUsers = await GetBannedUsersCountAsync()
                 },
                 ContentStats = new ContentStatsDto
                 {
                     TotalBlogPosts = latestMetrics?.TotalBlogPosts ?? 0,
                     BlogPostsToday = latestMetrics?.BlogPostsCreatedToday ?? 0,
                     TotalComments = latestMetrics?.TotalComments ?? 0,
-                    CommentsToday = latestMetrics?.CommentsPostedToday ?? 0
+                    CommentsToday = latestMetrics?.CommentsPostedToday ?? 0,
+                    PublishedBlogPosts = latestMetrics?.TotalBlogPosts ?? 0, // Assuming all are published for now
+                    DraftBlogPosts = 0, // TODO: Get actual draft count from BlogService
+                    AverageRating = 0.0 // TODO: Calculate actual average rating
                 },
                 ModerationStats = new ModerationStatsDto
                 {
                     TotalReports = latestMetrics?.TotalReports ?? 0,
                     PendingReports = latestMetrics?.PendingReports ?? 0,
                     TotalFlags = latestMetrics?.TotalFlags ?? 0,
-                    PendingFlags = latestMetrics?.PendingFlags ?? 0
+                    PendingFlags = latestMetrics?.PendingFlags ?? 0,
+                    BannedUsers = await GetBannedUsersCountAsync(),
+                    DeletedPosts = 0, // TODO: Get actual deleted posts count
+                    DeletedComments = 0 // TODO: Get actual deleted comments count
                 },
                 SystemStats = new SystemStatsDto
                 {
                     CpuUsage = latestMetrics?.CpuUsage ?? 0,
                     MemoryUsage = latestMetrics?.MemoryUsage ?? 0,
-                    DiskUsage = latestMetrics?.DiskUsage ?? 0
+                    DiskUsage = latestMetrics?.DiskUsage ?? 0,
+                    AverageResponseTime = 0.0, // TODO: Calculate actual response time
+                    ErrorsLastHour = 0, // TODO: Get actual error count
+                    DatabaseStatus = "Connected", // TODO: Check actual database status
+                    ServiceVersion = "1.0.0",
+                    LastMetricCollection = latestMetrics?.Timestamp ?? DateTime.UtcNow
                 }
             };
         }
@@ -227,6 +246,55 @@ namespace AdminService.Services.Implementations
         {
             var random = new Random();
             return Math.Round(random.NextDouble() * (max - min) + min, 2);
+        }
+
+        private async Task<SystemMetricDto?> GetMetricsFromDaysAgoAsync(int daysAgo)
+        {
+            var targetDate = DateTime.UtcNow.AddDays(-daysAgo);
+            var metric = await _context.SystemMetrics
+                .Where(m => m.Timestamp.Date == targetDate.Date)
+                .OrderByDescending(m => m.Timestamp)
+                .FirstOrDefaultAsync();
+
+            return metric != null ? _mapper.Map<SystemMetricDto>(metric) : null;
+        }
+
+        private double CalculateGrowthRate(int currentValue, int previousValue)
+        {
+            if (previousValue == 0) return currentValue > 0 ? 100.0 : 0.0;
+            return Math.Round(((double)(currentValue - previousValue) / previousValue) * 100, 2);
+        }
+
+        private async Task<int> GetSignupsInLastDaysAsync(int days)
+        {
+            try
+            {
+                var stats = await _userServiceClient.GetUserStatisticsAsync();
+                
+                // For now, return a simple calculation based on daily signups
+                // TODO: Implement proper date-range queries in UserService
+                var dailySignups = stats.ContainsKey("dailySignups") ? Convert.ToInt32(stats["dailySignups"]) : 0;
+                return dailySignups * days; // Simple approximation
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to get signup statistics for last {Days} days", days);
+                return 0;
+            }
+        }
+
+        private async Task<int> GetBannedUsersCountAsync()
+        {
+            try
+            {
+                var stats = await _userServiceClient.GetUserStatisticsAsync();
+                return stats.ContainsKey("bannedUsers") ? Convert.ToInt32(stats["bannedUsers"]) : 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to get banned users count");
+                return 0;
+            }
         }
     }
 }
