@@ -61,3 +61,5 @@ Thumbs.db
 # Package files
 *.nupkg
 *.snupkg
+
+backend/UserService/assets/
