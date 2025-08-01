@@ -8,11 +8,15 @@ namespace AdminService.Models.DTOs
         public string Provider { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime LastLoginAt { get; set; }
-        public bool IsActive { get; set; }
         public int TotalBlogPosts { get; set; }
         public int TotalComments { get; set; }
         public int ReportsCount { get; set; }
         public bool IsBanned { get; set; }
+        public string? CurrentBanReason { get; set; }
+        public DateTime? CurrentBanExpiresAt { get; set; }
+        public DateTime? CurrentBannedAt { get; set; }
+        public string? CurrentBannedBy { get; set; }
+        public int TotalBansCount { get; set; }
     }
 
     public class UserDetailDto : UserOverviewDto

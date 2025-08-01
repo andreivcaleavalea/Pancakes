@@ -17,6 +17,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: API_CONFIG.TIMEOUT,
+  withCredentials: true, 
 })
 
 // Add response interceptor for error handling
@@ -42,17 +43,14 @@ api.interceptors.response.use(
 
 // API Service
 class AdminApiService {
-  setAuthToken(token: string) {
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    } else {
-      delete api.defaults.headers.common['Authorization']
-    }
-  }
-
   // Auth endpoints
   async login(email: string, password: string): Promise<ApiResponse<LoginResponse>> {
     const response = await api.post('/adminauth/login', { email, password })
+    return response.data
+  }
+
+  async logout(): Promise<ApiResponse<object>> {
+    const response = await api.post('/adminauth/logout')
     return response.data
   }
 
@@ -160,3 +158,13 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+export type { 
+  AdminUser, 
+  LoginResponse, 
+  ApiResponse, 
+  PagedResponse, 
+  DashboardStats, 
+  UserOverview, 
+  ContentFlag 
+} from '../types'

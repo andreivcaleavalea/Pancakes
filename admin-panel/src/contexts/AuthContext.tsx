@@ -28,13 +28,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken')
-    if (token) {
-      adminApi.setAuthToken(token)
-      validateToken()
-    } else {
-      setIsLoading(false)
-    }
+    validateToken()
   }, [])
 
   const validateToken = async () => {
@@ -42,8 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await adminApi.getCurrentAdmin()
       setUser(response.data)
     } catch (error) {
-      localStorage.removeItem('adminToken')
-      adminApi.setAuthToken('')
+      setUser(null)
     } finally {
       setIsLoading(false)
     }
@@ -52,13 +45,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await adminApi.login(email, password)
-      const { token, adminUser } = response.data
+      const { adminUser } = response.data
       
-      localStorage.setItem('adminToken', token)
-      adminApi.setAuthToken(token)
       setUser(adminUser)
     } catch (error) {
-      // Provide user-friendly error messages
       if (error instanceof Error) {
         throw new Error(error.message);
       } else if (typeof error === 'object' && error !== null && 'response' in error) {
@@ -72,10 +62,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const logout = () => {
-    localStorage.removeItem('adminToken')
-    adminApi.setAuthToken('')
-    setUser(null)
+  const logout = async () => {
+    try {
+      await adminApi.logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      setUser(null)
+    }
   }
 
   const value = {

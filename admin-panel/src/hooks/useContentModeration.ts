@@ -47,7 +47,6 @@ export const useContentModeration = () => {
       
       if (response.success) {
         message.success(`Content ${action}d successfully`);
-        // Refresh flags list
         await fetchFlags();
       } else {
         message.error(response.message || `Failed to ${action} content`);

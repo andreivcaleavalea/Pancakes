@@ -23,6 +23,7 @@ namespace AdminService.Controllers
         }
 
         [HttpGet("dashboard")]
+        [Authorize(Policy = "CanViewDashboard")]
         public async Task<IActionResult> GetDashboardStats()
         {
             try
@@ -48,6 +49,7 @@ namespace AdminService.Controllers
         }
 
         [HttpGet("users")]
+        [Authorize(Policy = "CanViewAnalytics")]
         public async Task<IActionResult> GetUserStats([FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null)
         {
             try

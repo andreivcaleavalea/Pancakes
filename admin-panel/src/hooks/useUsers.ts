@@ -41,7 +41,6 @@ export const useUsers = () => {
       
       if (response.success) {
         message.success('User banned successfully');
-        // Refresh users list
         await fetchUsers();
       } else {
         message.error(response.message || 'Failed to ban user');
@@ -62,7 +61,6 @@ export const useUsers = () => {
       
       if (response.success) {
         message.success('User unbanned successfully');
-        // Refresh users list
         await fetchUsers();
       } else {
         message.error(response.message || 'Failed to unban user');

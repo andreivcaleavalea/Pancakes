@@ -1,12 +1,13 @@
 using AdminService.Models.DTOs;
 using AdminService.Models.Requests;
 using AdminService.Models.Responses;
+using Microsoft.AspNetCore.Http;
 
 namespace AdminService.Services.Interfaces
 {
     public interface IAdminAuthService
     {
-        Task<AdminLoginResponse> LoginAsync(AdminLoginRequest request);
+        Task<AdminLoginResponse> LoginAsync(HttpContext httpContext, AdminLoginRequest request);
         Task<AdminUserDto> GetCurrentAdminAsync(string token);
         Task<AdminUserDto> CreateAdminUserAsync(CreateAdminUserRequest request, string createdBy);
         Task<AdminUserDto> UpdateAdminUserAsync(string adminId, UpdateAdminUserRequest request, string updatedBy);

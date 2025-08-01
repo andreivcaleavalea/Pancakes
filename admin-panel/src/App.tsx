@@ -4,7 +4,6 @@ import { Layout } from "./layouts";
 import { LoginPage } from "./pages/LoginPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
-// Import pages directly (temporarily removing lazy loading)
 import DashboardPage from "./pages/DashboardPage";
 import UsersPage from "./pages/UsersPage";
 import ContentPage from "./pages/ContentPage";

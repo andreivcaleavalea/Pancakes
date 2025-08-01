@@ -16,6 +16,7 @@ public class UserDbContext : DbContext
     public DbSet<Project> Projects { get; set; }
     public DbSet<Hobby> Hobbies { get; set; }
     public DbSet<PersonalPageSettings> PersonalPageSettings { get; set; }
+    public DbSet<Ban> Bans { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,6 +85,54 @@ public class UserDbContext : DbContext
 
             // Add constraint to prevent self-friendship
             entity.HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\"");
+        });
+        
+        // Configure Ban entity
+        modelBuilder.Entity<Ban>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Id)
+                .HasMaxLength(450)
+                .IsRequired();
+                
+            entity.Property(e => e.UserId)
+                .HasMaxLength(255)
+                .IsRequired();
+                
+            entity.Property(e => e.Reason)
+                .HasMaxLength(1000)
+                .IsRequired();
+                
+            entity.Property(e => e.BannedBy)
+                .HasMaxLength(255)
+                .IsRequired();
+                
+            entity.Property(e => e.UnbannedBy)
+                .HasMaxLength(255);
+                
+            entity.Property(e => e.UnbanReason)
+                .HasMaxLength(500);
+                
+            entity.Property(e => e.BannedAt)
+                .IsRequired();
+                
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+                
+            entity.Property(e => e.UpdatedAt)
+                .IsRequired();
+            
+            // Configure relationship with User
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Bans)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            // Add indexes for performance
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.UserId, e.IsActive });
+            entity.HasIndex(e => e.ExpiresAt);
         });
     }
 }

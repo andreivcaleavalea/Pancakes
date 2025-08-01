@@ -52,11 +52,15 @@ export interface UserOverview {
   provider: string
   createdAt: string
   lastLoginAt: string
-  isActive: boolean
   totalBlogPosts: number
   totalComments: number
   reportsCount: number
   isBanned: boolean
+  currentBanReason?: string
+  currentBanExpiresAt?: string
+  currentBannedAt?: string
+  currentBannedBy?: string
+  totalBansCount: number
 }
 
 export interface ContentFlag {

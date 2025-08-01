@@ -68,7 +68,7 @@ namespace AdminService.Controllers
         {
             try
             {
-                var response = await _adminAuthService.LoginAsync(request);
+                var response = await _adminAuthService.LoginAsync(HttpContext, request);
                 return Ok(new ApiResponse<AdminLoginResponse>
                 {
                     Success = true,
@@ -317,6 +317,40 @@ namespace AdminService.Controllers
         private string GetCurrentAdminId()
         {
             return HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public IActionResult Logout()
+        {
+            try
+            {
+                // Clear the httpOnly cookie
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(-1), // Set expiry to past date to delete
+                    Path = "/"
+                };
+                HttpContext.Response.Cookies.Append("adminToken", "", cookieOptions);
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Logout successful"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during logout");
+                return StatusCode(500, new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "An error occurred during logout"
+                });
+            }
         }
 
         private string GetClientIpAddress()

@@ -2,6 +2,39 @@ using AdminService.Models.DTOs;
 using AdminService.Services.Interfaces;
 using System.Text.Json;
 
+// DTO for UserService response format
+public class UserServiceUserDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Image { get; set; } = string.Empty;
+    public string Provider { get; set; } = string.Empty;
+    public string ProviderUserId { get; set; } = string.Empty;
+    public string Bio { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
+    public DateTime? DateOfBirth { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime LastLoginAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    
+    // Ban status helper properties (calculated from Bans collection)
+    public bool IsBanned { get; set; } = false;
+    public string? CurrentBanReason { get; set; }
+    public DateTime? CurrentBanExpiresAt { get; set; }
+}
+
+// UserService response format with pagination
+public class UserServiceResponse
+{
+    public List<UserServiceUserDto> Users { get; set; } = new List<UserServiceUserDto>();
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages { get; set; }
+    public string? SearchTerm { get; set; }
+}
+
 namespace AdminService.Clients
 {
     public class UserServiceClient
@@ -37,7 +70,9 @@ namespace AdminService.Clients
 
                 var json = await response.Content.ReadAsStringAsync();
                 var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                return JsonSerializer.Deserialize<UserOverviewDto>(json, options);
+                
+                var userDto = JsonSerializer.Deserialize<UserServiceUserDto>(json, options);
+                return userDto != null ? MapToUserOverviewDto(userDto) : null;
             }
             catch (Exception ex)
             {
@@ -57,7 +92,9 @@ namespace AdminService.Clients
 
                 var json = await response.Content.ReadAsStringAsync();
                 var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                return JsonSerializer.Deserialize<UserDetailDto>(json, options);
+                
+                var userDto = JsonSerializer.Deserialize<UserServiceUserDto>(json, options);
+                return userDto != null ? MapToUserDetailDto(userDto) : null;
             }
             catch (Exception ex)
             {
@@ -65,8 +102,38 @@ namespace AdminService.Clients
                 return null;
             }
         }
+        
+        private UserDetailDto MapToUserDetailDto(UserServiceUserDto userDto)
+        {
+            return new UserDetailDto
+            {
+                Id = userDto.Id,
+                Name = userDto.Name,
+                Email = userDto.Email,
+                Provider = userDto.Provider,
+                CreatedAt = userDto.CreatedAt,
+                LastLoginAt = userDto.LastLoginAt,
+                TotalBlogPosts = 0, // TODO: Get from BlogService when available
+                TotalComments = 0, // TODO: Get from CommentService when available
+                ReportsCount = 0, // TODO: Get from ModerationService when available
+                IsBanned = userDto.IsBanned,
+                CurrentBanReason = userDto.CurrentBanReason,
+                CurrentBanExpiresAt = userDto.CurrentBanExpiresAt,
+                CurrentBannedAt = null,
+                CurrentBannedBy = null,
+                TotalBansCount = 0,
+                Bio = userDto.Bio,
+                PhoneNumber = userDto.PhoneNumber,
+                DateOfBirth = userDto.DateOfBirth,
+                Image = userDto.Image,
+                Education = new List<UserEducationDto>(), // TODO: Get from UserService when available
+                Jobs = new List<UserJobDto>(), // TODO: Get from UserService when available
+                Projects = new List<UserProjectDto>(), // TODO: Get from UserService when available
+                Hobbies = new List<UserHobbyDto>() // TODO: Get from UserService when available
+            };
+        }
 
-        public async Task<List<UserOverviewDto>> SearchUsersAsync(string? searchTerm, int page, int pageSize)
+        public async Task<(List<UserOverviewDto> users, int totalCount)> SearchUsersAsync(string? searchTerm, int page, int pageSize)
         {
             try
             {
@@ -79,19 +146,47 @@ namespace AdminService.Clients
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("Failed to get users from UserService. Status: {StatusCode}", response.StatusCode);
-                    return new List<UserOverviewDto>();
+                    return (new List<UserOverviewDto>(), 0);
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
                 var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                var result = JsonSerializer.Deserialize<List<UserOverviewDto>>(json, options);
-                return result ?? new List<UserOverviewDto>();
+                
+                // Deserialize the new response format
+                var userResponse = JsonSerializer.Deserialize<UserServiceResponse>(json, options);
+                if (userResponse?.Users == null) return (new List<UserOverviewDto>(), 0);
+                
+                // Map to AdminService's UserOverviewDto format
+                var result = userResponse.Users.Select(MapToUserOverviewDto).ToList();
+                return (result, userResponse.TotalCount);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error searching users in UserService");
-                return new List<UserOverviewDto>();
+                return (new List<UserOverviewDto>(), 0);
             }
+        }
+        
+        private UserOverviewDto MapToUserOverviewDto(UserServiceUserDto userDto)
+        {
+            return new UserOverviewDto
+            {
+                Id = userDto.Id,
+                Name = userDto.Name,
+                Email = userDto.Email,
+                Provider = userDto.Provider,
+                CreatedAt = userDto.CreatedAt,
+                LastLoginAt = userDto.LastLoginAt,
+                TotalBlogPosts = 0, // TODO: Get from BlogService when available
+                TotalComments = 0, // TODO: Get from CommentService when available
+                ReportsCount = 0, // TODO: Get from ModerationService when available
+                IsBanned = userDto.IsBanned,
+                CurrentBanReason = userDto.CurrentBanReason,
+                CurrentBanExpiresAt = userDto.CurrentBanExpiresAt,
+                CurrentBannedAt = null, // Will be populated from ban history if needed
+                CurrentBannedBy = null, // Will be populated from ban history if needed
+                TotalBansCount = 0 // Will be populated from ban service if needed
+            };
         }
 
         public async Task<bool> BanUserAsync(string userId, string reason, DateTime? expiresAt)
