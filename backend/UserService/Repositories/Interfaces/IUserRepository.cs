@@ -8,6 +8,8 @@ public interface IUserRepository
     Task<User?> GetByEmailAsync(string email);
     Task<User?> GetByProviderAndProviderUserIdAsync(string provider, string providerUserId);
     Task<IEnumerable<User>> GetAllAsync(int page = 1, int pageSize = 10);
+    Task<(IEnumerable<User> users, int totalCount)> GetAllWithCountAsync(int page = 1, int pageSize = 10);
+    Task<(IEnumerable<User> users, int totalCount)> SearchUsersAsync(string searchTerm, int page = 1, int pageSize = 10);
     Task<User> CreateAsync(User user);
     Task<User> UpdateAsync(User user);
     Task DeleteAsync(string id);

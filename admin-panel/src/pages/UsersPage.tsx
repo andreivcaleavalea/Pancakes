@@ -13,7 +13,6 @@ import {
   Form, 
   DatePicker, 
   Alert,
-  Spin,
   Badge
 } from 'antd';
 import { 
@@ -23,7 +22,8 @@ import {
   CheckCircleOutlined,
   ReloadOutlined,
   EyeOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useUsers } from '../hooks/useUsers';
@@ -70,7 +70,15 @@ const UsersPage: React.FC = () => {
       content: (
         <div>
           <p>Are you sure you want to unban <strong>{user.name}</strong>?</p>
-          <p>Email: {user.email}</p>
+          <p><strong>Email:</strong> {user.email}</p>
+          {user.currentBanReason && <p><strong>Ban Reason:</strong> {user.currentBanReason}</p>}
+          {user.currentBannedAt && <p><strong>Banned on:</strong> {formatDate(user.currentBannedAt)}</p>}
+          {user.currentBanExpiresAt ? (
+            <p><strong>Expires:</strong> {formatDate(user.currentBanExpiresAt)}</p>
+          ) : (
+            <p><strong>Type:</strong> Permanent ban</p>
+          )}
+          {user.totalBansCount > 1 && <p><strong>Previous bans:</strong> {user.totalBansCount - 1}</p>}
         </div>
       ),
       onOk: async () => {
@@ -92,13 +100,30 @@ const UsersPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZoneName: 'short' 
     });
+  };
+
+  const getBanStatusText = (user: UserOverview) => {
+    if (!user.isBanned) return null;
+    
+    if (user.currentBanExpiresAt && user.currentBanExpiresAt.trim() !== '') {
+      const expirationDate = new Date(user.currentBanExpiresAt);
+      const now = new Date();
+      if (!isNaN(expirationDate.getTime()) && expirationDate > now) {
+        return `Expires ${formatDate(user.currentBanExpiresAt)}`;
+      } else if (!isNaN(expirationDate.getTime())) {
+        return 'Ban expired (needs review)';
+      }
+    }
+    return 'Permanent ban';
   };
 
   const columns: ColumnsType<UserOverview> = [
@@ -129,13 +154,69 @@ const UsersPage: React.FC = () => {
       title: 'Status',
       key: 'status',
       render: (_, record) => (
-        <Space direction="vertical" size="small">
-          <Tag color={record.isActive ? 'green' : 'red'}>
-            {record.isActive ? 'Active' : 'Inactive'}
-          </Tag>
-          {record.isBanned && <Tag color="volcano">Banned</Tag>}
-        </Space>
+        <div>
+          {record.isBanned ? (
+            <Tooltip 
+              title={
+                <div>
+                  <div><strong>Reason:</strong> {record.currentBanReason || 'No reason provided'}</div>
+                  {record.currentBannedAt && <div><strong>Banned on:</strong> {formatDate(record.currentBannedAt)}</div>}
+                  {record.currentBannedBy && <div><strong>Banned by:</strong> {record.currentBannedBy}</div>}
+                  {record.currentBanExpiresAt ? (
+                    <div><strong>Expires:</strong> {formatDate(record.currentBanExpiresAt)}</div>
+                  ) : (
+                    <div><strong>Type:</strong> Permanent ban</div>
+                  )}
+                  {record.totalBansCount > 1 && <div><strong>Total bans:</strong> {record.totalBansCount}</div>}
+                </div>
+              }
+              placement="topLeft"
+              overlayStyle={{ maxWidth: 300 }}
+            >
+              <Tag color="volcano" icon={<InfoCircleOutlined />} style={{ cursor: 'pointer' }}>
+                Banned
+              </Tag>
+            </Tooltip>
+          ) : (
+            <Tag color="green">Active</Tag>
+          )}
+        </div>
       ),
+    },
+    {
+      title: 'Ban Details',
+      key: 'banDetails',
+      width: 200,
+      render: (_, record) => {
+        if (!record.isBanned) {
+          return <Text type="secondary">Not banned</Text>;
+        }
+        
+        return (
+          <Space direction="vertical" size="small" style={{ fontSize: '12px' }}>
+            {record.currentBanReason && (
+              <div>
+                <Text strong>Reason:</Text>
+                <br />
+                <Text style={{ fontSize: '11px' }}>{record.currentBanReason}</Text>
+              </div>
+            )}
+            {record.currentBannedAt && (
+              <div>
+                <Text strong>Banned:</Text> <Text type="secondary">{formatDate(record.currentBannedAt)}</Text>
+              </div>
+            )}
+            {record.totalBansCount > 1 && (
+              <div>
+                <Text strong>History:</Text> <Text type="secondary">{record.totalBansCount} total bans</Text>
+              </div>
+            )}
+            <div>
+              <Text strong>Status:</Text> <Text type="secondary">{getBanStatusText(record)}</Text>
+            </div>
+          </Space>
+        );
+      },
     },
     {
       title: 'Activity',
@@ -185,7 +266,7 @@ const UsersPage: React.FC = () => {
             <Button icon={<EyeOutlined />} size="small" />
           </Tooltip>
           {record.isBanned ? (
-            <Tooltip title="Unban User">
+            <Tooltip title={`Remove ban: ${record.currentBanReason || 'No reason'}`}>
               <Button 
                 icon={<CheckCircleOutlined />} 
                 size="small" 

@@ -37,7 +37,7 @@ namespace AdminService.Services.Implementations
             _logger = logger;
         }
 
-        public async Task<AdminLoginResponse> LoginAsync(AdminLoginRequest request)
+        public async Task<AdminLoginResponse> LoginAsync(HttpContext httpContext, AdminLoginRequest request)
         {
             var admin = await _context.AdminUsers
                 .Include(a => a.Roles)
@@ -56,15 +56,26 @@ namespace AdminService.Services.Implementations
             var adminDto = _mapper.Map<AdminUserDto>(admin);
             var token = GenerateJwtToken(adminDto);
 
+            // Set secure httpOnly cookie (4 hours expiry)
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true, // Requires HTTPS
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddHours(4), // Reduced from 24 to 4 hours
+                Path = "/"
+            };
+            httpContext.Response.Cookies.Append("adminToken", token, cookieOptions);
+
             // Log successful login
             await _auditService.LogActionAsync(admin.Id, "ADMIN_LOGIN", "AdminUser", admin.Id, 
                 new { Email = admin.Email, LoginTime = DateTime.UtcNow }, "", "");
 
             return new AdminLoginResponse
             {
-                Token = token,
+                Token = string.Empty, // Remove token from response - it's now in httpOnly cookie
                 AdminUser = adminDto,
-                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                ExpiresAt = DateTime.UtcNow.AddHours(4), // Reduced from 24 to 4 hours
                 RequirePasswordChange = admin.RequirePasswordChange,
                 RequireTwoFactor = admin.TwoFactorEnabled && string.IsNullOrEmpty(request.TwoFactorCode)
             };
@@ -316,7 +327,7 @@ namespace AdminService.Services.Implementations
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(24),
+                Expires = DateTime.UtcNow.AddHours(4), // Reduced from 24 to 4 hours for security
                 Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesAdmin",
                 Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesAdminUsers",
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

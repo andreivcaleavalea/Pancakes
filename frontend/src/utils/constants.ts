@@ -43,6 +43,8 @@ export const ERROR_MESSAGES = {
   FAVORITE_ADD_SUCCESS: "Added to favorites!",
   FAVORITE_REMOVE_SUCCESS: "Removed from favorites!",
   FAVORITE_ERROR: "Failed to update favorite status",
+  AUTH_FAILED: "Authentication failed. Please try again.",
+  AUTH_BANNED: "Account access has been restricted. Please contact support if you believe this is an error.",
 } as const;
 
 // Success Messages

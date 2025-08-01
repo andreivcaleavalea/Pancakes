@@ -14,4 +14,12 @@ public class UserDto
     public DateTime CreatedAt { get; set; }
     public DateTime LastLoginAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    // Ban status helper property (calculated from Bans collection)
+    public bool IsBanned { get; set; } = false;
+    public string? CurrentBanReason { get; set; }
+    public DateTime? CurrentBanExpiresAt { get; set; }
+    public DateTime? BannedAt { get; set; }
+    public string? BannedBy { get; set; }
+    public int BanHistoryCount { get; set; }
 }

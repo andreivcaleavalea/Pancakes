@@ -39,11 +39,10 @@ namespace UserService.Models.Entities
         public DateTime LastLoginAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         
-        // Ban-related fields
-        public bool IsBanned { get; set; } = false;
-        public string? BanReason { get; set; }
-        public DateTime? BannedAt { get; set; }
-        public string? BannedBy { get; set; }
-        public DateTime? BanExpiresAt { get; set; }
+        // Navigation properties
+        public virtual ICollection<Ban> Bans { get; set; } = new List<Ban>();
+        
+        // Helper property to check if user has active ban
+        public bool IsBanned => Bans.Any(b => b.IsActive && (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow));
     }
 }

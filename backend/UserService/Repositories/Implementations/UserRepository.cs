@@ -16,28 +16,74 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByIdAsync(string id)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        return await _context.Users
+            .Include(u => u.Bans)
+            .FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        return await _context.Users
+            .Include(u => u.Bans)
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<User?> GetByProviderAndProviderUserIdAsync(string provider, string providerUserId)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => 
-            u.Provider == provider && u.ProviderUserId == providerUserId);
+        return await _context.Users
+            .Include(u => u.Bans)
+            .FirstOrDefaultAsync(u => 
+                u.Provider == provider && u.ProviderUserId == providerUserId);
     }
 
     public async Task<IEnumerable<User>> GetAllAsync(int page = 1, int pageSize = 10)
     {
         var skip = (page - 1) * pageSize;
         return await _context.Users
+            .Include(u => u.Bans)
             .OrderBy(u => u.Name)
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync();
+    }
+
+    public async Task<(IEnumerable<User> users, int totalCount)> GetAllWithCountAsync(int page = 1, int pageSize = 10)
+    {
+        var totalCount = await _context.Users.CountAsync();
+        var skip = (page - 1) * pageSize;
+        
+        var users = await _context.Users
+            .Include(u => u.Bans)
+            .OrderBy(u => u.Name)
+            .Skip(skip)
+            .Take(pageSize)
+            .ToListAsync();
+        
+        return (users, totalCount);
+    }
+
+    public async Task<(IEnumerable<User> users, int totalCount)> SearchUsersAsync(string searchTerm, int page = 1, int pageSize = 10)
+    {
+        var query = _context.Users.Include(u => u.Bans).AsQueryable();
+        
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var lowerSearchTerm = searchTerm.ToLower();
+            query = query.Where(u => 
+                u.Name.ToLower().Contains(lowerSearchTerm) || 
+                u.Email.ToLower().Contains(lowerSearchTerm));
+        }
+        
+        var totalCount = await query.CountAsync();
+        var skip = (page - 1) * pageSize;
+        
+        var users = await query
+            .OrderBy(u => u.Name)
+            .Skip(skip)
+            .Take(pageSize)
+            .ToListAsync();
+        
+        return (users, totalCount);
     }
 
     public async Task<User> CreateAsync(User user)

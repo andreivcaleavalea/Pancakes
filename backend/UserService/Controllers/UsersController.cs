@@ -31,8 +31,12 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [Authorize]
-    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string search = "")
     {
+        if (!string.IsNullOrEmpty(search))
+        {
+            return await _userService.SearchUsersAsync(HttpContext, search, page, pageSize);
+        }
         return await _userService.GetAllAsync(HttpContext, page, pageSize);
     }
 

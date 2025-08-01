@@ -44,7 +44,12 @@ namespace AdminService.Data.Seeders
                     Level = 4,
                     Permissions = JsonSerializer.Serialize(new[]
                     {
-                        "user.*", "content.*", "system.*", "admin.*", "analytics.*"
+                        "users:view", "users:ban", "users:unban", "users:delete", "users:details",
+                        "admins:view", "admins:create", "admins:update", "admins:delete", "admins:roles",
+                        "content:view", "content:moderate", "content:delete", "content:reports",
+                        "analytics:view", "analytics:dashboard", "analytics:export",
+                        "system:view", "system:update", "system:logs", "system:backups",
+                        "audit:view", "audit:export"
                     })
                 },
                 new AdminRole
@@ -54,7 +59,9 @@ namespace AdminService.Data.Seeders
                     Level = 3,
                     Permissions = JsonSerializer.Serialize(new[]
                     {
-                        "user.view", "user.edit", "user.ban", "content.*", "system.logs", "system.analytics"
+                        "users:view", "users:ban", "users:unban", "users:details",
+                        "content:view", "content:moderate", "content:delete",
+                        "system:logs", "analytics:view"
                     })
                 },
                 new AdminRole
@@ -64,7 +71,7 @@ namespace AdminService.Data.Seeders
                     Level = 2,
                     Permissions = JsonSerializer.Serialize(new[]
                     {
-                        "user.view", "content.view", "content.edit", "content.delete", "content.moderate"
+                        "users:view", "content:view", "content:moderate", "content:delete", "content:reports"
                     })
                 },
                 new AdminRole
@@ -74,7 +81,7 @@ namespace AdminService.Data.Seeders
                     Level = 1,
                     Permissions = JsonSerializer.Serialize(new[]
                     {
-                        "user.view", "content.view"
+                        "users:view", "content:view"
                     })
                 }
             };

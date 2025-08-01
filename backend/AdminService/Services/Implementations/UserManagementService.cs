@@ -35,16 +35,16 @@ namespace AdminService.Services.Implementations
         {
             try
             {
-                var users = await _userServiceClient.SearchUsersAsync(request.SearchTerm, request.Page, request.PageSize);
+                var (users, totalCount) = await _userServiceClient.SearchUsersAsync(request.SearchTerm, request.Page, request.PageSize);
                 
                 return new PagedResponse<UserOverviewDto>
                 {
                     Data = users,
-                    TotalCount = users.Count,
+                    TotalCount = totalCount, // ✅ FIXED: Use real total count from database
                     Page = request.Page,
                     PageSize = request.PageSize,
-                    TotalPages = (int)Math.Ceiling((double)users.Count / request.PageSize),
-                    HasNext = request.Page * request.PageSize < users.Count,
+                    TotalPages = (int)Math.Ceiling((double)totalCount / request.PageSize),
+                    HasNext = request.Page * request.PageSize < totalCount,
                     HasPrevious = request.Page > 1
                 };
             }
@@ -141,12 +141,14 @@ namespace AdminService.Services.Implementations
 
         public async Task<List<UserOverviewDto>> GetRecentlyRegisteredUsersAsync(int count = 10)
         {
-            return await _userServiceClient.SearchUsersAsync(null, 1, count);
+            var (users, _) = await _userServiceClient.SearchUsersAsync(null, 1, count);
+            return users;
         }
 
         public async Task<List<UserOverviewDto>> GetMostActiveUsersAsync(int count = 10)
         {
-            return await _userServiceClient.SearchUsersAsync(null, 1, count);
+            var (users, _) = await _userServiceClient.SearchUsersAsync(null, 1, count);
+            return users;
         }
 
         public async Task<List<UserOverviewDto>> GetSuspiciousUsersAsync()

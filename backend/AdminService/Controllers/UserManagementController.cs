@@ -27,6 +27,7 @@ namespace AdminService.Controllers
         }
 
         [HttpGet("search")]
+        [Authorize(Policy = "CanViewUsers")]
         public async Task<IActionResult> SearchUsers([FromQuery] UserSearchRequest request)
         {
             try
@@ -51,6 +52,7 @@ namespace AdminService.Controllers
         }
 
         [HttpGet("users/{userId}")]
+        [Authorize(Policy = "CanViewUserDetails")]
         public async Task<IActionResult> GetUserDetail(string userId)
         {
             try
@@ -84,7 +86,7 @@ namespace AdminService.Controllers
         }
 
         [HttpPost("ban")]
-        [Authorize(Roles = "SuperAdmin,SystemAdmin,ContentModerator")]
+        [Authorize(Policy = "CanBanUsers")]
         public async Task<IActionResult> BanUser([FromBody] BanUserRequest request)
         {
             try
@@ -122,7 +124,7 @@ namespace AdminService.Controllers
         }
 
         [HttpPost("unban")]
-        [Authorize(Roles = "SuperAdmin,SystemAdmin,ContentModerator")]
+        [Authorize(Policy = "CanUnbanUsers")]
         public async Task<IActionResult> UnbanUser([FromBody] UnbanUserRequest request)
         {
             try
@@ -160,7 +162,7 @@ namespace AdminService.Controllers
         }
 
         [HttpPut("users/{userId}")]
-        [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+        [Authorize(Policy = "CanUpdateAdmins")]
         public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserRequest request)
         {
             try
@@ -199,7 +201,7 @@ namespace AdminService.Controllers
         }
 
         [HttpPost("force-password-reset")]
-        [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+        [Authorize(Policy = "CanUpdateAdmins")]
         public async Task<IActionResult> ForcePasswordReset([FromBody] ForcePasswordResetRequest request)
         {
             try
@@ -228,6 +230,7 @@ namespace AdminService.Controllers
         }
 
         [HttpGet("statistics")]
+        [Authorize(Policy = "CanViewAnalytics")]
         public async Task<IActionResult> GetUserStatistics()
         {
             try

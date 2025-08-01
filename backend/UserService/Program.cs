@@ -24,9 +24,9 @@ if (string.IsNullOrEmpty(connectionString))
 {
     var host = Environment.GetEnvironmentVariable("USERS_DB_HOST") ?? "localhost";
     var dbPort = Environment.GetEnvironmentVariable("USERS_DB_PORT") ?? "5432";
-    var database = Environment.GetEnvironmentVariable("USERS_DB_DATABASE") ?? "PancakesUserDB";
+    var database = Environment.GetEnvironmentVariable("USERS_DB_DATABASE") ?? "PancakesBlogDB";
     var username = Environment.GetEnvironmentVariable("USERS_DB_USERNAME") ?? "postgres";
-    var password = Environment.GetEnvironmentVariable("USERS_DB_PASSWORD") ?? "team";
+    var password = Environment.GetEnvironmentVariable("USERS_DB_PASSWORD") ?? "postgres123";
     
     connectionString = $"Host={host};Port={dbPort};Database={database};Username={username};Password={password}";
 }
@@ -47,6 +47,7 @@ builder.Services.AddHttpClient<OAuthService>();
 
 // Add repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IBanRepository, BanRepository>();
 builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 builder.Services.AddScoped<IEducationRepository, EducationRepository>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
@@ -58,6 +59,7 @@ builder.Services.AddScoped<IPersonalPageSettingsRepository, PersonalPageSettings
 builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IBanService, BanService>();
 builder.Services.AddScoped<IUserService, UserService.Services.Implementations.UserService>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<IAuthService, AuthService>();

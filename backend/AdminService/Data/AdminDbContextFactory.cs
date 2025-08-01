@@ -9,7 +9,6 @@ namespace AdminService.Data
         {
             var optionsBuilder = new DbContextOptionsBuilder<AdminDbContext>();
             
-            // Load environment variables
             DotNetEnv.Env.Load("../../.env");
             
             var host = Environment.GetEnvironmentVariable("ADMIN_DB_HOST") ?? "localhost";
