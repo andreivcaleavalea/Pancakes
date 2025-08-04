@@ -9,6 +9,7 @@ import React, {
 export type PageType =
   | "home"
   | "login"
+  | "banned"
   | "create-blog"
   | "blog-view"
   | "edit-blog"
@@ -79,6 +80,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
     // Handle other pages
     if (path === "/login") {
       setCurrentPage("login");
+    } else if (path === "/banned") {
+      setCurrentPage("banned");
     } else if (path === "/create-blog") {
       setCurrentPage("create-blog");
     } else if (path === "/friends") {
@@ -134,6 +137,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       url = `/blog/${blogIdParam}`;
     } else if (page === "edit-blog" && blogIdParam) {
       url = `/edit-blog/${blogIdParam}`;
+    } else if (page === "banned") {
+      url = "/banned";
     }
 
     window.history.pushState({}, "", url);

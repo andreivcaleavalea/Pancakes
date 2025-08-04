@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using UserService.Models.Requests;
 using UserService.Models.Responses;
 using UserService.Services.Interfaces;
+using UserService.Repositories.Interfaces;
 
 namespace UserService.Services.Implementations;
 
@@ -14,6 +15,7 @@ public class AuthService : IAuthService
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _persistentUserService;
     private readonly IUserMappingService _userMappingService;
+    private readonly IBanService _banService;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -22,6 +24,7 @@ public class AuthService : IAuthService
         ICurrentUserService currentUserService,
         IUserService persistentUserService,
         IUserMappingService userMappingService,
+        IBanService banService,
         ILogger<AuthService> logger)
     {
         _oauthService = oauthService;
@@ -29,6 +32,7 @@ public class AuthService : IAuthService
         _currentUserService = currentUserService;
         _persistentUserService = persistentUserService;
         _userMappingService = userMappingService;
+        _banService = banService;
         _logger = logger;
     }
 
@@ -49,6 +53,37 @@ public class AuthService : IAuthService
 
             // Create or update user in database (persistent)
             var userDto = await _persistentUserService.CreateOrUpdateFromOAuthAsync(userInfo, request.Provider);
+            
+            // Process any expired bans first
+            await _banService.ProcessExpiredBansAsync();
+            
+            // Check if user has an active ban
+            var activeBan = await _banService.GetActiveBanAsync(userDto.Id);
+            if (activeBan != null)
+            {
+                // User has an active ban
+                string banMessage = "Your account has been banned";
+                if (!string.IsNullOrEmpty(activeBan.Reason))
+                {
+                    banMessage += $": {activeBan.Reason}";
+                }
+                
+                if (activeBan.ExpiresAt.HasValue)
+                {
+                    // Convert UTC to local time for display
+                    var localExpiration = activeBan.ExpiresAt.Value.ToLocalTime();
+                    banMessage += $". Ban expires on {localExpiration:yyyy-MM-dd HH:mm}";
+                }
+                else
+                {
+                    banMessage += ". This is a permanent ban";
+                }
+
+                _logger.LogWarning("Banned user attempted to login: {UserEmail} - {BanReason}", 
+                    userDto.Email, activeBan.Reason);
+                    
+                return new UnauthorizedObjectResult(new { message = banMessage });
+            }
             
             // Convert DTO back to User entity for JWT token generation using mapping service
             var user = _userMappingService.MapUserDtoToUser(userDto);

@@ -23,10 +23,10 @@ var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
 if (string.IsNullOrEmpty(connectionString))
 {
     var host = Environment.GetEnvironmentVariable("USERS_DB_HOST") ?? "localhost";
-    var dbPort = Environment.GetEnvironmentVariable("USERS_DB_PORT") ?? "5433";
-    var database = Environment.GetEnvironmentVariable("USERS_DB_DATABASE") ?? "PancakesUserDB";
+    var dbPort = Environment.GetEnvironmentVariable("USERS_DB_PORT") ?? "5432";
+    var database = Environment.GetEnvironmentVariable("USERS_DB_DATABASE") ?? "PancakesBlogDB";
     var username = Environment.GetEnvironmentVariable("USERS_DB_USERNAME") ?? "postgres";
-    var password = Environment.GetEnvironmentVariable("USERS_DB_PASSWORD") ?? "team";
+    var password = Environment.GetEnvironmentVariable("USERS_DB_PASSWORD") ?? "postgres123";
     
     connectionString = $"Host={host};Port={dbPort};Database={database};Username={username};Password={password}";
 }
@@ -47,6 +47,7 @@ builder.Services.AddHttpClient<OAuthService>();
 
 // Add repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IBanRepository, BanRepository>();
 builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 builder.Services.AddScoped<IEducationRepository, EducationRepository>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
@@ -58,6 +59,7 @@ builder.Services.AddScoped<IPersonalPageSettingsRepository, PersonalPageSettings
 builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IBanService, BanService>();
 builder.Services.AddScoped<IUserService, UserService.Services.Implementations.UserService>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -122,6 +124,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Configure static file serving for profile pictures
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "assets")),
+    RequestPath = "/assets"
+});
+
 // Use CORS before authentication
 app.UseCors("AllowSpecificOrigins");
 
@@ -137,12 +147,15 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+        Console.WriteLine($"Attempting to migrate database: {connectionString}");
         context.Database.Migrate();
         Console.WriteLine("Database migrations applied successfully.");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error applying database migrations: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        Console.WriteLine($"Connection string: {connectionString}");
     }
 }
 

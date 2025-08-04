@@ -19,6 +19,7 @@ export type OAuthProvider = keyof typeof oauthProviders;
  */
 export function initiateOAuthLogin(provider: OAuthProvider): void {
   const config = oauthProviders[provider];
+  
   if (!config || !config.clientId) {
     throw new Error(`Unsupported provider or missing client ID: ${provider}`);
   }

@@ -114,7 +114,11 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
       
       <Avatar
         size={80}
-        src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
+        src={(() => {
+          const imageUrl = user.avatar || user.image;
+          if (!imageUrl) return undefined;
+          return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
+        })()}
         style={{ marginBottom: '16px', border: `3px solid ${sectionPrimaryColor}` }}
       />
       <Title level={2} style={getTypographyStyles()}>

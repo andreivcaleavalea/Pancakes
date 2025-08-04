@@ -2,6 +2,7 @@ import React from "react";
 import HomePage from "../pages/HomePage/HomePage";
 import LoginPage from "../pages/LoginPage/LoginPage";
 import AuthCallback from "../pages/AuthCallback/AuthCallback";
+import BannedPage from "../pages/BannedPage/BannedPage";
 import CreateBlogPage from "../pages/CreateBlogPage/CreateBlogPage";
 import EditBlogPage from "../pages/EditBlogPage/EditBlogPage";
 import BlogViewPage from "../pages/BlogViewPage/BlogViewPage";
@@ -23,6 +24,8 @@ const PageRenderer: React.FC = () => {
   switch (currentPage) {
     case "login":
       return <LoginPage initialMode={loginMode} />;
+    case "banned":
+      return <BannedPage />;
     case "profile":
       return <ProfilePage />;
     case "personal-page":
