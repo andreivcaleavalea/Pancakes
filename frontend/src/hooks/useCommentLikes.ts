@@ -37,6 +37,7 @@ export const useCommentLikes = (commentId: string) => {
       if (!commentId) throw new Error("No comment ID provided");
 
       try {
+        // Use regular createOrUpdate endpoint
         await commentLikeApi.createOrUpdate({
           commentId,
           isLike,

@@ -22,6 +22,15 @@ export const commentLikeApi = {
     });
   },
 
+  // Toggle like/dislike (better UX - removes if same action, updates if different)
+  toggle: async (data: Omit<CreateCommentLikeDto, "userId">): Promise<any> => {
+    return apiRequest<any>(`/api/commentlikes/toggle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+  },
+
   // Delete a like/dislike
   delete: async (commentId: string): Promise<void> => {
     return apiRequest<void>(`/api/commentlikes/${commentId}`, {

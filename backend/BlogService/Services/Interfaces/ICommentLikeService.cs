@@ -13,5 +13,6 @@ public interface ICommentLikeService
     // New methods that handle business logic internally
     Task<CommentLikeStatsDto> GetLikeStatsAsync(Guid commentId, HttpContext httpContext);
     Task<CommentLikeDto> CreateOrUpdateLikeAsync(CreateCommentLikeDto createDto, HttpContext httpContext, ModelStateDictionary modelState);
+
     Task DeleteLikeAsync(Guid commentId, HttpContext httpContext);
 } 
