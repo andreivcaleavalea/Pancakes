@@ -10,7 +10,34 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         // User mappings
-        CreateMap<User, UserDto>();
+        CreateMap<User, UserDto>()
+            .ForMember(dest => dest.IsBanned, opt => opt.MapFrom(src =>
+                src.Bans.Any(b => b.IsActive && (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow))))
+            .ForMember(dest => dest.CurrentBanReason, opt => opt.MapFrom(src => 
+                src.Bans.Where(b => b.IsActive && (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow))
+                        .OrderByDescending(b => b.CreatedAt)
+                        .Select(b => b.Reason)
+                        .FirstOrDefault()))
+            .ForMember(dest => dest.CurrentBanExpiresAt, opt => opt.MapFrom(src => 
+                src.Bans.Where(b => b.IsActive && (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow))
+                        .OrderByDescending(b => b.CreatedAt)
+                        .Select(b => b.ExpiresAt)
+                        .FirstOrDefault()))
+            .ForMember(dest => dest.BannedAt, opt => opt.MapFrom(src => 
+                src.Bans.Where(b => b.IsActive && (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow))
+                        .OrderByDescending(b => b.CreatedAt)
+                        .Select(b => b.BannedAt)
+                        .FirstOrDefault()))
+            .ForMember(dest => dest.BannedBy, opt => opt.MapFrom(src => 
+                src.Bans.Where(b => b.IsActive && (b.ExpiresAt == null || b.ExpiresAt > DateTime.UtcNow))
+                        .OrderByDescending(b => b.CreatedAt)
+                        .Select(b => b.BannedBy)
+                        .FirstOrDefault()))
+            .ForMember(dest => dest.BanHistoryCount, opt => opt.MapFrom(src => src.Bans.Count()));
+        
+        // Ban mappings
+        CreateMap<Ban, BanDto>();
+        CreateMap<BanDto, Ban>();
         CreateMap<CreateUserDto, User>();
         CreateMap<User, UserProfileDto>()
             .ForMember(dest => dest.Avatar, opt => opt.MapFrom(src => src.Image))

@@ -8,6 +8,7 @@ import FriendsPage from "@pages/FriendsPage/FriendsPage";
 import SavedBlogsPage from "@pages/SavedBlogsPage/SavedBlogsPage";
 import ProfilePage from "@pages/ProfilePage/ProfilePage";
 import PublicPersonalPage from "@pages/PersonalPage/PublicPersonalPage";
+import BannedPage from "@pages/BannedPage/BannedPage";
 
 const AppRouter: React.FC = () => {
   const { currentPage, loginMode, publicSlug } = useRouter();
@@ -22,6 +23,8 @@ const AppRouter: React.FC = () => {
   switch (currentPage) {
     case "login":
       return <LoginPage initialMode={loginMode} />;
+    case "banned":
+      return <BannedPage />;
     case "create-blog":
       return <CreateBlogPage />;
     case "friends":

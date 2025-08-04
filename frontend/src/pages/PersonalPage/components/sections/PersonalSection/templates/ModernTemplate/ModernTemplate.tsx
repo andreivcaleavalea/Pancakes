@@ -127,7 +127,11 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               <div className="modern-template__avatar-wrapper">
                 <Avatar
                   size={90}
-                  src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
+                  src={(() => {
+                    const imageUrl = user.avatar || user.image;
+                    if (!imageUrl) return undefined;
+                    return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
+                  })()}
                   className="modern-template__avatar"
                   style={{ 
                     border: `3px solid ${sectionPrimaryColor}20`

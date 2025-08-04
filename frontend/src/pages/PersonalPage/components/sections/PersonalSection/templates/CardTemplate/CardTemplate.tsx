@@ -45,7 +45,11 @@ const CardTemplate: React.FC<PersonalTemplateProps> = ({
       <div style={getContentStyles()}>
         <Avatar
           size={120}
-          src={user.avatar ? `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${user.avatar}` : undefined}
+          src={(() => {
+            const imageUrl = user.avatar || user.image;
+            if (!imageUrl) return undefined;
+            return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
+          })()}
           className="card-template__avatar"
         />
         <Title level={2} style={getTypographyStyles()}>

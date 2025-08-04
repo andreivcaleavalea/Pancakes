@@ -65,7 +65,26 @@ const AuthCallback: React.FC = () => {
         }
       } catch (error) {
         console.error("Callback error:", error);
-        message.error("Authentication failed");
+        
+        // Check if this is a ban error - redirect to banned page
+        if (error instanceof Error && (error as any).isBanError) {
+          const banData = (error as any).banData;
+          // Store ban information for the banned page
+          sessionStorage.setItem("ban-info", JSON.stringify({
+            message: banData.message,
+            timestamp: new Date().toISOString()
+          }));
+          navigate("banned");
+          return;
+        }
+        
+        // Show specific error message if available, otherwise show generic message
+        if (error instanceof Error && error.message) {
+          message.error(error.message, 5);
+        } else {
+          message.error("Authentication failed");
+        }
+        
         navigate("login");
       } finally {
         // Clean up
@@ -112,24 +131,65 @@ async function exchangeCodeForUser(code: string, provider: string) {
     );
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error(`${provider} login error:`, {
-        status: response.status,
-        statusText: response.statusText,
-        error,
-        requestBody: {
-          code,
-          provider,
-          state: sessionStorage.getItem("oauth-state"),
-        },
-      });
-      return null;
+      let errorMessage = "Authentication failed";
+      
+      try {
+        const errorData = await response.json();
+        
+        // Handle specific error cases with user-friendly messages
+        if (response.status === 401 && errorData.message) {
+          // Check if this is a ban message (contains "banned" keyword)
+          if (errorData.message.toLowerCase().includes('banned')) {
+            // This is a ban - return special error type with ban data
+            const banError = new Error(errorData.message);
+            (banError as any).isBanError = true;
+            (banError as any).banData = {
+              message: errorData.message,
+              status: response.status
+            };
+            throw banError;
+          }
+          errorMessage = errorData.message;
+        } else if (response.status === 400) {
+          errorMessage = "Invalid login request. Please try again.";
+        } else if (response.status >= 500) {
+          errorMessage = "Server error. Please try again later.";
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+        
+        console.error(`${provider} login error:`, {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+          requestBody: {
+            code,
+            provider,
+            state: sessionStorage.getItem("oauth-state"),
+          },
+        });
+      } catch (parseError) {
+        // Only catch JSON parsing errors, not custom ban errors
+        if (parseError instanceof Error && (parseError as any).isBanError) {
+          // Re-throw ban errors so they can be handled properly
+          throw parseError;
+        }
+        console.error("Failed to parse error response:", parseError);
+        errorMessage = `Login failed (${response.status}). Please try again.`;
+      }
+      
+      // Throw the error with the specific message so it can be caught and displayed
+      throw new Error(errorMessage);
     }
 
     return await response.json();
   } catch (error) {
     console.error("Error exchanging code:", error);
-    return null;
+    // Re-throw to maintain error message
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error("Network error. Please check your connection and try again.");
   }
 }
 
