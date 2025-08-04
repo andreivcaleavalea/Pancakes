@@ -13,9 +13,7 @@ namespace AdminService.Data
         public DbSet<AdminRole> AdminRoles { get; set; }
         public DbSet<AdminAuditLog> AdminAuditLogs { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
-        public DbSet<ContentFlag> ContentFlags { get; set; }
         public DbSet<SystemMetric> SystemMetrics { get; set; }
-        public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -144,46 +142,6 @@ namespace AdminService.Data
                 entity.HasIndex(e => e.CreatedAt);
             });
 
-            // Configure ContentFlag entity
-            modelBuilder.Entity<ContentFlag>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.Property(e => e.ContentType)
-                    .HasMaxLength(20)
-                    .IsRequired();
-
-                entity.Property(e => e.ContentId)
-                    .HasMaxLength(450)
-                    .IsRequired();
-
-                entity.Property(e => e.FlagType)
-                    .HasMaxLength(50)
-                    .IsRequired();
-
-                entity.Property(e => e.FlaggedBy)
-                    .HasMaxLength(450);
-
-                entity.Property(e => e.Status)
-                    .HasMaxLength(20)
-                    .IsRequired()
-                    .HasDefaultValue("pending");
-
-                entity.Property(e => e.ReviewedBy)
-                    .HasMaxLength(450);
-
-                entity.Property(e => e.ReviewNotes)
-                    .HasMaxLength(500);
-
-                entity.Property(e => e.Description)
-                    .HasMaxLength(1000);
-
-                entity.HasIndex(e => new { e.ContentType, e.ContentId });
-                entity.HasIndex(e => e.Status);
-                entity.HasIndex(e => e.FlagType);
-                entity.HasIndex(e => e.CreatedAt);
-            });
-
             // Configure SystemMetric entity
             modelBuilder.Entity<SystemMetric>(entity =>
             {
@@ -202,33 +160,6 @@ namespace AdminService.Data
 
                 entity.Property(e => e.AverageSessionDuration)
                     .HasPrecision(10, 2);
-            });
-
-            // Configure SystemConfiguration entity
-            modelBuilder.Entity<SystemConfiguration>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Key).IsUnique();
-
-                entity.Property(e => e.Key)
-                    .HasMaxLength(100)
-                    .IsRequired();
-
-                entity.Property(e => e.Category)
-                    .HasMaxLength(50);
-
-                entity.Property(e => e.Description)
-                    .HasMaxLength(500);
-
-                entity.Property(e => e.DataType)
-                    .HasMaxLength(20)
-                    .IsRequired()
-                    .HasDefaultValue("string");
-
-                entity.Property(e => e.UpdatedBy)
-                    .HasMaxLength(450);
-
-                entity.HasIndex(e => e.Category);
             });
         }
     }

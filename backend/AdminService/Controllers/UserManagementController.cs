@@ -1,6 +1,8 @@
 using AdminService.Models.DTOs;
 using AdminService.Models.Requests;
 using AdminService.Models.Responses;
+using AdminService.Clients.UserClient;
+using AdminService.Clients.UserClient.DTOs;
 using AdminService.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,29 +12,20 @@ namespace AdminService.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class UserManagementController : ControllerBase
+    public class UserManagementController(
+        UserServiceClient userServiceClient,
+        IAuditService auditService,
+        ILogger<UserManagementController> logger)
+        : ControllerBase
     {
-        private readonly IUserManagementService _userManagementService;
-        private readonly IAuditService _auditService;
-        private readonly ILogger<UserManagementController> _logger;
-
-        public UserManagementController(
-            IUserManagementService userManagementService,
-            IAuditService auditService,
-            ILogger<UserManagementController> logger)
-        {
-            _userManagementService = userManagementService;
-            _auditService = auditService;
-            _logger = logger;
-        }
-
         [HttpGet("search")]
         [Authorize(Policy = "CanViewUsers")]
         public async Task<IActionResult> SearchUsers([FromQuery] UserSearchRequest request)
         {
+            logger.LogError("Starting search");
             try
             {
-                var users = await _userManagementService.SearchUsersAsync(request);
+                var users = await userServiceClient.SearchUsersAsync(request);
                 return Ok(new ApiResponse<PagedResponse<UserOverviewDto>>
                 {
                     Success = true,
@@ -42,7 +35,7 @@ namespace AdminService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error searching users");
+                logger.LogError(ex, "Error searching users");
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
@@ -57,7 +50,7 @@ namespace AdminService.Controllers
         {
             try
             {
-                var user = await _userManagementService.GetUserDetailAsync(userId);
+                var user = await userServiceClient.GetUserDetailAsync(userId);
                 if (user == null)
                 {
                     return NotFound(new ApiResponse<object>
@@ -76,7 +69,7 @@ namespace AdminService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting user details for {UserId}", userId);
+                logger.LogError(ex, "Error getting user details for {UserId}", userId);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
@@ -92,29 +85,27 @@ namespace AdminService.Controllers
             try
             {
                 var currentAdminId = GetCurrentAdminId();
-                var success = await _userManagementService.BanUserAsync(request, currentAdminId);
-                
-                if (success)
-                {
-                    await _auditService.LogActionAsync(currentAdminId, "USER_BANNED", "User", request.UserId,
-                        request, GetClientIpAddress(), GetUserAgent());
+                var success = await userServiceClient.BanUserAsync(request, currentAdminId);
 
-                    return Ok(new ApiResponse<object>
+                if (!success)
+                    return BadRequest(new ApiResponse<object>
                     {
-                        Success = true,
-                        Message = "User banned successfully"
+                        Success = false,
+                        Message = "Failed to ban user"
                     });
-                }
+                await auditService.LogActionAsync(currentAdminId, "USER_BANNED", "User", request.UserId,
+                    request, GetClientIpAddress(), GetUserAgent());
 
-                return BadRequest(new ApiResponse<object>
+                return Ok(new ApiResponse<object>
                 {
-                    Success = false,
-                    Message = "Failed to ban user"
+                    Success = true,
+                    Message = "User banned successfully"
                 });
+
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error banning user {UserId}", request.UserId);
+                logger.LogError(ex, "Error banning user {UserId}", request.UserId);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
@@ -130,11 +121,11 @@ namespace AdminService.Controllers
             try
             {
                 var currentAdminId = GetCurrentAdminId();
-                var success = await _userManagementService.UnbanUserAsync(request, currentAdminId);
+                var success = await userServiceClient.UnbanUserAsync(request, currentAdminId);
                 
                 if (success)
                 {
-                    await _auditService.LogActionAsync(currentAdminId, "USER_UNBANNED", "User", request.UserId,
+                    await auditService.LogActionAsync(currentAdminId, "USER_UNBANNED", "User", request.UserId,
                         request, GetClientIpAddress(), GetUserAgent());
 
                     return Ok(new ApiResponse<object>
@@ -152,7 +143,7 @@ namespace AdminService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error unbanning user {UserId}", request.UserId);
+                logger.LogError(ex, "Error unbanning user {UserId}", request.UserId);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
@@ -162,20 +153,20 @@ namespace AdminService.Controllers
         }
 
         [HttpPut("users/{userId}")]
-        [Authorize(Policy = "CanUpdateAdmins")]
+        [Authorize(Policy = "CanUpdateUsers")]
         public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserRequest request)
         {
             try
             {
                 var currentAdminId = GetCurrentAdminId();
-                var user = await _userManagementService.UpdateUserAsync(userId, request, currentAdminId);
+                var user = await userServiceClient.UpdateUserAsync(userId, request, currentAdminId);
                 
                 if (user != null)
                 {
-                    await _auditService.LogActionAsync(currentAdminId, "USER_UPDATED", "User", userId,
+                    await auditService.LogActionAsync(currentAdminId, "USER_UPDATED", "User", userId,
                         request, GetClientIpAddress(), GetUserAgent());
 
-                    return Ok(new ApiResponse<UserOverviewDto>
+                    return Ok(new ApiResponse<UserDetailDto>
                     {
                         Success = true,
                         Data = user,
@@ -191,7 +182,7 @@ namespace AdminService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating user {UserId}", userId);
+                logger.LogError(ex, "Error updating user {UserId}", userId);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
@@ -201,15 +192,15 @@ namespace AdminService.Controllers
         }
 
         [HttpPost("force-password-reset")]
-        [Authorize(Policy = "CanUpdateAdmins")]
+        [Authorize(Policy = "CanUpdateUsers")]
         public async Task<IActionResult> ForcePasswordReset([FromBody] ForcePasswordResetRequest request)
         {
             try
             {
                 var currentAdminId = GetCurrentAdminId();
-                var success = await _userManagementService.ForcePasswordResetAsync(request, currentAdminId);
+                var success = await userServiceClient.ForcePasswordResetAsync(request, currentAdminId);
                 
-                await _auditService.LogActionAsync(currentAdminId, "FORCE_PASSWORD_RESET", "User", request.UserId,
+                await auditService.LogActionAsync(currentAdminId, "FORCE_PASSWORD_RESET", "User", request.UserId,
                     request, GetClientIpAddress(), GetUserAgent());
 
                 return Ok(new ApiResponse<object>
@@ -220,7 +211,7 @@ namespace AdminService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error forcing password reset for user {UserId}", request.UserId);
+                logger.LogError(ex, "Error forcing password reset for user {UserId}", request.UserId);
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
@@ -235,7 +226,7 @@ namespace AdminService.Controllers
         {
             try
             {
-                var stats = await _userManagementService.GetUserStatisticsAsync();
+                var stats = await userServiceClient.GetUserStatisticsAsync();
                 return Ok(new ApiResponse<Dictionary<string, object>>
                 {
                     Success = true,
@@ -245,7 +236,7 @@ namespace AdminService.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting user statistics");
+                logger.LogError(ex, "Error getting user statistics");
                 return StatusCode(500, new ApiResponse<object>
                 {
                     Success = false,
