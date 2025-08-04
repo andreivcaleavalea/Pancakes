@@ -73,9 +73,9 @@ namespace AdminService.Services.Implementations
 
             return new AdminLoginResponse
             {
-                Token = string.Empty, // Remove token from response - it's now in httpOnly cookie
+                Token = string.Empty, 
                 AdminUser = adminDto,
-                ExpiresAt = DateTime.UtcNow.AddHours(4), // Reduced from 24 to 4 hours
+                ExpiresAt = DateTime.UtcNow.AddHours(4), 
                 RequirePasswordChange = admin.RequirePasswordChange,
                 RequireTwoFactor = admin.TwoFactorEnabled && string.IsNullOrEmpty(request.TwoFactorCode)
             };
@@ -120,166 +120,7 @@ namespace AdminService.Services.Implementations
             }
         }
 
-        public async Task<AdminUserDto> CreateAdminUserAsync(CreateAdminUserRequest request, string createdBy)
-        {
-            if (await _context.AdminUsers.AnyAsync(a => a.Email == request.Email))
-                throw new InvalidOperationException("Admin user with this email already exists");
 
-            var roles = await _context.AdminRoles
-                .Where(r => request.RoleIds.Contains(r.Id))
-                .ToListAsync();
-
-            var admin = new AdminUser
-            {
-                Email = request.Email,
-                Name = request.Name,
-                PasswordHash = HashPassword(request.Password),
-                AdminLevel = request.AdminLevel,
-                RequirePasswordChange = request.RequirePasswordChange,
-                CreatedBy = createdBy,
-                Roles = roles
-            };
-
-            _context.AdminUsers.Add(admin);
-            await _context.SaveChangesAsync();
-
-            await _auditService.LogActionAsync(createdBy, "ADMIN_USER_CREATED", "AdminUser", admin.Id,
-                new { Email = admin.Email, Name = admin.Name, AdminLevel = admin.AdminLevel }, "", "");
-
-            return _mapper.Map<AdminUserDto>(admin);
-        }
-
-        public async Task<AdminUserDto> UpdateAdminUserAsync(string adminId, UpdateAdminUserRequest request, string updatedBy)
-        {
-            var admin = await _context.AdminUsers
-                .Include(a => a.Roles)
-                .FirstOrDefaultAsync(a => a.Id == adminId);
-
-            if (admin == null)
-                throw new ArgumentException("Admin user not found");
-
-            var oldData = new { admin.Name, admin.Email, admin.AdminLevel, admin.IsActive };
-
-            admin.Name = request.Name;
-            admin.Email = request.Email;
-            admin.AdminLevel = request.AdminLevel;
-            admin.IsActive = request.IsActive;
-            admin.UpdatedAt = DateTime.UtcNow;
-
-            // Update roles
-            admin.Roles.Clear();
-            var newRoles = await _context.AdminRoles
-                .Where(r => request.RoleIds.Contains(r.Id))
-                .ToListAsync();
-            admin.Roles = newRoles;
-
-            await _context.SaveChangesAsync();
-
-            await _auditService.LogActionAsync(updatedBy, "ADMIN_USER_UPDATED", "AdminUser", admin.Id,
-                new { OldData = oldData, NewData = new { admin.Name, admin.Email, admin.AdminLevel, admin.IsActive } }, "", "");
-
-            return _mapper.Map<AdminUserDto>(admin);
-        }
-
-        public async Task<bool> ChangePasswordAsync(string adminId, ChangePasswordRequest request)
-        {
-            var admin = await _context.AdminUsers.FindAsync(adminId);
-            if (admin == null)
-                throw new ArgumentException("Admin user not found");
-
-            if (!VerifyPassword(request.CurrentPassword, admin.PasswordHash))
-                throw new UnauthorizedAccessException("Current password is incorrect");
-
-            admin.PasswordHash = HashPassword(request.NewPassword);
-            admin.PasswordChangedAt = DateTime.UtcNow;
-            admin.RequirePasswordChange = false;
-            admin.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            await _auditService.LogActionAsync(adminId, "PASSWORD_CHANGED", "AdminUser", adminId,
-                new { PasswordChangedAt = DateTime.UtcNow }, "", "");
-
-            return true;
-        }
-
-        public async Task<bool> ResetPasswordAsync(ResetPasswordRequest request, string resetBy)
-        {
-            var admin = await _context.AdminUsers.FindAsync(request.AdminId);
-            if (admin == null)
-                throw new ArgumentException("Admin user not found");
-
-            admin.PasswordHash = HashPassword(request.NewPassword);
-            admin.PasswordChangedAt = DateTime.UtcNow;
-            admin.RequirePasswordChange = request.RequirePasswordChange;
-            admin.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            await _auditService.LogActionAsync(resetBy, "PASSWORD_RESET", "AdminUser", admin.Id,
-                new { ResetBy = resetBy, RequirePasswordChange = request.RequirePasswordChange }, "", "");
-
-            return true;
-        }
-
-        public async Task<bool> DeactivateAdminAsync(string adminId, string deactivatedBy)
-        {
-            var admin = await _context.AdminUsers.FindAsync(adminId);
-            if (admin == null)
-                throw new ArgumentException("Admin user not found");
-
-            admin.IsActive = false;
-            admin.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            await _auditService.LogActionAsync(deactivatedBy, "ADMIN_USER_DEACTIVATED", "AdminUser", adminId,
-                new { DeactivatedBy = deactivatedBy }, "", "");
-
-            return true;
-        }
-
-        public async Task<bool> ActivateAdminAsync(string adminId, string activatedBy)
-        {
-            var admin = await _context.AdminUsers.FindAsync(adminId);
-            if (admin == null)
-                throw new ArgumentException("Admin user not found");
-
-            admin.IsActive = true;
-            admin.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            await _auditService.LogActionAsync(activatedBy, "ADMIN_USER_ACTIVATED", "AdminUser", adminId,
-                new { ActivatedBy = activatedBy }, "", "");
-
-            return true;
-        }
-
-        public async Task<PagedResponse<AdminUserDto>> GetAdminUsersAsync(int page, int pageSize)
-        {
-            var query = _context.AdminUsers.Include(a => a.Roles);
-            var totalCount = await query.CountAsync();
-
-            var adminUsers = await query
-                .OrderByDescending(a => a.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var adminDtos = _mapper.Map<List<AdminUserDto>>(adminUsers);
-
-            return new PagedResponse<AdminUserDto>
-            {
-                Data = adminDtos,
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
-                HasNext = page * pageSize < totalCount,
-                HasPrevious = page > 1
-            };
-        }
 
         public async Task<bool> ValidateTokenAsync(string token)
         {
@@ -327,7 +168,7 @@ namespace AdminService.Services.Implementations
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(4), // Reduced from 24 to 4 hours for security
+                Expires = DateTime.UtcNow.AddHours(4), 
                 Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesAdmin",
                 Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesAdminUsers",
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

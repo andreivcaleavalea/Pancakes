@@ -5,8 +5,7 @@ import type {
   ApiResponse, 
   PagedResponse, 
   DashboardStats, 
-  UserOverview, 
-  ContentFlag 
+  UserOverview
 } from '../types'
 import { API_CONFIG } from '../constants'
 
@@ -100,46 +99,10 @@ class AdminApiService {
     return response.data
   }
 
-  // Content moderation endpoints
-  async getContentFlags(page = 1, pageSize = 20, status = '', contentType = ''): Promise<ApiResponse<PagedResponse<ContentFlag>>> {
-    const response = await api.get('/contentmoderation/flags', {
-      params: { page, pageSize, status, contentType }
-    })
-    return response.data
-  }
-
-  async getPendingFlags(): Promise<ApiResponse<ContentFlag[]>> {
-    const response = await api.get('/contentmoderation/flags/pending')
-    return response.data
-  }
-
-  async reviewFlag(flagId: string, action: string, reviewNotes: string): Promise<ApiResponse<boolean>> {
-    const response = await api.post('/contentmoderation/flags/review', {
-      flagId,
-      action,
-      reviewNotes
-    })
-    return response.data
-  }
-
   // Analytics endpoints
   async getAnalyticsData(fromDate?: string, toDate?: string): Promise<ApiResponse<any>> {
     const response = await api.get('/analytics/detailed', {
       params: { fromDate, toDate }
-    })
-    return response.data
-  }
-
-  // System configuration endpoints
-  async getSystemConfigurations(): Promise<ApiResponse<any[]>> {
-    const response = await api.get('/system/configurations')
-    return response.data
-  }
-
-  async updateConfiguration(key: string, value: string): Promise<ApiResponse<boolean>> {
-    const response = await api.put('/system/configurations', {
-      key,
-      value
     })
     return response.data
   }
@@ -165,6 +128,5 @@ export type {
   ApiResponse, 
   PagedResponse, 
   DashboardStats, 
-  UserOverview, 
-  ContentFlag 
+  UserOverview
 } from '../types'

@@ -19,10 +19,6 @@ namespace AdminService.Helpers
             // Audit log mappings
             CreateMap<AdminAuditLog, AdminAuditLogDto>();
 
-            // Content moderation mappings
-            CreateMap<ContentFlag, ContentFlagDto>();
-            CreateMap<UserReport, UserReportDto>();
-
             // System metrics mappings
             CreateMap<SystemMetric, SystemMetricDto>();
 

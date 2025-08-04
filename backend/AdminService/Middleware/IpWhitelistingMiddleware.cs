@@ -60,12 +60,13 @@ namespace AdminService.Middleware
 
         private bool IsIpWhitelisted(string clientIp)
         {
+            _logger.LogError("1 step");
             try
             {
                 // Get whitelist from environment variable or configuration
                 var whitelistEnv = Environment.GetEnvironmentVariable("ADMIN_IP_WHITELIST");
                 var whitelistConfig = _configuration["AdminSecurity:IpWhitelist"];
-                
+
                 var whitelist = whitelistEnv ?? whitelistConfig ?? "";
 
                 // If no whitelist is configured, allow all (development mode)

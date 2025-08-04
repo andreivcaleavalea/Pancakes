@@ -3,15 +3,10 @@ using System.Security.Claims;
 
 namespace AdminService.Authorization
 {
-    /// Handles permission-based authorization
-    public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
+    /// Handles permission-based authorization requirements
+    public class PermissionAuthorizationHandler(ILogger<PermissionAuthorizationHandler> logger) : AuthorizationHandler<PermissionRequirement>
     {
-        private readonly ILogger<PermissionAuthorizationHandler> _logger;
-
-        public PermissionAuthorizationHandler(ILogger<PermissionAuthorizationHandler> logger)
-        {
-            _logger = logger;
-        }
+        private readonly ILogger<PermissionAuthorizationHandler> _logger = logger;
 
         protected override Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
@@ -45,28 +40,6 @@ namespace AdminService.Authorization
             
             context.Succeed(requirement);
             return Task.CompletedTask;
-        }
-    }
-
-    /// Represents a permission requirement
-    public class PermissionRequirement : IAuthorizationRequirement
-    {
-        public string Permission { get; }
-
-        public PermissionRequirement(string permission)
-        {
-            Permission = permission ?? throw new ArgumentNullException(nameof(permission));
-        }
-    }
-
-    /// Extension methods for easier policy configuration
-    public static class AuthorizationPolicyBuilderExtensions
-    {
-        public static AuthorizationPolicyBuilder RequirePermission(
-            this AuthorizationPolicyBuilder builder, 
-            string permission)
-        {
-            return builder.AddRequirements(new PermissionRequirement(permission));
         }
     }
 }
