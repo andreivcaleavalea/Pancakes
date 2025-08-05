@@ -25,7 +25,7 @@ public class BlogPostRepository : IBlogPostRepository
         var query = _context.BlogPosts.AsQueryable();
         if (!string.IsNullOrEmpty(parameters.Search))
         {
-            query = query.Where(bp => bp.Title.Contains(parameters.Search) || bp.Content.Contains(parameters.Search));
+            query = query.Where(bp => bp.Title.ToLower().Contains(parameters.Search.ToLower()) || bp.Content.ToLower().Contains(parameters.Search.ToLower()));
         }
         if (!string.IsNullOrEmpty(parameters.AuthorId))
         {
