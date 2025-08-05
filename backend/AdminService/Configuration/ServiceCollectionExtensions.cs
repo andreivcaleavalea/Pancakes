@@ -37,6 +37,7 @@ namespace AdminService.Configuration
             services.AddScoped<IAuditService, AdminService.Services.Implementations.AuditService>();
             services.AddScoped<IAnalyticsService, AdminService.Services.Implementations.AnalyticsService>();
             services.AddScoped<IServiceJwtService, AdminService.Services.Implementations.ServiceJwtService>();
+            services.AddScoped<IBlogManagementService, AdminService.Services.Implementations.BlogManagementService>();
 
             // Add Background Services
             services.AddHostedService<AdminService.Services.Implementations.RateLimitCleanupService>();
@@ -48,6 +49,9 @@ namespace AdminService.Configuration
         {
             services.AddHttpClient<AdminService.Clients.UserClient.UserServiceClient>();
             services.AddScoped<AdminService.Clients.UserClient.UserServiceClient>();
+
+            services.AddHttpClient<AdminService.Clients.BlogClient.Services.BlogServiceClient>();
+            services.AddScoped<AdminService.Clients.BlogClient.Services.BlogServiceClient>();
 
             return services;
         }
@@ -107,6 +111,12 @@ namespace AdminService.Configuration
                 options.AddPolicy("CanUnbanUsers", policy => policy.RequirePermission(AdminPermissions.UnbanUsers));
                 options.AddPolicy("CanViewUserDetails", policy => policy.RequirePermission(AdminPermissions.ViewUserDetails));
                 options.AddPolicy("CanUpdateUsers", policy => policy.RequirePermission(AdminPermissions.UpdateUsers));
+
+                // Blog Management Policies
+                options.AddPolicy("CanViewBlogs", policy => policy.RequirePermission(AdminPermissions.ViewBlogs));
+                options.AddPolicy("CanViewBlogDetails", policy => policy.RequirePermission(AdminPermissions.ViewBlogDetails));
+                options.AddPolicy("CanManageBlogs", policy => policy.RequirePermission(AdminPermissions.ManageBlogs));
+                options.AddPolicy("CanDeleteBlogs", policy => policy.RequirePermission(AdminPermissions.DeleteBlogs));
 
                 // Analytics Policies
                 options.AddPolicy("CanViewAnalytics", policy => policy.RequirePermission(AdminPermissions.ViewAnalytics));

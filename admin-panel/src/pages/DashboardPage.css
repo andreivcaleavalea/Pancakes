@@ -1,0 +1,180 @@
+.dashboard-container {
+  padding: 0;
+}
+
+.dashboard-header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dashboard-title {
+  margin: 0;
+}
+
+.refresh-button {
+  flex-shrink: 0;
+}
+
+.stats-card {
+  text-align: center;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stats-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.stats-value {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.stats-label {
+  color: #666;
+  font-size: 14px;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 50px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.error-container {
+  margin-bottom: 24px;
+}
+
+.no-data-container {
+  text-align: center;
+  padding: 40px;
+}
+
+/* Tablet Responsive */
+@media (max-width: 1024px) {
+  .dashboard-header {
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+
+  .stats-icon {
+    font-size: 28px;
+  }
+
+  .stats-value {
+    font-size: 24px;
+  }
+
+  .stats-label {
+    font-size: 13px;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 0;
+  }
+
+  .dashboard-header {
+    margin-bottom: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .dashboard-title {
+    font-size: 20px;
+  }
+
+  .refresh-button {
+    align-self: flex-end;
+  }
+
+  .stats-card {
+    margin-bottom: 16px;
+  }
+
+  .stats-icon {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+
+  .stats-value {
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+
+  .stats-label {
+    font-size: 12px;
+  }
+
+  .loading-container {
+    padding: 30px;
+    min-height: 150px;
+  }
+
+  .error-container .ant-alert {
+    border-radius: 4px;
+  }
+
+  .no-data-container {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-header {
+    margin-bottom: 12px;
+  }
+
+  .dashboard-title {
+    font-size: 18px;
+  }
+
+  .stats-card {
+    margin-bottom: 12px;
+  }
+
+  .stats-icon {
+    font-size: 20px;
+  }
+
+  .stats-value {
+    font-size: 18px;
+  }
+
+  .stats-label {
+    font-size: 11px;
+  }
+
+  .loading-container {
+    padding: 20px;
+    min-height: 120px;
+  }
+
+  .loading-container p {
+    font-size: 14px;
+  }
+
+  .no-data-container {
+    padding: 20px;
+  }
+}

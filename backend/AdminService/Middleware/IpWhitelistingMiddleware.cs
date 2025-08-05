@@ -60,7 +60,6 @@ namespace AdminService.Middleware
 
         private bool IsIpWhitelisted(string clientIp)
         {
-            _logger.LogError("1 step");
             try
             {
                 // Get whitelist from environment variable or configuration
@@ -180,9 +179,7 @@ namespace AdminService.Middleware
             return new IPAddress(BitConverter.GetBytes(mask).Reverse().ToArray());
         }
 
-        /// <summary>
         /// Check if IP whitelisting should be bypassed for development
-        /// </summary>
         private bool ShouldBypassWhitelist(HttpContext context)
         {
             // Only bypass in development environment

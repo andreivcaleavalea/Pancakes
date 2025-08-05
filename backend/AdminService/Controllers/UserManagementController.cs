@@ -4,6 +4,7 @@ using AdminService.Models.Responses;
 using AdminService.Clients.UserClient;
 using AdminService.Clients.UserClient.DTOs;
 using AdminService.Services.Interfaces;
+using AdminService.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -84,6 +85,17 @@ namespace AdminService.Controllers
         {
             try
             {
+                var validationResult = BanRequestValidator.ValidateBanRequest(request);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Validation failed",
+                        Errors = validationResult.Errors.ToList()
+                    });
+                }
+
                 var currentAdminId = GetCurrentAdminId();
                 var success = await userServiceClient.BanUserAsync(request, currentAdminId);
 
@@ -120,6 +132,17 @@ namespace AdminService.Controllers
         {
             try
             {
+                var validationResult = UnbanRequestValidator.ValidateUnbanRequest(request);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Validation failed",
+                        Errors = validationResult.Errors.ToList()
+                    });
+                }
+
                 var currentAdminId = GetCurrentAdminId();
                 var success = await userServiceClient.UnbanUserAsync(request, currentAdminId);
                 
