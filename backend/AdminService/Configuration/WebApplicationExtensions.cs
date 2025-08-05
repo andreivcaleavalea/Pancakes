@@ -44,9 +44,6 @@ namespace AdminService.Configuration
             // API logging middleware (first to capture all requests)
             app.UseMiddleware<ApiLoggingMiddleware>();
 
-            // Input validation middleware (before authentication)
-            app.UseMiddleware<InputValidationMiddleware>();
-
             // Rate limiting middleware (before authentication)
             app.UseMiddleware<RateLimitingMiddleware>();
 

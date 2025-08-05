@@ -60,7 +60,6 @@ namespace AdminService.Middleware
 
         private bool IsIpWhitelisted(string clientIp)
         {
-            _logger.LogError("1 step");
             try
             {
                 // Get whitelist from environment variable or configuration

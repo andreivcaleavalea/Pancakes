@@ -10,7 +10,8 @@ public class MappingProfile : Profile
     {
         CreateMap<BlogPost, BlogPostDto>();
         CreateMap<CreateBlogPostDto, BlogPost>();
-        CreateMap<UpdateBlogPostDto, BlogPost>();
+        CreateMap<UpdateBlogPostDto, BlogPost>()
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
         
         CreateMap<Comment, CommentDto>();
         CreateMap<CreateCommentDto, Comment>();

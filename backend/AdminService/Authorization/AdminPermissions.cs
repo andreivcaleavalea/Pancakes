@@ -10,6 +10,12 @@ namespace AdminService.Authorization
         public const string ViewUserDetails = "users:details";
         public const string UpdateUsers = "users:update";
 
+        // Blog Management Permissions
+        public const string ViewBlogs = "blogs:view";
+        public const string ViewBlogDetails = "blogs:details";
+        public const string ManageBlogs = "blogs:manage";
+        public const string DeleteBlogs = "blogs:delete";
+
         // Analytics Permissions
         public const string ViewAnalytics = "analytics:view";
         public const string ViewDashboard = "analytics:dashboard";
