@@ -5,7 +5,10 @@ import type {
   ApiResponse, 
   PagedResponse, 
   DashboardStats, 
-  UserOverview
+  UserOverview,
+  BlogPost,
+  BlogPostSearchRequest,
+  BlogPostStats
 } from '../types'
 import { API_CONFIG } from '../constants'
 
@@ -104,6 +107,54 @@ class AdminApiService {
     const response = await api.get('/analytics/detailed', {
       params: { fromDate, toDate }
     })
+    return response.data
+  }
+
+  // Blog management endpoints
+  async getBlogPosts(searchRequest: BlogPostSearchRequest): Promise<ApiResponse<PagedResponse<BlogPost>>> {
+    const response = await api.get('/blogmanagement/search', {
+      params: searchRequest
+    })
+    return response.data
+  }
+
+  async getBlogPostDetails(blogPostId: string): Promise<ApiResponse<BlogPost>> {
+    const response = await api.get(`/blogmanagement/posts/${blogPostId}`)
+    return response.data
+  }
+
+  async getFeaturedBlogPosts(count = 5): Promise<ApiResponse<BlogPost[]>> {
+    const response = await api.get('/blogmanagement/featured', {
+      params: { count }
+    })
+    return response.data
+  }
+
+  async getPopularBlogPosts(count = 5): Promise<ApiResponse<BlogPost[]>> {
+    const response = await api.get('/blogmanagement/popular', {
+      params: { count }
+    })
+    return response.data
+  }
+
+  async deleteBlogPost(blogPostId: string, reason: string): Promise<ApiResponse<boolean>> {
+    const response = await api.delete(`/blogmanagement/posts/${blogPostId}`, {
+      data: { blogPostId, reason }
+    })
+    return response.data
+  }
+
+  async updateBlogPostStatus(blogPostId: string, status: number, reason: string): Promise<ApiResponse<boolean>> {
+    const response = await api.put(`/blogmanagement/posts/${blogPostId}/status`, {
+      blogPostId,
+      status,
+      reason
+    })
+    return response.data
+  }
+
+  async getBlogStatistics(): Promise<ApiResponse<BlogPostStats>> {
+    const response = await api.get('/blogmanagement/statistics')
     return response.data
   }
 }

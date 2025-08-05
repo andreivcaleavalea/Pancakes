@@ -13,7 +13,17 @@ import "../styles/layouts/Sidebar.scss";
 const { Sider } = Layout;
 const { Title } = Typography;
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isMobile?: boolean;
+  mobileMenuOpen?: boolean;
+  onMenuClick?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  isMobile = false, 
+  mobileMenuOpen = false, 
+  onMenuClick 
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,41 +32,59 @@ export const Sidebar: React.FC = () => {
       key: "dashboard",
       icon: <DashboardOutlined />,
       label: "Dashboard",
-      onClick: () => navigate("/dashboard"),
+      onClick: () => {
+        navigate("/dashboard");
+        onMenuClick?.();
+      },
     },
     {
       key: "users",
       icon: <UserOutlined />,
       label: "Users",
-      onClick: () => navigate("/users"),
+      onClick: () => {
+        navigate("/users");
+        onMenuClick?.();
+      },
     },
     {
       key: "content",
       icon: <FileTextOutlined />,
       label: "Content",
-      onClick: () => navigate("/content"),
+      onClick: () => {
+        navigate("/content");
+        onMenuClick?.();
+      },
     },
     {
       key: "analytics",
       icon: <BarChartOutlined />,
       label: "Analytics",
-      onClick: () => navigate("/analytics"),
+      onClick: () => {
+        navigate("/analytics");
+        onMenuClick?.();
+      },
     },
     {
       key: "settings",
       icon: <SettingOutlined />,
       label: "Settings",
-      onClick: () => navigate("/settings"),
+      onClick: () => {
+        navigate("/settings");
+        onMenuClick?.();
+      },
     },
   ];
 
   const currentPath = location.pathname.split("/")[1] || "dashboard";
 
   return (
-    <Sider className="sidebar" theme="dark">
+    <Sider 
+      className={`sidebar ${isMobile && mobileMenuOpen ? 'mobile-open' : ''}`} 
+      theme="dark"
+    >
       <div className="sidebar__brand">
         <Title level={3} className="sidebar__title">
-          Admin Panel
+          {isMobile ? "Admin" : "Admin Panel"}
         </Title>
       </div>
       <Menu
