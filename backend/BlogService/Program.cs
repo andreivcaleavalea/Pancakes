@@ -61,6 +61,9 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
+// Add Memory Caching for performance optimization
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IPostRatingRepository, PostRatingRepository>();

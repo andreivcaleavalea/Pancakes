@@ -46,6 +46,9 @@ builder.Services.AddHttpClient<OAuthService>();
 
 
 // Add repositories
+// Add Memory Caching for performance optimization  
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 builder.Services.AddScoped<IEducationRepository, EducationRepository>();

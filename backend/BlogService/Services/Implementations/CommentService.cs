@@ -3,6 +3,8 @@ using BlogService.Models.DTOs;
 using BlogService.Models.Entities;
 using BlogService.Repositories.Interfaces;
 using BlogService.Services.Interfaces;
+using BlogService.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BlogService.Services.Implementations;
 
@@ -15,6 +17,7 @@ public class CommentService : ICommentService
     private readonly IAuthorizationService _authorizationService;
     private readonly IModelValidationService _modelValidationService;
     private readonly ILogger<CommentService> _logger;
+    private readonly IMemoryCache _cache;
 
     public CommentService(
         ICommentRepository commentRepository,
@@ -23,7 +26,8 @@ public class CommentService : ICommentService
         IUserServiceClient userServiceClient,
         IAuthorizationService authorizationService,
         IModelValidationService modelValidationService,
-        ILogger<CommentService> logger)
+        ILogger<CommentService> logger,
+        IMemoryCache cache)
     {
         _commentRepository = commentRepository;
         _blogPostRepository = blogPostRepository;
@@ -32,20 +36,39 @@ public class CommentService : ICommentService
         _authorizationService = authorizationService;
         _modelValidationService = modelValidationService;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<CommentDto?> GetByIdAsync(Guid id)
     {
+        // 🚀 CACHE: Check cache first for individual comment
+        var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.CommentById, id);
+        if (_cache.TryGetValue(cacheKey, out CommentDto? cachedComment))
+        {
+            return cachedComment;
+        }
+
         var comment = await _commentRepository.GetByIdAsync(id);
         if (comment == null) return null;
         
         var commentDto = _mapper.Map<CommentDto>(comment);
         await PopulateAuthorInfoAsync(commentDto);
+        
+        // 🚀 CACHE: Store individual comment with medium duration
+        _cache.Set(cacheKey, commentDto, CacheConfig.Duration.Medium);
+        
         return commentDto;
     }
 
     public async Task<IEnumerable<CommentDto>> GetByBlogPostIdAsync(Guid blogPostId)
     {
+        // 🚀 CACHE: Comments by blog post are frequently accessed
+        var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.CommentsByPost, blogPostId, 1, 1000); // Using pagination params for consistency
+        if (_cache.TryGetValue(cacheKey, out IEnumerable<CommentDto>? cachedComments))
+        {
+            return cachedComments;
+        }
+
         var comments = await _commentRepository.GetByBlogPostIdAsync(blogPostId);
         _logger.LogInformation("Retrieved {CommentCount} comments from repository for blog {BlogPostId}", 
             comments.Count(), blogPostId);
@@ -72,6 +95,9 @@ public class CommentService : ICommentService
             _logger.LogInformation("Comment {CommentId} after populate - AuthorId: {AuthorId}, AuthorName: {AuthorName}", 
                 dto.Id, dto.AuthorId, dto.AuthorName);
         }
+        
+        // 🚀 CACHE: Store with short duration (comments can be added frequently)
+        _cache.Set(cacheKey, commentDtos, CacheConfig.Duration.Short);
         
         return commentDtos;
     }

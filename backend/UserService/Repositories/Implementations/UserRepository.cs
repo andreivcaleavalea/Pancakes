@@ -40,6 +40,16 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<User>> GetUsersByIdsAsync(IEnumerable<string> userIds)
+    {
+        if (userIds == null || !userIds.Any())
+            return new List<User>();
+
+        return await _context.Users
+            .Where(u => userIds.Contains(u.Id))
+            .ToListAsync();
+    }
+
     public async Task<User> CreateAsync(User user)
     {
         _context.Users.Add(user);

@@ -28,17 +28,11 @@ export const postRatingApi = {
       const now = Date.now();
 
       if (cached && now - cached.timestamp < CACHE_DURATION) {
-        console.log(`🎯 Using cached rating stats for ${blogPostId}`);
         return cached.data;
       }
     }
 
     // Make API call if not cached, expired, or force refresh requested
-    console.log(
-      `🔄 Fetching fresh rating stats for ${blogPostId}${
-        forceRefresh ? " (force refresh)" : ""
-      }`
-    );
     const data = await authenticatedBlogRequest<PostRatingStats>(
       `/api/postratings/stats/${blogPostId}`
     );

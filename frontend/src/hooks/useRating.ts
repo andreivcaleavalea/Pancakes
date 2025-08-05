@@ -30,7 +30,6 @@ export const usePostRating = (blogPostId: string) => {
         );
         setStats(ratingStats);
         lastFetchedIdRef.current = blogPostId;
-        console.log(`✅ Rating stats updated for ${blogPostId}:`, ratingStats);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load rating stats"

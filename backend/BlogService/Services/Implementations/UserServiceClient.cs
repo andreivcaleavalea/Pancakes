@@ -1,6 +1,8 @@
 using System.Text.Json;
 using BlogService.Models.DTOs;
 using BlogService.Services.Interfaces;
+using BlogService.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BlogService.Services.Implementations;
 
@@ -9,12 +11,14 @@ public class UserServiceClient : IUserServiceClient
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<UserServiceClient> _logger;
+    private readonly IMemoryCache _cache;
 
-    public UserServiceClient(HttpClient httpClient, IConfiguration configuration, ILogger<UserServiceClient> logger)
+    public UserServiceClient(HttpClient httpClient, IConfiguration configuration, ILogger<UserServiceClient> logger, IMemoryCache cache)
     {
         _httpClient = httpClient;
         _configuration = configuration;
         _logger = logger;
+        _cache = cache;
 
         // Set base address for UserService
         var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
@@ -52,6 +56,13 @@ public class UserServiceClient : IUserServiceClient
 
     public async Task<UserInfoDto?> GetUserByIdAsync(string userId)
     {
+        // 🚀 CACHE: Check cache first
+        var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.UserById, userId);
+        if (_cache.TryGetValue(cacheKey, out UserInfoDto? cachedUser))
+        {
+            return cachedUser;
+        }
+
         try
         {
             var response = await _httpClient.GetAsync($"/users/{userId}");
@@ -63,7 +74,15 @@ public class UserServiceClient : IUserServiceClient
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 };
-                return JsonSerializer.Deserialize<UserInfoDto>(jsonContent, options);
+                var user = JsonSerializer.Deserialize<UserInfoDto>(jsonContent, options);
+                
+                // 🚀 CACHE: Store in cache with medium duration (user data is moderately stable)
+                if (user != null)
+                {
+                    _cache.Set(cacheKey, user, CacheConfig.Duration.Medium);
+                }
+                
+                return user;
             }
 
             _logger.LogWarning("Failed to get user {UserId} from UserService. Status: {StatusCode}", userId, response.StatusCode);
@@ -108,6 +127,102 @@ public class UserServiceClient : IUserServiceClient
         {
             // Clear the authorization header to avoid affecting other requests
             _httpClient.DefaultRequestHeaders.Authorization = null;
+        }
+    }
+
+    public async Task<IEnumerable<UserInfoDto>> GetUsersByIdsAsync(IEnumerable<string> userIds, string? authToken = null)
+    {
+        try
+        {
+            if (userIds == null || !userIds.Any())
+                return new List<UserInfoDto>();
+
+            var userIdList = userIds.ToList();
+            
+            // 🚀 CACHE: Check for cached users first
+            var cachedUsers = new List<UserInfoDto>();
+            var uncachedUserIds = new List<string>();
+            
+            foreach (var userId in userIdList)
+            {
+                var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.UserById, userId);
+                if (_cache.TryGetValue(cacheKey, out UserInfoDto? cachedUser) && cachedUser != null)
+                {
+                    cachedUsers.Add(cachedUser);
+                }
+                else
+                {
+                    uncachedUserIds.Add(userId);
+                }
+            }
+
+            // If all users are cached, return immediately! 🚀
+            if (!uncachedUserIds.Any())
+            {
+                _logger.LogInformation("🚀 All {UserCount} users found in cache - zero API calls needed!", userIdList.Count);
+                return cachedUsers;
+            }
+
+            _logger.LogInformation("🚀 Cache hit: {CachedCount}/{TotalCount} users, fetching {UncachedCount} from API", 
+                cachedUsers.Count, userIdList.Count, uncachedUserIds.Count);
+
+            // Fetch only uncached users from API
+            var fetchedUsers = new List<UserInfoDto>();
+            
+            // Set authorization header if token is provided
+            if (!string.IsNullOrEmpty(authToken))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+            }
+
+            // Create JSON content for the request body
+            var jsonContent = JsonSerializer.Serialize(uncachedUserIds);
+            var httpContent = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("/users/batch", httpContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                fetchedUsers = JsonSerializer.Deserialize<List<UserInfoDto>>(responseContent, options) ?? new List<UserInfoDto>();
+                
+                // 🚀 CACHE: Cache all newly fetched users
+                foreach (var user in fetchedUsers)
+                {
+                    var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.UserById, user.Id);
+                    _cache.Set(cacheKey, user, CacheConfig.Duration.Medium);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Failed to get users by IDs from UserService. Status: {StatusCode}", response.StatusCode);
+            }
+
+            // Combine cached and fetched users
+            var allUsers = cachedUsers.Concat(fetchedUsers).ToList();
+            
+            _logger.LogInformation("✅ Batch user lookup complete: {CachedCount} cached + {FetchedCount} fetched = {TotalCount} users", 
+                cachedUsers.Count, fetchedUsers.Count, allUsers.Count);
+                
+            return allUsers;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling UserService to get users by IDs");
+            return new List<UserInfoDto>();
+        }
+        finally
+        {
+            // Clear the authorization header to avoid affecting other requests
+            if (!string.IsNullOrEmpty(authToken))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = null;
+            }
         }
     }
 

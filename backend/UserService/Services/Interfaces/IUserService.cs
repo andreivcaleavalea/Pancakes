@@ -12,6 +12,7 @@ public interface IUserService
     Task<UserDto?> GetByEmailAsync(string email);
     Task<UserDto?> GetByProviderAndProviderUserIdAsync(string provider, string providerUserId);
     Task<IEnumerable<UserDto>> GetAllAsync(int page = 1, int pageSize = 10);
+    Task<IEnumerable<UserDto>> GetUsersByIdsAsync(IEnumerable<string> userIds);
     Task<UserDto> CreateAsync(CreateUserDto createDto);
     Task<UserDto> UpdateAsync(string id, UpdateUserDto updateDto);
     Task DeleteAsync(string id);
@@ -21,6 +22,7 @@ public interface IUserService
     Task<IActionResult> GetByIdAsync(HttpContext httpContext, string id);
     Task<IActionResult> GetByEmailAsync(HttpContext httpContext, string email);
     Task<IActionResult> GetAllAsync(HttpContext httpContext, int page, int pageSize);
+    Task<IActionResult> GetUsersByIdsAsync(HttpContext httpContext, IEnumerable<string> userIds);
     Task<IActionResult> CreateAsync(HttpContext httpContext, CreateUserDto createDto, ModelStateDictionary modelState);
     Task<IActionResult> UpdateAsync(HttpContext httpContext, string id, UpdateUserDto updateDto, ModelStateDictionary modelState);
     Task<IActionResult> DeleteAsync(HttpContext httpContext, string id);

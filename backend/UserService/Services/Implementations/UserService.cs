@@ -54,6 +54,15 @@ public class UserService : IUserService
         return _mapper.Map<IEnumerable<UserDto>>(users);
     }
 
+    public async Task<IEnumerable<UserDto>> GetUsersByIdsAsync(IEnumerable<string> userIds)
+    {
+        if (userIds == null || !userIds.Any())
+            return new List<UserDto>();
+
+        var users = await _userRepository.GetUsersByIdsAsync(userIds);
+        return _mapper.Map<IEnumerable<UserDto>>(users);
+    }
+
     public async Task<UserDto> CreateAsync(CreateUserDto createDto)
     {
         // Check if user already exists by email
@@ -278,6 +287,20 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Get all users error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> GetUsersByIdsAsync(HttpContext httpContext, IEnumerable<string> userIds)
+    {
+        try
+        {
+            var users = await GetUsersByIdsAsync(userIds);
+            return new OkObjectResult(users);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Get users by IDs error: {Message}", ex.Message);
             return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
         }
     }
