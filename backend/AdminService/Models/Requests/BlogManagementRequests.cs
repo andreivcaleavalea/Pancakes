@@ -21,7 +21,7 @@ namespace AdminService.Models.Requests
         public string BlogPostId { get; set; } = string.Empty;
         
         [Required]
-        [Range(0, 2, ErrorMessage = "Status must be 0 (Draft), 1 (Published), or 2 (Archived)")]
+        [Range(0, 2, ErrorMessage = "Status must be 0 (Draft), 1 (Published), or 2 (Deleted)")]
         public int Status { get; set; }
         
         [Required]
