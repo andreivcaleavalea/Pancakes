@@ -108,7 +108,7 @@ namespace AdminService.Services.Implementations
             {
                 0 => "Draft",
                 1 => "Published", 
-                2 => "Archived",
+                2 => "Deleted",
                 _ => "Unknown"
             };
         }
