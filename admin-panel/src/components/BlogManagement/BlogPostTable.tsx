@@ -5,6 +5,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { BlogPost, BlogPostStatus, BlogPostStatusLabels, BlogPostStatusColors } from '../../types';
 import { format } from 'date-fns';
 import { APP_CONFIG } from '../../constants';
+import { extractTextFromHTML } from '../../utils/helpers';
 import './BlogPostTable.css';
 
 const { Title, Text, Paragraph } = Typography;
