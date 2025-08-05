@@ -34,19 +34,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
         comment.authorId?.trim().toLowerCase() === user.id?.trim().toLowerCase()
     );
 
-    // Debug logging for CommentItem authorization
-    console.log(`🔍 CommentItem Auth for ${comment.id} (depth ${depth}):`, {
-      isAuthenticated,
-      hasUser: !!user,
-      userId: user?.id,
-      commentAuthorId: comment.authorId,
-      authorMatch:
-        comment.authorId?.trim().toLowerCase() ===
-        user?.id?.trim().toLowerCase(),
-      canModify: result,
-      commentContent: comment.content.substring(0, 30) + "...",
-    });
-
     return result;
   };
   const formatDate = (dateString: string) => {

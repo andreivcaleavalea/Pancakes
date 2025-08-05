@@ -1,4 +1,3 @@
-import { apiRequest } from "@/utils/api";
 import { authenticatedBlogRequest } from "@/utils/blogApi";
 import type {
   CreatePostRatingDto,
@@ -19,22 +18,33 @@ const CACHE_DURATION = 5000; // 5 seconds cache
 
 export const postRatingApi = {
   // Get rating statistics for a blog post
-  getStats: async (blogPostId: string): Promise<PostRatingStats> => {
-    // Check cache first
-    const cached = ratingStatsCache.get(blogPostId);
-    const now = Date.now();
+  getStats: async (
+    blogPostId: string,
+    forceRefresh: boolean = false
+  ): Promise<PostRatingStats> => {
+    // Check cache first (unless force refresh is requested)
+    if (!forceRefresh) {
+      const cached = ratingStatsCache.get(blogPostId);
+      const now = Date.now();
 
-    if (cached && now - cached.timestamp < CACHE_DURATION) {
-      console.log(`🎯 Using cached rating stats for ${blogPostId}`);
-      return cached.data;
+      if (cached && now - cached.timestamp < CACHE_DURATION) {
+        console.log(`🎯 Using cached rating stats for ${blogPostId}`);
+        return cached.data;
+      }
     }
 
-    // Make API call if not cached or expired
-    const data = await apiRequest<PostRatingStats>(
+    // Make API call if not cached, expired, or force refresh requested
+    console.log(
+      `🔄 Fetching fresh rating stats for ${blogPostId}${
+        forceRefresh ? " (force refresh)" : ""
+      }`
+    );
+    const data = await authenticatedBlogRequest<PostRatingStats>(
       `/api/postratings/stats/${blogPostId}`
     );
 
     // Cache the result
+    const now = Date.now();
     ratingStatsCache.set(blogPostId, {
       data,
       timestamp: now,
