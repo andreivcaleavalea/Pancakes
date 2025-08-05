@@ -37,7 +37,7 @@ const BlogPostTable: React.FC<BlogPostTableProps> = ({
   };
 
   const handleViewPost = (blog: BlogPost) => {
-    const frontendUrl = `http://localhost:3000/blog/${blog.id}`;
+    const frontendUrl = `${FRONTEND_URL}/blog/${blog.id}`;
     window.open(frontendUrl, '_blank');
   };
 
