@@ -18,7 +18,7 @@ namespace AdminService.Clients.BlogClient.Services
             _httpClient = httpClient;
             _logger = logger;
             _serviceJwtService = serviceJwtService;
-            var baseUrl = Environment.GetEnvironmentVariable("BLOG_SERVICE_URL") ?? "http://localhost:5001";
+            var baseUrl = Environment.GetEnvironmentVariable("BLOG_SERVICE_URL") ?? "https://localhost:5001";
             _httpClient.BaseAddress = new Uri(baseUrl);
         }
 
