@@ -47,3 +47,29 @@ export const isEmpty = (value: any): boolean => {
   if (typeof value === 'object') return Object.keys(value).length === 0
   return false
 }
+
+/**
+ * Extract plain text from HTML content
+ * Uses DOMParser API to safely strip HTML tags and decode entities
+ */
+export const extractTextFromHTML = (html: string): string => {
+  if (!html || typeof html !== 'string') return ''
+  
+  try {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+    return doc.body.textContent?.replace(/\s+/g, ' ').trim() || ''
+  } catch {
+    // Simple fallback: strip tags and basic entities
+    return html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+}
