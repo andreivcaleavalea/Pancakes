@@ -9,6 +9,7 @@ import {
   ClockCircleOutlined
 } from '@ant-design/icons';
 import { useDashboard } from '../hooks/useDashboard';
+import './DashboardPage.css';
 
 const { Title, Text } = Typography;
 
@@ -17,16 +18,16 @@ const DashboardPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
+      <div className="loading-container">
         <Spin size="large" />
-        <p style={{ marginTop: 16 }}>Loading dashboard...</p>
+        <p>Loading dashboard...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div>
+      <div className="error-container">
         <Alert
           message="Failed to load dashboard data"
           description={error}
@@ -44,7 +45,7 @@ const DashboardPage: React.FC = () => {
 
   if (!stats) {
     return (
-      <div>
+      <div className="no-data-container">
         <Alert message="No dashboard data available" type="warning" showIcon />
       </div>
     );
@@ -53,13 +54,18 @@ const DashboardPage: React.FC = () => {
   const { userStats } = stats;
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+    <div className="dashboard-container">
+      <div className="dashboard-header">
         <div>
-          <Title level={2}>Dashboard</Title>
+          <Title level={2} className="dashboard-title">Dashboard</Title>
           <Text type="secondary">Welcome to the Pancakes Admin Dashboard</Text>
         </div>
-        <Button icon={<ReloadOutlined />} onClick={refresh}>
+        <Button 
+          icon={<ReloadOutlined />} 
+          onClick={refresh}
+          className="refresh-button"
+          size="large"
+        >
           Refresh
         </Button>
       </div>
@@ -68,31 +74,28 @@ const DashboardPage: React.FC = () => {
       <Title level={4} style={{ marginBottom: 16 }}>User Statistics</Title>
       <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Total Users"
-              value={userStats?.totalUsers || 0}
-              prefix={<UserOutlined />}
-              valueStyle={{ color: '#3f8600' }}
-              suffix={
-                <Badge 
-                  count={`+${userStats?.dailySignups || 0}`} 
-                  style={{ backgroundColor: '#52c41a' }} 
-                  title="New today"
-                />
-              }
+          <Card className="stats-card">
+            <UserOutlined className="stats-icon" style={{ color: '#3f8600' }} />
+            <div className="stats-value" style={{ color: '#3f8600' }}>
+              {userStats?.totalUsers || 0}
+            </div>
+            <div className="stats-label">Total Users</div>
+            <Badge 
+              count={`+${userStats?.dailySignups || 0}`} 
+              style={{ backgroundColor: '#52c41a', marginTop: 8 }} 
+              title="New today"
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Active Users"
-              value={userStats?.activeUsers || 0}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-              suffix={<Text type="secondary">({userStats ? Math.round((userStats.activeUsers / userStats.totalUsers) * 100) : 0}%)</Text>}
-            />
+          <Card className="stats-card">
+            <CheckCircleOutlined className="stats-icon" style={{ color: '#1890ff' }} />
+            <div className="stats-value" style={{ color: '#1890ff' }}>
+              {userStats?.activeUsers || 0}
+            </div>
+            <div className="stats-label">
+              Active Users ({userStats ? Math.round((userStats.activeUsers / userStats.totalUsers) * 100) : 0}%)
+            </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
