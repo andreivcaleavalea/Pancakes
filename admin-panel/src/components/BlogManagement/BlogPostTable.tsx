@@ -4,6 +4,7 @@ import { EyeOutlined, EditOutlined, DeleteOutlined, UserOutlined, CalendarOutlin
 import type { ColumnsType } from 'antd/es/table';
 import { BlogPost, BlogPostStatus, BlogPostStatusLabels, BlogPostStatusColors } from '../../types';
 import { format } from 'date-fns';
+import { APP_CONFIG } from '../../constants';
 import './BlogPostTable.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -37,7 +38,7 @@ const BlogPostTable: React.FC<BlogPostTableProps> = ({
   };
 
   const handleViewPost = (blog: BlogPost) => {
-    const frontendUrl = `${FRONTEND_URL}/blog/${blog.id}`;
+    const frontendUrl = `${APP_CONFIG.FRONTEND_URL}/blog/${blog.id}`;
     window.open(frontendUrl, '_blank');
   };
 
