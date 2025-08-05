@@ -4,6 +4,10 @@ export const API_CONFIG = {
   RETRY_ATTEMPTS: 3,
 } as const
 
+export const APP_CONFIG = {
+  FRONTEND_URL: import.meta.env.VITE_FRONTEND_URL || 'http://localhost:3000',
+} as const
+
 export const ROUTES = {
   LOGIN: '/login',
   DASHBOARD: '/dashboard',

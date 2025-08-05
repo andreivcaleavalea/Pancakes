@@ -1,6 +1,7 @@
 using AdminService.Models.Requests;
 using AdminService.Models.Responses;
 using AdminService.Services.Interfaces;
+using AdminService.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +30,17 @@ namespace AdminService.Controllers
         {
             try
             {
+                var validationResult = CreateAdminRequestValidator.ValidateCreateAdminRequest(request);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Validation failed",
+                        Errors = validationResult.Errors.ToList()
+                    });
+                }
+
                 // Check if any admin users already exist
                 var hasAdmins = await _adminAuthService.HasAdminUsersAsync();
                 if (hasAdmins)
@@ -68,6 +80,17 @@ namespace AdminService.Controllers
         {
             try
             {
+                var validationResult = LoginRequestValidator.ValidateLoginRequest(request);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Invalid login data",
+                        Errors = validationResult.Errors.ToList()
+                    });
+                }
+
                 var response = await _adminAuthService.LoginAsync(HttpContext, request);
                 return Ok(new ApiResponse<AdminLoginResponse>
                 {

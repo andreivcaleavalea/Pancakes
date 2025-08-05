@@ -28,6 +28,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import { useUsers } from '../hooks/useUsers';
 import { UserOverview } from '../services/api';
+import './UsersPage.css';
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -131,11 +132,11 @@ const UsersPage: React.FC = () => {
       title: 'User',
       key: 'user',
       render: (_, record) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="users-user-cell">
           <Avatar icon={<UserOutlined />} />
-          <div>
-            <div style={{ fontWeight: 500 }}>{record.name}</div>
-            <Text type="secondary" style={{ fontSize: '12px' }}>{record.email}</Text>
+          <div className="users-user-info">
+            <div className="users-user-name">{record.name}</div>
+            <Text type="secondary" className="users-user-email">{record.email}</Text>
           </div>
         </div>
       ),
@@ -193,12 +194,12 @@ const UsersPage: React.FC = () => {
         }
         
         return (
-          <Space direction="vertical" size="small" style={{ fontSize: '12px' }}>
+          <Space direction="vertical" size="small" className="users-ban-details">
             {record.currentBanReason && (
               <div>
                 <Text strong>Reason:</Text>
                 <br />
-                <Text style={{ fontSize: '11px' }}>{record.currentBanReason}</Text>
+                <Text className="users-ban-reason">{record.currentBanReason}</Text>
               </div>
             )}
             {record.currentBannedAt && (
@@ -222,7 +223,7 @@ const UsersPage: React.FC = () => {
       title: 'Activity',
       key: 'activity',
       render: (_, record) => (
-        <Space direction="vertical" size="small" style={{ fontSize: '12px' }}>
+        <Space direction="vertical" size="small" className="users-activity-cell">
           <div>
             <Text strong>Posts:</Text> <Badge count={record.totalBlogPosts} style={{ backgroundColor: '#1890ff' }} />
           </div>
@@ -243,7 +244,7 @@ const UsersPage: React.FC = () => {
       key: 'createdAt',
       render: (date) => (
         <Tooltip title={formatDate(date)}>
-          <Text type="secondary">{formatDate(date)}</Text>
+          <Text type="secondary" className="users-date-cell">{formatDate(date)}</Text>
         </Tooltip>
       ),
     },
@@ -253,7 +254,7 @@ const UsersPage: React.FC = () => {
       key: 'lastLoginAt',
       render: (date) => (
         <Tooltip title={date ? formatDate(date) : 'Never'}>
-          <Text type="secondary">{date ? formatDate(date) : 'Never'}</Text>
+          <Text type="secondary" className="users-date-cell">{date ? formatDate(date) : 'Never'}</Text>
         </Tooltip>
       ),
     },
@@ -261,7 +262,7 @@ const UsersPage: React.FC = () => {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Space>
+        <Space className="users-actions-cell">
           <Tooltip title="View Details">
             <Button icon={<EyeOutlined />} size="small" />
           </Tooltip>
@@ -314,49 +315,54 @@ const UsersPage: React.FC = () => {
   }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <div>
-          <Title level={2}>User Management</Title>
-          <Text type="secondary">
+    <div className="users-page">
+      <div className="users-page-header">
+        <div className="users-page-title-section">
+          <Title level={2} className="users-page-title">User Management</Title>
+          <Text type="secondary" className="users-page-subtitle">
             {users ? `${users.totalCount} total users` : 'Loading users...'}
           </Text>
         </div>
-        <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>
-          Refresh
-        </Button>
+        <div className="users-page-actions">
+          <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="users-search-section">
           <Input.Search
+            className="users-search-input"
             placeholder="Search users by name or email..."
             allowClear
             enterButton={<SearchOutlined />}
             size="large"
             onSearch={handleSearch}
             defaultValue={searchTerm}
-            style={{ maxWidth: 400 }}
           />
         </div>
 
-        <Table
-          columns={columns}
-          dataSource={users?.data || []}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: users?.totalCount || 0,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
-            onChange: changePage,
-            onShowSizeChange: changePage,
-          }}
-          scroll={{ x: 'max-content' }}
-        />
+        <div className="users-table-wrapper">
+          <Table
+            className="users-table"
+            columns={columns}
+            dataSource={users?.data || []}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              current: currentPage,
+              pageSize: pageSize,
+              total: users?.totalCount || 0,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
+              onChange: changePage,
+              onShowSizeChange: changePage,
+            }}
+            scroll={{ x: 'max-content' }}
+          />
+        </div>
       </Card>
 
       {/* Ban User Modal */}
@@ -369,18 +375,19 @@ const UsersPage: React.FC = () => {
           banForm.resetFields();
         }}
         footer={null}
+        className="users-ban-modal"
       >
         {selectedUser && (
           <div>
             <Alert
+              className="users-ban-alert"
               message="Ban User"
               description={`You are about to ban ${selectedUser.name} (${selectedUser.email}). This action will prevent them from accessing the platform.`}
               type="warning"
               showIcon
-              style={{ marginBottom: 16 }}
             />
             
-            <Form form={banForm} layout="vertical" onFinish={onBanSubmit}>
+            <Form form={banForm} layout="vertical" onFinish={onBanSubmit} className="users-ban-form">
               <Form.Item
                 name="reason"
                 label="Reason for ban"
@@ -405,7 +412,7 @@ const UsersPage: React.FC = () => {
                 />
               </Form.Item>
               
-              <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+              <Form.Item className="users-ban-form-actions">
                 <Space>
                   <Button onClick={() => setBanModalVisible(false)}>
                     Cancel
