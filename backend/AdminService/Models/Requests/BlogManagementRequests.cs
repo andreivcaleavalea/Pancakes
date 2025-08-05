@@ -6,7 +6,7 @@ namespace AdminService.Models.Requests
     {
         public string? Search { get; set; }
         public string? AuthorId { get; set; }
-        public int? Status { get; set; } // 0 = Draft, 1 = Published, 2 = Archived
+        public int? Status { get; set; } // 0 = Draft, 1 = Published, 2 = Deleted
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
         public int Page { get; set; } = 1;
