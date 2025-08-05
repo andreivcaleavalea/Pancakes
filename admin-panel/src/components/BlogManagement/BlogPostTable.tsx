@@ -63,7 +63,7 @@ const BlogPostTable: React.FC<BlogPostTableProps> = ({
               {truncateText(record.title, 50)}
             </Title>
             <Paragraph className="post-excerpt">
-              {truncateText(record.content.replace(/<[^>]*>/g, ''), 80)}
+              {truncateText(extractTextFromHTML(record.content), 80)}
             </Paragraph>
             <div className="post-date">
               <CalendarOutlined /> {formatDate(record.createdAt)}
