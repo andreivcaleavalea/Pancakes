@@ -11,6 +11,7 @@ import CommentForm from "../CommentForm/CommentForm";
 import CommentLikeButtons from "../CommentLikeButtons/CommentLikeButtons";
 import { CachedAvatar } from "@/components/common";
 import { getProfilePictureUrl } from "@/utils/imageUtils";
+import { useAuth } from "@/contexts/AuthContext";
 import "./CommentItem.scss";
 
 const { Text, Paragraph } = Typography;
@@ -23,6 +24,30 @@ const CommentItem: React.FC<CommentItemProps> = ({
   depth = 0,
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const { user, isAuthenticated } = useAuth();
+
+  // Helper function to check if current user can modify a comment
+  const canModifyComment = (): boolean => {
+    const result =
+      isAuthenticated &&
+      user &&
+      comment.authorId?.trim().toLowerCase() === user.id?.trim().toLowerCase();
+
+    // Debug logging for CommentItem authorization
+    console.log(`🔍 CommentItem Auth for ${comment.id} (depth ${depth}):`, {
+      isAuthenticated,
+      hasUser: !!user,
+      userId: user?.id,
+      commentAuthorId: comment.authorId,
+      authorMatch:
+        comment.authorId?.trim().toLowerCase() ===
+        user?.id?.trim().toLowerCase(),
+      canModify: result,
+      commentContent: comment.content.substring(0, 30) + "...",
+    });
+
+    return result;
+  };
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -114,7 +139,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     Reply
                   </Button>
                 )}
-              {onEdit && (
+              {onEdit && canModifyComment() && (
                 <Button
                   type="text"
                   size="small"
@@ -123,7 +148,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   className="comment-item__action-btn"
                 />
               )}
-              {onDelete && (
+              {onDelete && canModifyComment() && (
                 <Button
                   type="text"
                   size="small"
