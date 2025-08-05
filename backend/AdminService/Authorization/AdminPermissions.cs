@@ -16,6 +16,7 @@ namespace AdminService.Authorization
         public const string ManageBlogs = "blogs:manage";
         public const string DeleteBlogs = "blogs:delete";
 
+
         // Analytics Permissions
         public const string ViewAnalytics = "analytics:view";
         public const string ViewDashboard = "analytics:dashboard";

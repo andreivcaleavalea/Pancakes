@@ -45,6 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         navigate("/users");
         onMenuClick?.();
       },
+
     },
     {
       key: "content",

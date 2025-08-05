@@ -1,6 +1,7 @@
 import React from "react";
 import { Layout, Button, Typography, Space } from "antd";
 import { LogoutOutlined, MenuOutlined } from "@ant-design/icons";
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import "../styles/layouts/Header.scss";
@@ -42,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ isMobile = false, onMenuToggle }
         {!isMobile && (
           <span className="user-welcome">Welcome, {user?.name || "Admin"}</span>
         )}
+
         <Button
           type="text"
           icon={<LogoutOutlined />}
@@ -49,6 +51,7 @@ export const Header: React.FC<HeaderProps> = ({ isMobile = false, onMenuToggle }
           className="header__logout-btn"
         >
           {isMobile ? "" : "Logout"}
+
         </Button>
       </Space>
     </AntHeader>
