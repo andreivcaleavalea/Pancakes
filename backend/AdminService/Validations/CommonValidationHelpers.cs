@@ -6,8 +6,17 @@ namespace AdminService.Validations
     {
         public static bool IsValidEmail(string email)
         {
-            var emailRegex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            return Regex.IsMatch(email, emailRegex, RegexOptions.IgnoreCase);
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+            try
+            {
+                var addr = new MailAddress(email);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public static bool IsStrongPassword(string password)
