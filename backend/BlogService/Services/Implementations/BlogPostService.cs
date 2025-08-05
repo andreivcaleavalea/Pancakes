@@ -91,26 +91,6 @@ public class BlogPostService : IBlogPostService
         return blogPostDtos;
     }
 
-    public async Task<IEnumerable<BlogPostDto>> GetByAuthorAsync(string authorId, int page = 1, int pageSize = 10)
-    {
-        // Convert string authorId to Guid for repository call
-        if (!Guid.TryParse(authorId, out var authorGuid))
-        {
-            throw new ArgumentException($"Invalid author ID format: {authorId}");
-        }
-        
-        var posts = await _blogPostRepository.GetByAuthorAsync(authorGuid, page, pageSize);
-        var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
-        
-        // Populate author information for all posts
-        foreach (var dto in blogPostDtos)
-        {
-            await PopulateAuthorInfoAsync(dto);
-        }
-        
-        return blogPostDtos;
-    }
-
     public async Task<PaginatedResult<BlogPostDto>> GetFriendsPostsAsync(IEnumerable<string> friendUserIds, int page = 1, int pageSize = 10)
     {
         var (posts, totalCount) = await _blogPostRepository.GetFriendsPostsAsync(friendUserIds, page, pageSize);
@@ -123,26 +103,6 @@ public class BlogPostService : IBlogPostService
         }
         
         return PaginationHelper.CreatePaginatedResult(blogPostDtos, page, pageSize, totalCount);
-    }
-
-    // Original methods for internal use and backwards compatibility
-    public async Task<BlogPostDto> CreateAsync(CreateBlogPostDto createDto)
-    {
-        var blogPost = _mapper.Map<BlogPost>(createDto);
-        var createdBlogPost = await _blogPostRepository.CreateAsync(blogPost);
-        var blogPostDto = _mapper.Map<BlogPostDto>(createdBlogPost);
-        await PopulateAuthorInfoAsync(blogPostDto);
-        return blogPostDto;
-    }
-
-    public async Task<BlogPostDto> CreateAsync(CreateBlogPostDto createDto, string authorId)
-    {
-        createDto.AuthorId = authorId;
-        var blogPost = _mapper.Map<BlogPost>(createDto);
-        var createdBlogPost = await _blogPostRepository.CreateAsync(blogPost);
-        var blogPostDto = _mapper.Map<BlogPostDto>(createdBlogPost);
-        await PopulateAuthorInfoAsync(blogPostDto);
-        return blogPostDto;
     }
 
     // New methods with full business logic
@@ -170,24 +130,6 @@ public class BlogPostService : IBlogPostService
         await PopulateAuthorInfoAsync(blogPostDto);
         
         _logger.LogInformation("Blog post created successfully with ID: {BlogPostId}", blogPostDto.Id);
-        return blogPostDto;
-    }
-
-    public async Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto, string currentUserId)
-    {
-        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
-        
-        // Check if the current user is the author of the blog post
-        if (existingBlogPost.AuthorId != currentUserId)
-        {
-            throw new UnauthorizedAccessException("You can only edit your own blog posts.");
-        }
-        
-        _mapper.Map(updateDto, existingBlogPost);
-        existingBlogPost.UpdatedAt = DateTime.UtcNow;
-        var updatedBlogPost = await _blogPostRepository.UpdateAsync(existingBlogPost);
-        var blogPostDto = _mapper.Map<BlogPostDto>(updatedBlogPost);
-        await PopulateAuthorInfoAsync(blogPostDto);
         return blogPostDto;
     }
 
@@ -221,19 +163,6 @@ public class BlogPostService : IBlogPostService
         return blogPostDto;
     }
 
-    public async Task DeleteAsync(Guid id, string currentUserId)
-    {
-        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
-        
-        // Check if the current user is the author of the blog post
-        if (existingBlogPost.AuthorId != currentUserId)
-        {
-            throw new UnauthorizedAccessException("You can only delete your own blog posts.");
-        }
-        
-        await _blogPostRepository.DeleteAsync(id);
-    }
-
     public async Task DeleteAsync(Guid id, HttpContext httpContext)
     {
         _logger.LogInformation("Deleting blog post with ID: {Id}", id);
@@ -257,30 +186,6 @@ public class BlogPostService : IBlogPostService
         }
         
         await _blogPostRepository.DeleteAsync(id);
-    }
-
-    // Internal methods for backwards compatibility (used by UpdateStatusAsync)
-    private async Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto)
-    {
-        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
-        _mapper.Map(updateDto, existingBlogPost);
-        existingBlogPost.UpdatedAt = DateTime.UtcNow;
-        var updatedBlogPost = await _blogPostRepository.UpdateAsync(existingBlogPost);
-        var blogPostDto = _mapper.Map<BlogPostDto>(updatedBlogPost);
-        await PopulateAuthorInfoAsync(blogPostDto);
-        return blogPostDto;
-    }
-
-    public async Task<BlogPostDto> UpdateStatusAsync(Guid id, PostStatus status)
-    {
-        var blogPost = await GetBlogPostByIdOrThrowAsync(id);
-        blogPost.Status = status;
-        if (status == PostStatus.Published && !blogPost.PublishedAt.HasValue)
-        {
-            blogPost.PublishedAt = DateTime.UtcNow;
-        }
-        var updatedBlogPost = await _blogPostRepository.UpdateAsync(blogPost);
-        return _mapper.Map<BlogPostDto>(updatedBlogPost);
     }
 
     private async Task<BlogPost> GetBlogPostByIdOrThrowAsync(Guid id)

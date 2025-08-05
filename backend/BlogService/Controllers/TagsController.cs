@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using BlogService.Repositories.Interfaces;
+using BlogService.Services.Interfaces;
 
 namespace BlogService.Controllers;
 
@@ -7,12 +7,12 @@ namespace BlogService.Controllers;
 [Route("api/[controller]")]
 public class TagsController : ControllerBase
 {
-    private readonly IBlogPostRepository _blogPostRepository;
+    private readonly ITagService _tagService;
     private readonly ILogger<TagsController> _logger;
 
-    public TagsController(IBlogPostRepository blogPostRepository, ILogger<TagsController> logger)
+    public TagsController(ITagService tagService, ILogger<TagsController> logger)
     {
-        _blogPostRepository = blogPostRepository;
+        _tagService = tagService;
         _logger = logger;
     }
 
@@ -21,24 +21,8 @@ public class TagsController : ControllerBase
     {
         try
         {
-            var (posts, _) = await _blogPostRepository.GetAllAsync(new Models.Requests.BlogPostQueryParameters 
-            { 
-                PageSize = 1000, // Get a large sample
-                Page = 1 
-            });
-
-            // Extract all tags and count their usage
-            var tagCounts = posts
-                .SelectMany(p => p.Tags ?? new List<string>())
-                .Where(tag => !string.IsNullOrWhiteSpace(tag))
-                .GroupBy(tag => tag.ToLower().Trim())
-                .Select(g => new { Tag = g.First(), Count = g.Count() })
-                .OrderByDescending(x => x.Count)
-                .Take(limit)
-                .Select(x => x.Tag)
-                .ToList();
-
-            return Ok(tagCounts);
+            var tags = await _tagService.GetPopularTagsAsync(limit);
+            return Ok(tags);
         }
         catch (Exception ex)
         {
@@ -52,29 +36,8 @@ public class TagsController : ControllerBase
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
-            {
-                return Ok(new List<string>());
-            }
-
-            var (posts, _) = await _blogPostRepository.GetAllAsync(new Models.Requests.BlogPostQueryParameters 
-            { 
-                PageSize = 1000, // Get a large sample
-                Page = 1 
-            });
-
-            // Search for tags that start with or contain the query
-            var matchingTags = posts
-                .SelectMany(p => p.Tags ?? new List<string>())
-                .Where(tag => !string.IsNullOrWhiteSpace(tag))
-                .Distinct()
-                .Where(tag => tag.ToLower().Contains(query.ToLower().Trim()))
-                .OrderBy(tag => tag.ToLower().StartsWith(query.ToLower().Trim()) ? 0 : 1) // Prioritize starts-with matches
-                .ThenBy(tag => tag.Length) // Then by length
-                .Take(limit)
-                .ToList();
-
-            return Ok(matchingTags);
+            var tags = await _tagService.SearchTagsAsync(query, limit);
+            return Ok(tags);
         }
         catch (Exception ex)
         {

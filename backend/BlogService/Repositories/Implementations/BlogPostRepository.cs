@@ -132,16 +132,6 @@ public class BlogPostRepository : IBlogPostRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<BlogPost>> GetByAuthorAsync(Guid authorId, int page = 1, int pageSize = 10)
-    {
-        var authorIdString = authorId.ToString(); // Convert Guid to string for comparison
-        return await _context.BlogPosts.Where(bp => bp.AuthorId == authorIdString)
-            .OrderByDescending(bp => bp.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-    }
-
     public async Task<BlogPost> CreateAsync(BlogPost blogPost)
     {
         _context.BlogPosts.Add(blogPost);

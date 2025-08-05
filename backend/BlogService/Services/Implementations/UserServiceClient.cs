@@ -173,4 +173,42 @@ public class UserServiceClient : IUserServiceClient
             _httpClient.DefaultRequestHeaders.Authorization = null;
         }
     }
+
+    public async Task<bool> AreFriendsAsync(string userId1, string userId2, string authToken)
+    {
+        try
+        {
+            // Set authorization header for this request
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+
+            var response = await _httpClient.GetAsync($"/api/friendships/check-friendship/{userId2}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                var result = JsonSerializer.Deserialize<dynamic>(jsonContent, options);
+                return result?.areFriends ?? false;
+            }
+
+            _logger.LogWarning("Failed to check friendship between {UserId1} and {UserId2} from UserService. Status: {StatusCode}", 
+                userId1, userId2, response.StatusCode);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calling UserService to check friendship between {UserId1} and {UserId2}", 
+                userId1, userId2);
+            return false;
+        }
+        finally
+        {
+            // Clear the authorization header to avoid affecting other requests
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+        }
+    }
 }
