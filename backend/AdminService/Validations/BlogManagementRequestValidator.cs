@@ -15,7 +15,7 @@ namespace AdminService.Validations
                 errors.Add("Invalid BlogPostId format");
 
             if (request?.Status < 0 || request?.Status > 2)
-                errors.Add("Invalid status value. Must be 0 (Draft), 1 (Published), or 2 (Archived)");
+                errors.Add("Invalid status value. Must be 0 (Draft), 1 (Published), or 2 (Deleted)");
 
             if (string.IsNullOrWhiteSpace(request?.Reason))
                 errors.Add("Reason is required");
