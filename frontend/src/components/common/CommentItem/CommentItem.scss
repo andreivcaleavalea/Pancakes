@@ -250,4 +250,16 @@
       }
     }
   }
+
+  // Deleted comment styling
+  &__author--deleted {
+    color: #999 !important;
+    font-style: italic;
+  }
+
+  &__text--deleted {
+    color: #999;
+    font-style: italic;
+    opacity: 0.7;
+  }
 }

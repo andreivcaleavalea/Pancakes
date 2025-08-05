@@ -110,7 +110,8 @@ public class CommentService : ICommentService
         _logger.LogInformation("Final DTO - commentDto.AuthorId: {AuthorId}, commentDto.AuthorName: {AuthorName}", 
             commentDto.AuthorId, commentDto.AuthorName);
         
-        // No need to populate author info from UserService since it's already set in the controller
+        // Populate author info including image
+        await PopulateAuthorInfoAsync(commentDto);
         return commentDto;
     }
 
@@ -282,7 +283,7 @@ public class CommentService : ICommentService
         return await UpdateAsync(id, updateDto);
     }
 
-    public async Task DeleteAsync(Guid id, HttpContext httpContext)
+    public async Task<CommentDto?> DeleteAsync(Guid id, HttpContext httpContext)
     {
         _logger.LogInformation("Deleting comment with ID: {CommentId}", id);
 
@@ -305,6 +306,37 @@ public class CommentService : ICommentService
             throw new UnauthorizedAccessException("You can only delete your own comments.");
         }
         
-        await DeleteAsync(id);
+        return await SoftDeleteAsync(id);
+    }
+
+    private async Task<CommentDto?> SoftDeleteAsync(Guid id)
+    {
+        var comment = await GetCommentByIdOrThrowAsync(id);
+        
+        // Check if comment has replies
+        var hasReplies = await _commentRepository.HasRepliesAsync(id);
+        
+        if (hasReplies)
+        {
+            // Soft delete: mark as deleted and change content
+            comment.IsDeleted = true;
+            comment.DeletedAt = DateTime.UtcNow;
+            comment.Content = "[deleted]"; // Special marker for frontend
+            comment.UpdatedAt = DateTime.UtcNow;
+            
+            var updatedComment = await _commentRepository.UpdateAsync(comment);
+            var commentDto = _mapper.Map<CommentDto>(updatedComment);
+            await PopulateAuthorInfoAsync(commentDto);
+            
+            _logger.LogInformation("Comment {CommentId} soft deleted due to existing replies", id);
+            return commentDto;
+        }
+        else
+        {
+            // Hard delete if no replies
+            await _commentRepository.DeleteAsync(id);
+            _logger.LogInformation("Comment {CommentId} hard deleted (no replies)", id);
+            return null; // Indicates complete deletion
+        }
     }
 } 

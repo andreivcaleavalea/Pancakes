@@ -65,4 +65,9 @@ public class CommentRepository : ICommentRepository
     {
         return await _context.Comments.AnyAsync(c => c.Id == id);
     }
+
+    public async Task<bool> HasRepliesAsync(Guid commentId)
+    {
+        return await _context.Comments.AnyAsync(c => c.ParentCommentId == commentId);
+    }
 } 
