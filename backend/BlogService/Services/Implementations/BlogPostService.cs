@@ -199,6 +199,8 @@ public class BlogPostService : IBlogPostService
     {
         _logger.LogInformation("Updating blog post with ID: {Id}", id);
 
+        BlogPost? existingBlogPost = null;
+
         // Check if this is a service-to-service call (e.g., from AdminService)
         var isServiceRequest = httpContext.User.FindFirst("service")?.Value == "true";
         
@@ -218,7 +220,7 @@ public class BlogPostService : IBlogPostService
             _logger.LogInformation("Current user retrieved for update: Id={UserId}, Name={UserName}", 
                 currentUser.Id, currentUser.Name);
 
-            var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
+            existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
             
             // Check if the current user is the author of the blog post
             if (existingBlogPost.AuthorId != currentUser.Id)
@@ -227,7 +229,7 @@ public class BlogPostService : IBlogPostService
             }
         }
 
-        var blogPostToUpdate = await GetBlogPostByIdOrThrowAsync(id);
+        var blogPostToUpdate = existingBlogPost ?? await GetBlogPostByIdOrThrowAsync(id);
         _mapper.Map(updateDto, blogPostToUpdate);
         blogPostToUpdate.UpdatedAt = DateTime.UtcNow;
         var updatedBlogPost = await _blogPostRepository.UpdateAsync(blogPostToUpdate);
