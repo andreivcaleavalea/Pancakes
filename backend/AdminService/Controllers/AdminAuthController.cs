@@ -2,6 +2,7 @@ using AdminService.Models.Requests;
 using AdminService.Models.Responses;
 using AdminService.Services.Interfaces;
 using AdminService.Validations;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,6 +41,7 @@ namespace AdminService.Controllers
                         Errors = validationResult.Errors.ToList()
                     });
                 }
+
 
                 // Check if any admin users already exist
                 var hasAdmins = await _adminAuthService.HasAdminUsersAsync();

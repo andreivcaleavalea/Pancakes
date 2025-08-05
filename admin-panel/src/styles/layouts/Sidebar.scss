@@ -5,6 +5,7 @@
   left: 0;
   top: 0;
   z-index: 1000;
+
   
   &__brand {
     padding: 16px;
@@ -24,6 +25,7 @@
     border-right: none;
     height: calc(100vh - 80px);
     overflow-y: auto;
+
 
     .ant-menu-item {
       margin: 0;

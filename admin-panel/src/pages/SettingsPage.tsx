@@ -3,6 +3,7 @@ import { Typography, Card, Alert } from 'antd';
 import { ClockCircleOutlined } from '@ant-design/icons';
 import './SettingsPage.css';
 
+
 const { Title } = Typography;
 
 const SettingsPage: React.FC = () => {

@@ -39,6 +39,7 @@ namespace AdminService.Configuration
             services.AddScoped<IServiceJwtService, AdminService.Services.Implementations.ServiceJwtService>();
             services.AddScoped<IBlogManagementService, AdminService.Services.Implementations.BlogManagementService>();
 
+
             // Add Background Services
             services.AddHostedService<AdminService.Services.Implementations.RateLimitCleanupService>();
 
@@ -52,6 +53,7 @@ namespace AdminService.Configuration
 
             services.AddHttpClient<AdminService.Clients.BlogClient.Services.BlogServiceClient>();
             services.AddScoped<AdminService.Clients.BlogClient.Services.BlogServiceClient>();
+
 
             return services;
         }
@@ -117,6 +119,7 @@ namespace AdminService.Configuration
                 options.AddPolicy("CanViewBlogDetails", policy => policy.RequirePermission(AdminPermissions.ViewBlogDetails));
                 options.AddPolicy("CanManageBlogs", policy => policy.RequirePermission(AdminPermissions.ManageBlogs));
                 options.AddPolicy("CanDeleteBlogs", policy => policy.RequirePermission(AdminPermissions.DeleteBlogs));
+
 
                 // Analytics Policies
                 options.AddPolicy("CanViewAnalytics", policy => policy.RequirePermission(AdminPermissions.ViewAnalytics));
