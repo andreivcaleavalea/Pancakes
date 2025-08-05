@@ -11,4 +11,5 @@ public interface ICommentRepository
     Task DeleteAsync(Guid id);
     Task<bool> ExistsAsync(Guid id);
     Task<bool> HasRepliesAsync(Guid commentId);
+    Task<Comment?> GetByIdWithRepliesAsync(Guid id);
 } 

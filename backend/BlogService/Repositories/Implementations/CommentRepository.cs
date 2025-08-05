@@ -70,4 +70,14 @@ public class CommentRepository : ICommentRepository
     {
         return await _context.Comments.AnyAsync(c => c.ParentCommentId == commentId);
     }
+
+    public async Task<Comment?> GetByIdWithRepliesAsync(Guid id)
+    {
+        return await _context.Comments
+            .Include(c => c.BlogPost)
+            .Include(c => c.Replies.OrderBy(r => r.CreatedAt))
+                .ThenInclude(r => r.Replies.OrderBy(rr => rr.CreatedAt))
+                .ThenInclude(rr => rr.Replies.OrderBy(rrr => rrr.CreatedAt)) // Support up to 4 levels deep
+            .FirstOrDefaultAsync(c => c.Id == id);
+    }
 } 

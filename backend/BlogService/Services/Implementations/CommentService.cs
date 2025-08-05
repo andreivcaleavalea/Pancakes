@@ -324,9 +324,18 @@ public class CommentService : ICommentService
             comment.Content = "[deleted]"; // Special marker for frontend
             comment.UpdatedAt = DateTime.UtcNow;
             
-            var updatedComment = await _commentRepository.UpdateAsync(comment);
-            var commentDto = _mapper.Map<CommentDto>(updatedComment);
-            await PopulateAuthorInfoAsync(commentDto);
+            await _commentRepository.UpdateAsync(comment);
+            
+            // Get the updated comment with all its replies
+            var commentWithReplies = await _commentRepository.GetByIdWithRepliesAsync(id);
+            if (commentWithReplies == null)
+            {
+                throw new InvalidOperationException($"Comment {id} not found after update");
+            }
+            
+            var commentDto = _mapper.Map<CommentDto>(commentWithReplies);
+            // Populate author info for the deleted comment and all its replies
+            await PopulateAuthorInfoRecursivelyAsync(commentDto);
             
             _logger.LogInformation("Comment {CommentId} soft deleted due to existing replies", id);
             return commentDto;
