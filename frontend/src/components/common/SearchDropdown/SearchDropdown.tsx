@@ -16,7 +16,7 @@ const SearchDropdown: React.FC = () => {
   // Debounce search
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchValue.trim() && searchValue.length >= 2) {
+      if (searchValue.trim() && searchValue.length >= 1) {
         performSearch(searchValue.trim());
       } else {
         setSearchResults([]);
