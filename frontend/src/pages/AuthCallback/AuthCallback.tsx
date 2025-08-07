@@ -13,6 +13,8 @@ const AuthCallback: React.FC = () => {
     if (processedRef.current) return;
 
     const handleCallback = async () => {
+      console.log("🔐 AuthCallback: Processing OAuth callback...");
+
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get("code");
@@ -20,30 +22,61 @@ const AuthCallback: React.FC = () => {
         const provider = urlParams.get("provider");
         const error = urlParams.get("error");
 
+        console.log("🔐 AuthCallback: URL parameters:", {
+          hasCode: !!code,
+          hasState: !!state,
+          provider,
+          error,
+          codeLength: code?.length,
+        });
+
         const storedState = sessionStorage.getItem("oauth-state");
+        console.log("🔐 AuthCallback: State verification:", {
+          receivedState: state?.substring(0, 8) + "...",
+          storedState: storedState?.substring(0, 8) + "...",
+          stateMatch: state === storedState,
+        });
 
         if (error) {
+          console.error("❌ AuthCallback: OAuth error received:", error);
           message.error(`Authentication failed: ${error}`);
           navigate("login");
           return;
         }
 
         if (!state || state !== storedState) {
+          console.error("❌ AuthCallback: Invalid state parameter");
           message.error("Invalid state parameter");
           navigate("login");
           return;
         }
 
         if (!code || !provider) {
+          console.error(
+            "❌ AuthCallback: Missing authorization code or provider"
+          );
           message.error("Missing authorization code or provider");
           navigate("login");
           return;
         }
 
+        console.log(
+          `🔐 AuthCallback: Exchanging code for user data with ${provider}...`
+        );
+
         // Exchange code for user data via backend
         const userData = await exchangeCodeForUser(code, provider);
 
         if (userData) {
+          console.log("✅ AuthCallback: User data received:", {
+            userId: userData.user.id,
+            userName: userData.user.name,
+            userEmail: userData.user.email,
+            provider: userData.user.provider,
+            hasToken: !!userData.token,
+            expiresAt: userData.expiresAt,
+          });
+
           const session = {
             user: {
               id: userData.user.id,
@@ -58,8 +91,12 @@ const AuthCallback: React.FC = () => {
 
           updateSession(session);
           message.success(`Welcome ${userData.user.name}!`);
+          console.log(
+            "✅ AuthCallback: Authentication successful, redirecting to home"
+          );
           navigate("home");
         } else {
+          console.error("❌ AuthCallback: Failed to get user data");
           message.error("Failed to get user data");
           navigate("login");
         }
@@ -88,6 +125,7 @@ const AuthCallback: React.FC = () => {
         navigate("login");
       } finally {
         // Clean up
+        console.log("🔐 AuthCallback: Cleaning up session storage");
         sessionStorage.removeItem("oauth-state");
         sessionStorage.removeItem("oauth-provider");
       }
@@ -114,7 +152,25 @@ const AuthCallback: React.FC = () => {
 };
 
 async function exchangeCodeForUser(code: string, provider: string) {
+  console.log(
+    `🔐 AuthCallback: Making API call to exchange code for ${provider} user data...`
+  );
+
   try {
+    const requestBody = {
+      code,
+      provider,
+      state: sessionStorage.getItem("oauth-state"),
+    };
+
+    console.log("🔐 AuthCallback: Request details:", {
+      url: `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
+      provider,
+      hasCode: !!code,
+      hasState: !!requestBody.state,
+      codeLength: code?.length,
+    });
+
     const response = await fetch(
       `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
       {
@@ -122,12 +178,12 @@ async function exchangeCodeForUser(code: string, provider: string) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          code,
-          provider,
-          state: sessionStorage.getItem("oauth-state"),
-        }),
+        body: JSON.stringify(requestBody),
       }
+    );
+
+    console.log(
+      `🔐 AuthCallback: API response status: ${response.status} ${response.statusText}`
     );
 
     if (!response.ok) {
@@ -182,7 +238,9 @@ async function exchangeCodeForUser(code: string, provider: string) {
       throw new Error(errorMessage);
     }
 
-    return await response.json();
+    const userData = await response.json();
+    console.log("✅ AuthCallback: Successfully exchanged code for user data");
+    return userData;
   } catch (error) {
     console.error("Error exchanging code:", error);
     // Re-throw to maintain error message

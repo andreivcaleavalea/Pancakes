@@ -10,6 +10,8 @@ export interface Comment {
   replies: Comment[];
   createdAt: string;
   updatedAt: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface CreateCommentDto {

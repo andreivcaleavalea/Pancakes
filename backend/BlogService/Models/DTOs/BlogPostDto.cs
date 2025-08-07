@@ -17,4 +17,7 @@ public class BlogPostDto
     // Author information
     public string AuthorName { get; set; } = string.Empty;
     public string AuthorImage { get; set; } = string.Empty;
+    
+    // Tags
+    public List<string> Tags { get; set; } = new List<string>();
 }

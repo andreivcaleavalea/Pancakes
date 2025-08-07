@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { blogPostsApi } from "@/services/blogApi";
 import { PostStatus } from "@/types/blog";
 import type { UpdateBlogPostDto, BlogPost } from "@/types/blog";
+import { TagInput } from "@/components/common";
 import "./EditBlogPage.scss";
 
 const { Title } = Typography;
@@ -24,6 +25,7 @@ interface EditBlogFormValues {
   title: string;
   content: string;
   featuredImage?: string;
+  tags: string[];
 }
 
 const EditBlogPage: React.FC = () => {
@@ -61,6 +63,7 @@ const EditBlogPage: React.FC = () => {
           title: post.title,
           content: post.content,
           featuredImage: post.featuredImage || "",
+          tags: post.tags || [],
         });
       } catch (error) {
         console.error("Error loading blog post:", error);
@@ -98,6 +101,7 @@ const EditBlogPage: React.FC = () => {
         content: values.content,
         featuredImage: values.featuredImage || undefined,
         status: PostStatus.Published, // Keep as published
+        tags: values.tags || [],
       };
 
       console.log("Sending updateDto:", updateDto);
@@ -198,6 +202,18 @@ const EditBlogPage: React.FC = () => {
                 rows={12}
                 placeholder="Write your blog post content here..."
                 className="edit-blog-page__textarea"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Tags"
+              name="tags"
+              help="Edit tags to help categorize your blog post"
+            >
+              <TagInput
+                placeholder="Add tags..."
+                maxTags={10}
+                className="edit-blog-page__tags"
               />
             </Form.Item>
 

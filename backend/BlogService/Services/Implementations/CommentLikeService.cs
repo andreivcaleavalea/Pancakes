@@ -11,20 +11,20 @@ public class CommentLikeService : ICommentLikeService
     private readonly ICommentLikeRepository _likeRepository;
     private readonly ICommentRepository _commentRepository;
     private readonly IMapper _mapper;
-    private readonly IUserContextService _userContextService;
+    private readonly IAuthorizationService _authorizationService;
     private readonly IModelValidationService _modelValidationService;
 
     public CommentLikeService(
         ICommentLikeRepository likeRepository,
         ICommentRepository commentRepository,
         IMapper mapper,
-        IUserContextService userContextService,
+        IAuthorizationService authorizationService,
         IModelValidationService modelValidationService)
     {
         _likeRepository = likeRepository;
         _commentRepository = commentRepository;
         _mapper = mapper;
-        _userContextService = userContextService;
+        _authorizationService = authorizationService;
         _modelValidationService = modelValidationService;
     }
 
@@ -54,6 +54,12 @@ public class CommentLikeService : ICommentLikeService
 
     public async Task<CommentLikeDto> CreateOrUpdateLikeAsync(CreateCommentLikeDto createDto)
     {
+        // Validate that UserId is set (should be set by the HttpContext-aware method)
+        if (string.IsNullOrEmpty(createDto.UserId))
+        {
+            throw new ArgumentException("UserId is required for creating/updating likes");
+        }
+
         // Verify comment exists
         var commentExists = await _commentRepository.ExistsAsync(createDto.CommentId);
         if (!commentExists)
@@ -67,8 +73,9 @@ public class CommentLikeService : ICommentLikeService
         CommentLike like;
         if (existingLike != null)
         {
-            // Update existing like/dislike
+            // Update existing like/dislike (always update to new value)
             existingLike.IsLike = createDto.IsLike;
+            existingLike.UpdatedAt = DateTime.UtcNow;
             like = await _likeRepository.UpdateAsync(existingLike);
         }
         else
@@ -95,7 +102,9 @@ public class CommentLikeService : ICommentLikeService
     // New HttpContext-aware methods that handle all business logic
     public async Task<CommentLikeStatsDto> GetLikeStatsAsync(Guid commentId, HttpContext httpContext)
     {
-        var userId = _userContextService.GetCurrentUserId(httpContext);
+        // Get authenticated user ID - allow anonymous access for stats
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        var userId = currentUser?.Id;
         return await GetLikeStatsAsync(commentId, userId);
     }
 
@@ -108,15 +117,30 @@ public class CommentLikeService : ICommentLikeService
             throw new ArgumentException(validationResult.ErrorMessage);
         }
 
-        // Set user identifier using context service
-        createDto.UserId = _userContextService.GetCurrentUserId(httpContext);
+        // Get authenticated user - require authentication for likes
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
+        {
+            throw new UnauthorizedAccessException("Authentication required to like/dislike comments");
+        }
+
+        // Always override UserId with authenticated user ID for security
+        createDto.UserId = currentUser.Id;
 
         return await CreateOrUpdateLikeAsync(createDto);
     }
 
     public async Task DeleteLikeAsync(Guid commentId, HttpContext httpContext)
     {
-        var userId = _userContextService.GetCurrentUserId(httpContext);
-        await DeleteLikeAsync(commentId, userId);
+        // Get authenticated user - require authentication for deleting likes
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
+        {
+            throw new UnauthorizedAccessException("Authentication required to delete likes/dislikes");
+        }
+
+        await DeleteLikeAsync(commentId, currentUser.Id);
     }
+
+
 } 

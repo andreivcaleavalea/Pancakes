@@ -1,9 +1,10 @@
-import React from 'react';
-import { Card, Avatar, Typography } from 'antd';
-import SectionSettingsPopover from '../../../../SectionSettingsPopover';
-import { useAdvancedStyles } from '../../../../../hooks/useAdvancedStyles';
-import type { PersonalTemplateProps } from '../../../../../types';
-import './CardTemplate.scss';
+import React from "react";
+import { Card, Avatar, Typography } from "antd";
+import SectionSettingsPopover from "../../../../SectionSettingsPopover";
+import { useAdvancedStyles } from "../../../../../hooks/useAdvancedStyles";
+import { getProfilePictureUrl } from "../../../../../../../utils/imageUtils";
+import type { PersonalTemplateProps } from "../../../../../types";
+import "./CardTemplate.scss";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -18,22 +19,15 @@ const CardTemplate: React.FC<PersonalTemplateProps> = ({
   editMode = true,
 }) => {
   // Use shared hook instead of duplicated code
-  const { cardStyles, cardClassName, getContentStyles, getTypographyStyles } = useAdvancedStyles(
-    advancedSettings,
-    'card-template',
-    {
-      textAlign: 'center' as const,
-      padding: '32px',
-      borderRadius: '12px',
-    }
-  );
+  const { cardStyles, cardClassName, getContentStyles, getTypographyStyles } =
+    useAdvancedStyles(advancedSettings, "card-template", {
+      textAlign: "center" as const,
+      padding: "32px",
+      borderRadius: "12px",
+    });
 
   return (
-    <Card 
-      key="personal" 
-      className={cardClassName}
-      style={cardStyles}
-    >
+    <Card key="personal" className={cardClassName} style={cardStyles}>
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -41,15 +35,11 @@ const CardTemplate: React.FC<PersonalTemplateProps> = ({
         templateOptions={templateOptions}
         editMode={editMode}
       />
-      
+
       <div style={getContentStyles()}>
         <Avatar
           size={120}
-          src={(() => {
-            const imageUrl = user.avatar || user.image;
-            if (!imageUrl) return undefined;
-            return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
-          })()}
+          src={getProfilePictureUrl(user.avatar)}
           className="card-template__avatar"
         />
         <Title level={2} style={getTypographyStyles()}>
@@ -59,18 +49,14 @@ const CardTemplate: React.FC<PersonalTemplateProps> = ({
           {user.email}
         </Text>
         {user.phoneNumber && (
-          <Text style={getTypographyStyles()}>
-            📞 {user.phoneNumber}
-          </Text>
+          <Text style={getTypographyStyles()}>📞 {user.phoneNumber}</Text>
         )}
         {user.bio && (
-          <Paragraph style={getTypographyStyles()}>
-            {user.bio}
-          </Paragraph>
+          <Paragraph style={getTypographyStyles()}>{user.bio}</Paragraph>
         )}
       </div>
     </Card>
   );
 };
 
-export default CardTemplate; 
+export default CardTemplate;

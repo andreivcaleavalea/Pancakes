@@ -1,0 +1,126 @@
+.tag-input {
+  &__selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+    min-height: 32px;
+
+    &:empty {
+      margin-bottom: 0;
+    }
+  }
+
+  &__selected-tag {
+    margin: 0;
+    background: #f6f6f6;
+    border: 1px solid #d9d9d9;
+    color: #666;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #e6f7ff;
+      border-color: #91d5ff;
+    }
+
+    .anticon-close {
+      font-size: 10px;
+      margin-left: 4px;
+      color: #999;
+
+      &:hover {
+        color: #ff4d4f;
+      }
+    }
+  }
+
+  &__select {
+    width: 100%;
+
+    .ant-select-selector {
+      border-radius: 6px;
+      border: 2px solid var(--color-primary) !important;
+      background-color: #fff;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(233, 131, 58, 0.1);
+
+      &:hover {
+        border-color: var(--syrup) !important;
+        box-shadow: 0 2px 8px rgba(233, 131, 58, 0.15);
+      }
+
+      &:focus-within {
+        border-color: var(--color-primary) !important;
+        box-shadow: 0 0 0 3px rgba(233, 131, 58, 0.2);
+      }
+    }
+  }
+
+  &__dropdown {
+    border: 1px solid var(--color-primary);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(233, 131, 58, 0.15);
+
+    .ant-select-item {
+      padding: 8px 12px;
+      font-size: 13px;
+      transition: all 0.2s;
+
+      &:hover {
+        background-color: var(--color-bg-secondary);
+        color: var(--color-primary);
+      }
+
+      &-option-selected {
+        background-color: var(--color-primary);
+        color: white;
+        font-weight: 500;
+      }
+    }
+  }
+
+  &__info {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+    text-align: right;
+  }
+}
+
+// Form integration
+.ant-form-item .tag-input {
+  &__select {
+    .ant-select-selector {
+      border: none;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    &.ant-select-focused .ant-select-selector {
+      border: none;
+      box-shadow: none;
+    }
+  }
+}
+
+// Mobile responsive
+@media (max-width: 768px) {
+  .tag-input {
+    &__selected {
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    &__selected-tag {
+      font-size: 11px;
+      padding: 1px 6px;
+    }
+
+    &__info {
+      font-size: 10px;
+    }
+  }
+}

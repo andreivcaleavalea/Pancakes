@@ -17,17 +17,20 @@ public class UserService : IUserService
     private readonly IBanService _banService;
     private readonly IMapper _mapper;
     private readonly ILogger<UserService> _logger;
+    private readonly IProfilePictureStrategyFactory _profilePictureStrategyFactory;
 
     public UserService(
         IUserRepository userRepository,
         IBanService banService,
         IMapper mapper,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger,
+        IProfilePictureStrategyFactory profilePictureStrategyFactory)
     {
         _userRepository = userRepository;
         _banService = banService;
         _mapper = mapper;
         _logger = logger;
+        _profilePictureStrategyFactory = profilePictureStrategyFactory;
     }
 
     public async Task<UserDto?> GetByIdAsync(string id)
@@ -51,6 +54,15 @@ public class UserService : IUserService
     public async Task<IEnumerable<UserDto>> GetAllAsync(int page = 1, int pageSize = 10)
     {
         var users = await _userRepository.GetAllAsync(page, pageSize);
+        return _mapper.Map<IEnumerable<UserDto>>(users);
+    }
+
+    public async Task<IEnumerable<UserDto>> GetUsersByIdsAsync(IEnumerable<string> userIds)
+    {
+        if (userIds == null || !userIds.Any())
+            return new List<UserDto>();
+
+        var users = await _userRepository.GetUsersByIdsAsync(userIds);
         return _mapper.Map<IEnumerable<UserDto>>(users);
     }
 
@@ -123,8 +135,11 @@ public class UserService : IUserService
             // Update existing user with latest OAuth info and last login
             existingUser.Name = oauthInfo.Name;
             existingUser.Email = oauthInfo.Email;
-            existingUser.Image = oauthInfo.Picture;
             existingUser.LastLoginAt = DateTime.UtcNow;
+            
+            // Use strategy pattern to determine if profile picture should be updated
+            var strategy = _profilePictureStrategyFactory.GetStrategy(existingUser.Provider);
+            strategy.ShouldUpdatePictureFromOAuth(existingUser, oauthInfo, provider);
             
             var updatedUser = await _userRepository.UpdateAsync(existingUser);
             return _mapper.Map<UserDto>(updatedUser);
@@ -138,9 +153,12 @@ public class UserService : IUserService
             // User exists with same email but different provider - link the accounts
             // Update the existing user to add this provider info and login
             existingUserByEmail.Name = oauthInfo.Name; // Update name in case it changed
-            existingUserByEmail.Image = oauthInfo.Picture; // Update image
             existingUserByEmail.LastLoginAt = DateTime.UtcNow;
             // Note: We keep the original Provider and ProviderUserId but allow login from multiple providers
+            
+            // Use strategy pattern to determine if profile picture should be updated
+            var strategy = _profilePictureStrategyFactory.GetStrategy(existingUserByEmail.Provider);
+            strategy.ShouldUpdatePictureFromOAuth(existingUserByEmail, oauthInfo, provider);
             
             var updatedUser = await _userRepository.UpdateAsync(existingUserByEmail);
             return _mapper.Map<UserDto>(updatedUser);
@@ -294,6 +312,20 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Get all users error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> GetUsersByIdsAsync(HttpContext httpContext, IEnumerable<string> userIds)
+    {
+        try
+        {
+            var users = await GetUsersByIdsAsync(userIds);
+            return new OkObjectResult(users);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Get users by IDs error: {Message}", ex.Message);
             return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
         }
     }

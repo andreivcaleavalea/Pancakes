@@ -1,8 +1,15 @@
-import React from 'react';
-import { Card, Avatar, Typography } from 'antd';
-import SectionSettingsPopover from '../../../../SectionSettingsPopover';
-import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
-import './MinimalTemplate.scss';
+import React from "react";
+import { Card, Avatar, Typography } from "antd";
+import SectionSettingsPopover from "../../../../SectionSettingsPopover";
+import {
+  getBackgroundWithPattern,
+  getShadowStyle,
+  getFontSize,
+  getFontWeight,
+  getBackgroundSize,
+} from "../../../../../../../utils/templateUtils";
+import { getProfilePictureUrl } from "../../../../../../../utils/imageUtils";
+import "./MinimalTemplate.scss";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -37,9 +44,9 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
     const defaultStyles = {
-      marginBottom: '32px',
-      borderRadius: '16px',
-      position: 'relative' as const,
+      marginBottom: "32px",
+      borderRadius: "16px",
+      position: "relative" as const,
     };
 
     if (!advancedSettings) return defaultStyles;
@@ -48,28 +55,43 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
 
     // Generate CSS custom properties for advanced settings
     const cssCustomProperties = {
-      '--advanced-background': (background.color || background.pattern !== 'none') ? 
-        getBackgroundWithPattern(background.color || '#ffffff', background.pattern, background.opacity) :
-        undefined,
-      '--advanced-background-size': getBackgroundSize(background.pattern),
-      '--advanced-border-radius': styling.roundCorners ? styling.borderRadius : '0px',
-      '--advanced-box-shadow': styling.shadow ? getShadowStyle(styling.shadowIntensity) : 'none',
-      '--advanced-margin-top': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-bottom': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
-      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
-      '--advanced-border': styling.border.enabled 
+      "--advanced-background":
+        background.color || background.pattern !== "none"
+          ? getBackgroundWithPattern(
+              background.color || "#ffffff",
+              background.pattern,
+              background.opacity
+            )
+          : undefined,
+      "--advanced-background-size": getBackgroundSize(background.pattern),
+      "--advanced-border-radius": styling.roundCorners
+        ? styling.borderRadius
+        : "0px",
+      "--advanced-box-shadow": styling.shadow
+        ? getShadowStyle(styling.shadowIntensity)
+        : "none",
+      "--advanced-margin-top": `${layout.margin}${
+        typeof layout.margin === "number" ? "px" : ""
+      }`,
+      "--advanced-margin-bottom": `${layout.margin}${
+        typeof layout.margin === "number" ? "px" : ""
+      }`,
+      "--advanced-margin-left": layout.fullscreen ? "calc(-50vw + 50%)" : "0px",
+      "--advanced-margin-right": layout.fullscreen
+        ? "calc(-50vw + 50%)"
+        : "0px",
+      "--advanced-border": styling.border.enabled
         ? `${styling.border.width} ${styling.border.style} ${styling.border.color}`
-        : 'none',
-      '--advanced-overflow': 'hidden',
-      '--advanced-width': layout.fullscreen ? '100vw' : 'auto',
+        : "none",
+      "--advanced-overflow": "hidden",
+      "--advanced-width": layout.fullscreen ? "100vw" : "auto",
     } as React.CSSProperties;
 
     // Add transition (no animation)
     const finalStyles = {
       ...cssCustomProperties,
-      position: 'relative' as const,
-      transition: 'none', // Animation disabled
+      position: "relative" as const,
+      transition: "none", // Animation disabled
       animation: undefined, // Animation disabled
     };
 
@@ -80,7 +102,7 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
   const getContentStyles = () => {
     if (!advancedSettings) return {};
     return {
-      padding: '32px', // Default padding
+      padding: "32px", // Default padding
     };
   };
 
@@ -89,21 +111,23 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
     if (!advancedSettings) return {};
     const { typography } = advancedSettings;
     return {
-      fontSize: typography.fontSize ? getFontSize(typography.fontSize) : undefined,
+      fontSize: typography.fontSize
+        ? getFontSize(typography.fontSize)
+        : undefined,
       color: typography.fontColor || undefined,
-      fontWeight: typography.fontWeight ? getFontWeight(typography.fontWeight) : undefined,
+      fontWeight: typography.fontWeight
+        ? getFontWeight(typography.fontWeight)
+        : undefined,
     };
   };
 
   const cardStyles = getCardStyles();
-  const cardClassName = advancedSettings ? 'minimal-template minimal-template--custom' : 'minimal-template';
+  const cardClassName = advancedSettings
+    ? "minimal-template minimal-template--custom"
+    : "minimal-template";
 
   return (
-    <Card 
-      key="personal" 
-      className={cardClassName}
-      style={cardStyles}
-    >
+    <Card key="personal" className={cardClassName} style={cardStyles}>
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -111,27 +135,26 @@ const MinimalTemplate: React.FC<MinimalTemplateProps> = ({
         templateOptions={templateOptions}
         editMode={editMode}
       />
-      
+
       <Avatar
         size={80}
-        src={(() => {
-          const imageUrl = user.avatar || user.image;
-          if (!imageUrl) return undefined;
-          return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
-        })()}
-        style={{ marginBottom: '16px', border: `3px solid ${sectionPrimaryColor}` }}
+        src={getProfilePictureUrl(user.avatar)}
+        style={{
+          marginBottom: "16px",
+          border: `3px solid ${sectionPrimaryColor}`,
+        }}
       />
       <Title level={2} style={getTypographyStyles()}>
         {user.name}
       </Title>
-      <Text type="secondary" style={getTypographyStyles()}>{user.email}</Text>
+      <Text type="secondary" style={getTypographyStyles()}>
+        {user.email}
+      </Text>
       {user.bio && (
-        <Paragraph style={getTypographyStyles()}>
-          {user.bio}
-        </Paragraph>
+        <Paragraph style={getTypographyStyles()}>{user.bio}</Paragraph>
       )}
     </Card>
   );
 };
 
-export default MinimalTemplate; 
+export default MinimalTemplate;

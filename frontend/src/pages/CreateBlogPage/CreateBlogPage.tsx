@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { blogPostsApi } from "@/services/blogApi";
 import { PostStatus } from "@/types/blog";
 import type { CreateBlogPostDto } from "@/types/blog";
+import { TagInput } from "@/components/common";
 import "./CreateBlogPage.scss";
 
 const { Title } = Typography;
@@ -15,6 +16,7 @@ interface CreateBlogFormValues {
   title: string;
   content: string;
   featuredImage?: string;
+  tags: string[];
 }
 
 const CreateBlogPage: React.FC = () => {
@@ -50,6 +52,7 @@ const CreateBlogPage: React.FC = () => {
         status: PostStatus.Published, // Always set to published (status code 1)
         authorId: "00000000-0000-0000-0000-000000000000", // Placeholder GUID - backend will override with current user's ID
         publishedAt: currentDate,
+        tags: values.tags || [],
       };
 
       console.log("Sending createDto:", createDto);
@@ -129,6 +132,18 @@ const CreateBlogPage: React.FC = () => {
                 rows={12}
                 placeholder="Write your blog post content here..."
                 className="create-blog-page__textarea"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Tags"
+              name="tags"
+              help="Add tags to help categorize your blog post"
+            >
+              <TagInput
+                placeholder="Add tags..."
+                maxTags={10}
+                className="create-blog-page__tags"
               />
             </Form.Item>
 

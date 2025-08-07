@@ -17,6 +17,7 @@ public class ProfileController : ControllerBase
     private readonly IHobbyService _hobbyService;
     private readonly IProjectService _projectService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IFileService _fileService;
     private readonly ILogger<ProfileController> _logger;
 
     public ProfileController(
@@ -26,6 +27,7 @@ public class ProfileController : ControllerBase
         IHobbyService hobbyService,
         IProjectService projectService,
         ICurrentUserService currentUserService,
+        IFileService fileService,
         ILogger<ProfileController> logger)
     {
         _profileService = profileService;
@@ -34,6 +36,7 @@ public class ProfileController : ControllerBase
         _hobbyService = hobbyService;
         _projectService = projectService;
         _currentUserService = currentUserService;
+        _fileService = fileService;
         _logger = logger;
     }
 
@@ -125,6 +128,8 @@ public class ProfileController : ControllerBase
             return StatusCode(500, "An error occurred while updating the profile picture");
         }
     }
+
+
 
     // Education endpoints
     [HttpGet("educations")]

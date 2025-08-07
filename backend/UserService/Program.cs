@@ -46,6 +46,9 @@ builder.Services.AddHttpClient<OAuthService>();
 
 
 // Add repositories
+// Add Memory Caching for performance optimization  
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBanRepository, BanRepository>();
 builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
@@ -71,6 +74,11 @@ builder.Services.AddScoped<IHobbyService, HobbyService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IPersonalPageService, PersonalPageService>();
+
+// Add profile picture strategy services
+builder.Services.AddScoped<IProfilePictureStrategy, UserService.Services.Implementations.ProfilePictureStrategies.OAuthProfilePictureStrategy>();
+builder.Services.AddScoped<IProfilePictureStrategy, UserService.Services.Implementations.ProfilePictureStrategies.SelfProvidedProfilePictureStrategy>();
+builder.Services.AddScoped<IProfilePictureStrategyFactory, UserService.Services.Implementations.ProfilePictureStrategies.ProfilePictureStrategyFactory>();
 
 // Add CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 

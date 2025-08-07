@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlogService.Models.Entities;
 
@@ -20,6 +21,10 @@ public class BlogPost
     
     [Required]
     public string AuthorId { get; set; } = string.Empty;
+    
+    // Tags as JSON array - PostgreSQL supports JSON fields
+    [Column(TypeName = "jsonb")]
+    public List<string> Tags { get; set; } = new List<string>();
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

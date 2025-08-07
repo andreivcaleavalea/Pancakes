@@ -5,6 +5,8 @@ using BlogService.Models.Requests;
 using BlogService.Repositories.Interfaces;
 using BlogService.Services.Interfaces;
 using BlogService.Helpers;
+using BlogService.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BlogService.Services.Implementations;
 
@@ -18,6 +20,7 @@ public class BlogPostService : IBlogPostService
     private readonly IModelValidationService _modelValidationService;
     private readonly IJwtUserService _jwtUserService;
     private readonly ILogger<BlogPostService> _logger;
+    private readonly IMemoryCache _cache;
 
     public BlogPostService(
         IBlogPostRepository blogPostRepository,
@@ -27,7 +30,8 @@ public class BlogPostService : IBlogPostService
         IAuthorizationService authorizationService,
         IModelValidationService modelValidationService,
         IJwtUserService jwtUserService,
-        ILogger<BlogPostService> logger)
+        ILogger<BlogPostService> logger,
+        IMemoryCache cache)
     {
         _blogPostRepository = blogPostRepository;
         _userServiceClient = userServiceClient;
@@ -37,29 +41,64 @@ public class BlogPostService : IBlogPostService
         _modelValidationService = modelValidationService;
         _jwtUserService = jwtUserService;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<BlogPostDto?> GetByIdAsync(Guid id)
     {
+        // 🚀 CACHE: Check cache first for individual blog post
+        var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostById, id);
+        if (_cache.TryGetValue(cacheKey, out BlogPostDto? cachedPost))
+        {
+            return cachedPost;
+        }
+
         var blogPost = await _blogPostRepository.GetByIdAsync(id);
         if (blogPost == null) return null;
         
         var blogPostDto = _mapper.Map<BlogPostDto>(blogPost);
         await PopulateAuthorInfoAsync(blogPostDto);
+        
+        // 🚀 CACHE: Store individual blog post with medium duration
+        _cache.Set(cacheKey, blogPostDto, CacheConfig.Duration.Medium);
+        
         return blogPostDto;
     }
 
     public async Task<PaginatedResult<BlogPostDto>> GetAllAsync(BlogPostQueryParameters parameters)
     {
+        // 🚀 CACHE: Create cache key based on parameters (for common combinations)
+        var paramHash = CacheConfig.CreateHash(
+            parameters.Page, 
+            parameters.PageSize, 
+            parameters.Search ?? "", 
+            parameters.AuthorId ?? "", 
+            parameters.Status?.ToString() ?? "",
+            parameters.SortBy ?? "",
+            parameters.SortOrder ?? "",
+            parameters.DateFrom?.ToString() ?? "",
+            parameters.DateTo?.ToString() ?? "",
+            string.Join(",", parameters.Tags ?? new List<string>())
+        );
+        var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, parameters.Page, parameters.PageSize, paramHash);
+        
+        if (_cache.TryGetValue(cacheKey, out PaginatedResult<BlogPostDto>? cachedResult))
+        {
+            return cachedResult;
+        }
+
         var (posts, totalCount) = await _blogPostRepository.GetAllAsync(parameters);
         var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
         
-        foreach (var dto in blogPostDtos)
-        {
-            await PopulateAuthorInfoAsync(dto);
-        }
+        // ✅ OPTIMIZED: Batch populate author information for all posts
+        await PopulateAuthorInfoBatchAsync(blogPostDtos);
         
-        return PaginationHelper.CreatePaginatedResult(blogPostDtos, parameters.Page, parameters.PageSize, totalCount);
+        var result = PaginationHelper.CreatePaginatedResult(blogPostDtos, parameters.Page, parameters.PageSize, totalCount);
+        
+        // 🚀 CACHE: Store paginated results with short duration (content changes frequently)
+        _cache.Set(cacheKey, result, CacheConfig.Duration.Short);
+        
+        return result;
     }
 
     public async Task<PaginatedResult<BlogPostDto>> GetAllAsync(BlogPostQueryParameters parameters, HttpContext httpContext)
@@ -78,9 +117,17 @@ public class BlogPostService : IBlogPostService
 
     public async Task<IEnumerable<BlogPostDto>> GetFeaturedAsync(int count = 5)
     {
+        // 🚀 CACHE: Check cache for featured posts (very frequently accessed!)
+        var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, count);
+        if (_cache.TryGetValue(cacheKey, out IEnumerable<BlogPostDto>? cachedPosts))
+        {
+            return cachedPosts;
+        }
+
         var posts = await _blogPostRepository.GetFeaturedAsync(count);
         var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
         
+        // Populate author information for all posts
         foreach (var dto in blogPostDtos)
         {
             await PopulateAuthorInfoAsync(dto);
@@ -91,31 +138,21 @@ public class BlogPostService : IBlogPostService
 
     public async Task<IEnumerable<BlogPostDto>> GetPopularAsync(int count = 5)
     {
+        // 🚀 CACHE: Check cache for popular posts (very frequently accessed!)
+        var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, count);
+        if (_cache.TryGetValue(cacheKey, out IEnumerable<BlogPostDto>? cachedPosts))
+        {
+            return cachedPosts;
+        }
+
         var posts = await _blogPostRepository.GetPopularAsync(count);
         var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
         
-        foreach (var dto in blogPostDtos)
-        {
-            await PopulateAuthorInfoAsync(dto);
-        }
+        // ✅ OPTIMIZED: Batch populate author information for all posts
+        await PopulateAuthorInfoBatchAsync(blogPostDtos);
         
-        return blogPostDtos;
-    }
-
-    public async Task<IEnumerable<BlogPostDto>> GetByAuthorAsync(string authorId, int page = 1, int pageSize = 10)
-    {
-        if (!Guid.TryParse(authorId, out var authorGuid))
-        {
-            throw new ArgumentException($"Invalid author ID format: {authorId}");
-        }
-        
-        var posts = await _blogPostRepository.GetByAuthorAsync(authorGuid, page, pageSize);
-        var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
-        
-        foreach (var dto in blogPostDtos)
-        {
-            await PopulateAuthorInfoAsync(dto);
-        }
+        // 🚀 CACHE: Store popular posts with short duration (popularity can change)
+        _cache.Set(cacheKey, blogPostDtos, CacheConfig.Duration.Short);
         
         return blogPostDtos;
     }
@@ -125,33 +162,13 @@ public class BlogPostService : IBlogPostService
         var (posts, totalCount) = await _blogPostRepository.GetFriendsPostsAsync(friendUserIds, page, pageSize);
         var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
         
-        foreach (var dto in blogPostDtos)
-        {
-            await PopulateAuthorInfoAsync(dto);
-        }
+        // ✅ OPTIMIZED: Batch populate author information for all posts
+        await PopulateAuthorInfoBatchAsync(blogPostDtos);
         
         return PaginationHelper.CreatePaginatedResult(blogPostDtos, page, pageSize, totalCount);
     }
 
-    public async Task<BlogPostDto> CreateAsync(CreateBlogPostDto createDto)
-    {
-        var blogPost = _mapper.Map<BlogPost>(createDto);
-        var createdBlogPost = await _blogPostRepository.CreateAsync(blogPost);
-        var blogPostDto = _mapper.Map<BlogPostDto>(createdBlogPost);
-        await PopulateAuthorInfoAsync(blogPostDto);
-        return blogPostDto;
-    }
-
-    public async Task<BlogPostDto> CreateAsync(CreateBlogPostDto createDto, string authorId)
-    {
-        createDto.AuthorId = authorId;
-        var blogPost = _mapper.Map<BlogPost>(createDto);
-        var createdBlogPost = await _blogPostRepository.CreateAsync(blogPost);
-        var blogPostDto = _mapper.Map<BlogPostDto>(createdBlogPost);
-        await PopulateAuthorInfoAsync(blogPostDto);
-        return blogPostDto;
-    }
-
+    // New methods with full business logic
     public async Task<BlogPostDto> CreateAsync(CreateBlogPostDto createDto, HttpContext httpContext)
     {
         _logger.LogInformation("Creating blog post: Title={Title}", createDto?.Title ?? "null");
@@ -174,24 +191,6 @@ public class BlogPostService : IBlogPostService
         await PopulateAuthorInfoAsync(blogPostDto);
         
         _logger.LogInformation("Blog post created successfully with ID: {BlogPostId}", blogPostDto.Id);
-        return blogPostDto;
-    }
-
-    public async Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto, string currentUserId)
-    {
-        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
-        
-        // Check if the current user is the author of the blog post
-        if (existingBlogPost.AuthorId != currentUserId)
-        {
-            throw new UnauthorizedAccessException("You can only edit your own blog posts.");
-        }
-        
-        _mapper.Map(updateDto, existingBlogPost);
-        existingBlogPost.UpdatedAt = DateTime.UtcNow;
-        var updatedBlogPost = await _blogPostRepository.UpdateAsync(existingBlogPost);
-        var blogPostDto = _mapper.Map<BlogPostDto>(updatedBlogPost);
-        await PopulateAuthorInfoAsync(blogPostDto);
         return blogPostDto;
     }
 
@@ -238,19 +237,6 @@ public class BlogPostService : IBlogPostService
         return blogPostDto;
     }
 
-    public async Task DeleteAsync(Guid id, string currentUserId)
-    {
-        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
-        
-        // Check if the current user is the author of the blog post
-        if (existingBlogPost.AuthorId != currentUserId)
-        {
-            throw new UnauthorizedAccessException("You can only delete your own blog posts.");
-        }
-        
-        await _blogPostRepository.DeleteAsync(id);
-    }
-
     public async Task DeleteAsync(Guid id, HttpContext httpContext)
     {
         _logger.LogInformation("Deleting blog post with ID: {Id}", id);
@@ -290,30 +276,6 @@ public class BlogPostService : IBlogPostService
         await _blogPostRepository.UpdateAsync(blogPost);
     }
 
-    // Internal methods for backwards compatibility (used by UpdateStatusAsync)
-    private async Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto)
-    {
-        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
-        _mapper.Map(updateDto, existingBlogPost);
-        existingBlogPost.UpdatedAt = DateTime.UtcNow;
-        var updatedBlogPost = await _blogPostRepository.UpdateAsync(existingBlogPost);
-        var blogPostDto = _mapper.Map<BlogPostDto>(updatedBlogPost);
-        await PopulateAuthorInfoAsync(blogPostDto);
-        return blogPostDto;
-    }
-
-    public async Task<BlogPostDto> UpdateStatusAsync(Guid id, PostStatus status)
-    {
-        var blogPost = await GetBlogPostByIdOrThrowAsync(id);
-        blogPost.Status = status;
-        if (status == PostStatus.Published && !blogPost.PublishedAt.HasValue)
-        {
-            blogPost.PublishedAt = DateTime.UtcNow;
-        }
-        var updatedBlogPost = await _blogPostRepository.UpdateAsync(blogPost);
-        return _mapper.Map<BlogPostDto>(updatedBlogPost);
-    }
-
     private async Task<BlogPost> GetBlogPostByIdOrThrowAsync(Guid id)
     {
         var blogPost = await _blogPostRepository.GetByIdAsync(id);
@@ -322,6 +284,110 @@ public class BlogPostService : IBlogPostService
             throw new ArgumentException($"Blog post with ID {id} not found.");
         }
         return blogPost;
+    }
+
+    /// <summary>
+    /// ✅ OPTIMIZED: Batch populate author information for multiple blog posts
+    /// Eliminates N+1 problem by fetching all authors in a single API call
+    /// </summary>
+    private async Task PopulateAuthorInfoBatchAsync(IEnumerable<BlogPostDto> blogPostDtos)
+    {
+        var blogPostList = blogPostDtos.ToList();
+        if (!blogPostList.Any()) return;
+
+        try
+        {
+            // 🎯 Step 1: Extract unique author IDs (eliminates duplicates)
+            var authorIds = blogPostList
+                .Select(dto => dto.AuthorId.ToString())
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct()
+                .ToList();
+
+            if (!authorIds.Any()) return;
+
+            // 🎯 Step 2: Get auth token from HTTP context (same logic as individual method)
+            var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+            string? token = null;
+            
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                token = authHeader.Substring("Bearer ".Length);
+            }
+
+            // 🚀 Step 3: SINGLE batch API call instead of N individual calls
+            var authors = await _userServiceClient.GetUsersByIdsAsync(authorIds, token);
+            
+            // 🎯 Step 4: Create lookup dictionary for O(1) author retrieval
+            var authorLookup = authors.ToDictionary(a => a.Id, a => a);
+
+            // 🎯 Step 5: Populate author info for each blog post
+            foreach (var dto in blogPostList)
+            {
+                var authorIdString = dto.AuthorId.ToString();
+                
+                if (authorLookup.TryGetValue(authorIdString, out var author))
+                {
+                    dto.AuthorName = author.Name;
+                    dto.AuthorImage = BuildAuthorImageUrl(author.Image);
+                }
+                else
+                {
+                    // Handle missing author (demo data or deleted users)
+                    HandleMissingAuthor(dto, authorIdString);
+                }
+            }
+
+            _logger.LogInformation("✅ Batch populated author info for {BlogPostCount} posts using {AuthorCount} unique authors", 
+                blogPostList.Count, authorIds.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error in batch author population, falling back to individual calls");
+            
+            // Fallback to individual calls if batch fails
+            foreach (var dto in blogPostList)
+            {
+                await PopulateAuthorInfoAsync(dto);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Helper method to build author image URL
+    /// </summary>
+    private string BuildAuthorImageUrl(string? authorImage)
+    {
+        if (string.IsNullOrEmpty(authorImage))
+            return string.Empty;
+
+        var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
+        
+        if (authorImage.StartsWith("assets/profile-pictures/"))
+        {
+            var filename = Path.GetFileName(authorImage);
+            return $"{userServiceUrl}/assets/profile-pictures/{filename}";
+        }
+        
+        // If it's already a full URL or different format, use as is
+        return authorImage;
+    }
+
+    /// <summary>
+    /// Helper method to handle missing authors
+    /// </summary>
+    private void HandleMissingAuthor(BlogPostDto dto, string authorId)
+    {
+        if (authorId == "DEMO-AUTHOR-0000-0000-000000000000")
+        {
+            dto.AuthorName = "Demo Author";
+            dto.AuthorImage = string.Empty;
+        }
+        else
+        {
+            dto.AuthorName = "Unknown Author";
+            dto.AuthorImage = string.Empty;
+        }
     }
 
     private async Task PopulateAuthorInfoAsync(BlogPostDto blogPostDto)
@@ -353,7 +419,27 @@ public class BlogPostService : IBlogPostService
             if (user != null)
             {
                 blogPostDto.AuthorName = user.Name;
-                blogPostDto.AuthorImage = user.Image; // UserInfoDto.Image is already a string
+                
+                // Convert relative image path to full URL pointing to UserService
+                if (!string.IsNullOrEmpty(user.Image))
+                {
+                    var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
+                    if (user.Image.StartsWith("assets/profile-pictures/"))
+                    {
+                        // Convert relative path to full URL
+                        var filename = Path.GetFileName(user.Image);
+                        blogPostDto.AuthorImage = $"{userServiceUrl}/assets/profile-pictures/{filename}";
+                    }
+                    else
+                    {
+                        // If it's already a full URL or different format, use as is
+                        blogPostDto.AuthorImage = user.Image;
+                    }
+                }
+                else
+                {
+                    blogPostDto.AuthorImage = string.Empty;
+                }
             }
             else
             {

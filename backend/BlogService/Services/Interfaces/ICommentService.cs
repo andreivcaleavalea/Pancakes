@@ -15,5 +15,5 @@ public interface ICommentService
     // New methods that handle business logic internally
     Task<CommentDto> CreateAsync(CreateCommentDto createDto, HttpContext httpContext, ModelStateDictionary modelState);
     Task<CommentDto> UpdateAsync(Guid id, CreateCommentDto updateDto, HttpContext httpContext, ModelStateDictionary modelState);
-    Task DeleteAsync(Guid id, HttpContext httpContext);
+    Task<CommentDto?> DeleteAsync(Guid id, HttpContext httpContext);
 } 

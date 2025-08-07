@@ -104,18 +104,38 @@ export const useComments = (blogPostId: string): UseCommentsResult => {
 
   const deleteComment = useCallback(async (id: string) => {
     try {
-      await commentsApi.delete(id);
+      const result = await commentsApi.delete(id);
       setComments((prev) => {
-        const removeCommentRecursively = (comments: Comment[]): Comment[] => {
-          return comments
-            .filter((comment) => comment.id !== id) // Remove if this is the comment to delete
-            .map((comment) => ({
-              ...comment,
-              replies: removeCommentRecursively(comment.replies), // Recursively remove from replies
-            }));
-        };
+        if (result === null) {
+          // Hard delete - remove comment completely
+          const removeCommentRecursively = (comments: Comment[]): Comment[] => {
+            return comments
+              .filter((comment) => comment.id !== id) // Remove if this is the comment to delete
+              .map((comment) => ({
+                ...comment,
+                replies: removeCommentRecursively(comment.replies), // Recursively remove from replies
+              }));
+          };
 
-        return removeCommentRecursively(prev);
+          return removeCommentRecursively(prev);
+        } else {
+          // Soft delete - update comment in place
+          const updateCommentRecursively = (comments: Comment[]): Comment[] => {
+            return comments.map((comment) => {
+              if (comment.id === id) {
+                return result; // Replace with updated comment
+              } else if (comment.replies.length > 0) {
+                return {
+                  ...comment,
+                  replies: updateCommentRecursively(comment.replies),
+                };
+              }
+              return comment;
+            });
+          };
+
+          return updateCommentRecursively(prev);
+        }
       });
     } catch (err) {
       throw new Error(

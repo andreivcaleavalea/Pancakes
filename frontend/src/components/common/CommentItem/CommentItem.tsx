@@ -10,6 +10,8 @@ import type { CommentItemProps, CreateCommentDto } from "@/types/comment";
 import CommentForm from "../CommentForm/CommentForm";
 import CommentLikeButtons from "../CommentLikeButtons/CommentLikeButtons";
 import { CachedAvatar } from "@/components/common";
+import { getProfilePictureUrl } from "@/utils/imageUtils";
+import { useAuth } from "@/contexts/AuthContext";
 import "./CommentItem.scss";
 
 const { Text, Paragraph } = Typography;
@@ -22,6 +24,18 @@ const CommentItem: React.FC<CommentItemProps> = ({
   depth = 0,
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const { user, isAuthenticated } = useAuth();
+
+  // Helper function to check if current user can modify a comment
+  const canModifyComment = (): boolean => {
+    const result = Boolean(
+      isAuthenticated &&
+        user &&
+        comment.authorId?.trim().toLowerCase() === user.id?.trim().toLowerCase()
+    );
+
+    return result;
+  };
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -53,6 +67,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
     }
   };
 
+  // Check if comment is soft deleted
+  const isDeleted = comment.isDeleted || comment.content === "[deleted]";
+
   const handleReply = () => {
     setShowReplyForm(true);
   };
@@ -81,7 +98,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         <div className="comment-item__avatar">
           <CachedAvatar
             size={depth > 0 ? 32 : 40}
-            src={comment.authorImage}
+            src={getProfilePictureUrl(comment.authorImage)}
             fallbackSrc="/default-avatar.png"
             icon={<UserOutlined />}
             alt={comment.authorName}
@@ -91,8 +108,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
         <div className="comment-item__content">
           <div className="comment-item__header">
             <div className="comment-item__meta">
-              <Text strong className="comment-item__author">
-                {comment.authorName}
+              <Text
+                strong
+                className={`comment-item__author ${
+                  isDeleted ? "comment-item__author--deleted" : ""
+                }`}
+              >
+                {isDeleted ? "[deleted]" : comment.authorName}
               </Text>
               <Text className="comment-item__date">
                 {formatDate(comment.createdAt)}
@@ -100,42 +122,50 @@ const CommentItem: React.FC<CommentItemProps> = ({
             </div>
 
             <div className="comment-item__actions">
-              <CommentLikeButtons commentId={comment.id} size="small" />
-              {onReply &&
-                depth < 3 && ( // Allow up to 3 levels for better threading
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<MessageOutlined />}
-                    onClick={handleReply}
-                    className="comment-item__action-btn"
-                  >
-                    Reply
-                  </Button>
-                )}
-              {onEdit && (
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={handleEdit}
-                  className="comment-item__action-btn"
-                />
-              )}
-              {onDelete && (
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<DeleteOutlined />}
-                  onClick={handleDelete}
-                  className="comment-item__action-btn comment-item__action-btn--danger"
-                />
+              {!isDeleted && (
+                <>
+                  <CommentLikeButtons commentId={comment.id} size="small" />
+                  {onReply &&
+                    depth < 3 && ( // Allow up to 3 levels for better threading
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<MessageOutlined />}
+                        onClick={handleReply}
+                        className="comment-item__action-btn"
+                      >
+                        Reply
+                      </Button>
+                    )}
+                  {onEdit && canModifyComment() && (
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={handleEdit}
+                      className="comment-item__action-btn"
+                    />
+                  )}
+                  {onDelete && canModifyComment() && (
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      onClick={handleDelete}
+                      className="comment-item__action-btn comment-item__action-btn--danger"
+                    />
+                  )}
+                </>
               )}
             </div>
           </div>
 
-          <Paragraph className="comment-item__text">
-            {comment.content}
+          <Paragraph
+            className={`comment-item__text ${
+              isDeleted ? "comment-item__text--deleted" : ""
+            }`}
+          >
+            {isDeleted ? "This message has been deleted" : comment.content}
           </Paragraph>
 
           {/* Reply form */}

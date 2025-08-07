@@ -104,8 +104,17 @@ public class CommentsController : ControllerBase
     {
         try
         {
-            await _commentService.DeleteAsync(id, HttpContext);
-            return NoContent();
+            var result = await _commentService.DeleteAsync(id, HttpContext);
+            if (result == null)
+            {
+                // Hard delete occurred
+                return NoContent();
+            }
+            else
+            {
+                // Soft delete occurred, return updated comment
+                return Ok(result);
+            }
         }
         catch (ArgumentException ex)
         {

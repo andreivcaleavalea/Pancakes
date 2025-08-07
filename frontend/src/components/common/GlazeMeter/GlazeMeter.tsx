@@ -15,20 +15,37 @@ const GlazeMeter: React.FC<GlazeMeterProps> = ({
   readonly = false,
 }) => {
   const [hoverRating, setHoverRating] = useState<number | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRateChange = async (value: number) => {
-    if (!readonly && onRate) {
+    if (!readonly && onRate && !isSubmitting) {
       if (value > 0) {
         try {
+          setIsSubmitting(true);
+          console.log(
+            `⭐ Submitting rating: ${value} (current userRating: ${userRating})`
+          );
           await onRate(value);
+          console.log(`✅ Rating submitted successfully: ${value}`);
         } catch (error) {
           console.error("Failed to submit rating:", error);
+        } finally {
+          setIsSubmitting(false);
         }
       }
     }
   };
 
-  const displayRating = hoverRating || userRating || 0;
+  // Use userRating when not hovering, fallback to 0 if no rating
+  const displayRating =
+    hoverRating !== undefined ? hoverRating : userRating || 0;
+
+  // Log rating changes for debugging
+  React.useEffect(() => {
+    console.log(
+      `🎯 GlazeMeter state - userRating: ${userRating}, displayRating: ${displayRating}, hoverRating: ${hoverRating}`
+    );
+  }, [userRating, displayRating, hoverRating]);
   const syrupPercentage = (averageRating / 5) * 100;
 
   const getRatingText = (rating: number) => {
@@ -76,8 +93,11 @@ const GlazeMeter: React.FC<GlazeMeterProps> = ({
       {/* Interactive Rating */}
       {!readonly && (
         <div className="glaze-meter__interactive">
-          <Text className="glaze-meter__prompt">Rate this recipe:</Text>
+          <Text className="glaze-meter__prompt">
+            {isSubmitting ? "Submitting..." : "Rate this recipe:"}
+          </Text>
           <Rate
+            key={`rating-${userRating || "none"}`}
             allowHalf
             allowClear={false}
             value={displayRating}
@@ -86,10 +106,13 @@ const GlazeMeter: React.FC<GlazeMeterProps> = ({
             character={<StarFilled />}
             className="glaze-meter__stars"
             tooltips={["Poor", "Fair", "Good", "Very Good", "Excellent"]}
+            disabled={isSubmitting}
           />
           {displayRating > 0 && (
             <Text className="glaze-meter__user-rating">
-              Your rating: {displayRating}/5
+              {userRating
+                ? `Your rating: ${userRating}/5`
+                : `Preview: ${displayRating}/5`}
             </Text>
           )}
         </div>
@@ -100,6 +123,7 @@ const GlazeMeter: React.FC<GlazeMeterProps> = ({
         <div className="glaze-meter__user-display">
           <Text>Your rating: </Text>
           <Rate
+            key={`readonly-rating-${userRating}`}
             disabled
             allowHalf
             value={userRating}

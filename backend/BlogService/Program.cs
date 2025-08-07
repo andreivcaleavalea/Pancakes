@@ -12,10 +12,14 @@ using Serilog;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
 DotNetEnv.Env.Load("../../.env");
+
+// Enable dynamic JSON globally for Npgsql to handle List<string> Tags
+Npgsql.NpgsqlConnection.GlobalTypeMapper.EnableDynamicJson();
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
@@ -44,25 +48,34 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
     var username = Environment.GetEnvironmentVariable("BLOGS_DB_USERNAME");
     var password = Environment.GetEnvironmentVariable("BLOGS_DB_PASSWORD");
     
-    var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
-    options.UseNpgsql(connectionString);
-});
+    var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};MaxPoolSize=10;MinPoolSize=0;ConnectionIdleLifetime=60;ConnectionPruningInterval=10;CommandTimeout=30;";
+    
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+    })
+    .EnableSensitiveDataLogging(false)
+    .EnableServiceProviderCaching()
+    .EnableDetailedErrors(builder.Environment.IsDevelopment());
+}, ServiceLifetime.Scoped);
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Add Memory Caching for performance optimization
+builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IPostRatingRepository, PostRatingRepository>();
 builder.Services.AddScoped<ICommentLikeRepository, CommentLikeRepository>();
 builder.Services.AddScoped<ISavedBlogRepository, SavedBlogRepository>();
-builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IPostRatingService, PostRatingService>();
 builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
 builder.Services.AddScoped<ISavedBlogService, SavedBlogService>();
-builder.Services.AddScoped<IFriendshipService, FriendshipService>();
+builder.Services.AddScoped<ITagService, TagService>();
 
 // Add JWT User Service for extracting user info from tokens
 builder.Services.AddScoped<IJwtUserService, JwtUserService>();
