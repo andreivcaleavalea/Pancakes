@@ -55,6 +55,7 @@ Thumbs.db
 .dockerignore
 
 # IDE files
+.idea/
 *.swp
 *.swo
 

@@ -1,0 +1,84 @@
+.content-page-header {
+  margin-bottom: 24px;
+}
+
+.content-page-header h2 {
+  margin-bottom: 8px;
+}
+
+.content-page-error {
+  margin-bottom: 16px;
+}
+
+.content-page-filters {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.status-filter {
+  width: 150px;
+  flex-shrink: 0;
+}
+
+.refresh-button {
+  flex-shrink: 0;
+}
+
+/* Tablet Responsive */
+@media (max-width: 1024px) {
+  .content-page-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .search-input,
+  .status-filter {
+    width: 100%;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .content-page-header {
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .content-page-header h2 {
+    font-size: 20px;
+  }
+
+  .content-page-filters {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .content-page-error {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-page-header h2 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .content-page-filters {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .ant-card .ant-card-body {
+    padding: 16px !important;
+  }
+}

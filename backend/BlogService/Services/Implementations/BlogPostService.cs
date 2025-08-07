@@ -101,6 +101,20 @@ public class BlogPostService : IBlogPostService
         return result;
     }
 
+    public async Task<PaginatedResult<BlogPostDto>> GetAllAsync(BlogPostQueryParameters parameters, HttpContext httpContext)
+    {
+        var isServiceRequest = httpContext.User.FindFirst("service")?.Value == "true";
+        
+        // For regular API calls (not from admin service), only show published posts by default
+        // unless a specific status is requested
+        if (!isServiceRequest && !parameters.Status.HasValue)
+        {
+            parameters.Status = PostStatus.Published;
+        }
+        
+        return await GetAllAsync(parameters);
+    }
+
     public async Task<IEnumerable<BlogPostDto>> GetFeaturedAsync(int count = 5)
     {
         // 🚀 CACHE: Check cache for featured posts (very frequently accessed!)
@@ -113,11 +127,11 @@ public class BlogPostService : IBlogPostService
         var posts = await _blogPostRepository.GetFeaturedAsync(count);
         var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
         
-        // ✅ OPTIMIZED: Batch populate author information for all posts
-        await PopulateAuthorInfoBatchAsync(blogPostDtos);
-        
-        // 🚀 CACHE: Store featured posts with short duration (they might change frequently)
-        _cache.Set(cacheKey, blogPostDtos, CacheConfig.Duration.Short);
+        // Populate author information for all posts
+        foreach (var dto in blogPostDtos)
+        {
+            await PopulateAuthorInfoAsync(dto);
+        }
         
         return blogPostDtos;
     }
@@ -159,7 +173,6 @@ public class BlogPostService : IBlogPostService
     {
         _logger.LogInformation("Creating blog post: Title={Title}", createDto?.Title ?? "null");
 
-        // Get current user using authorization service
         var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
         if (currentUser == null)
         {
@@ -169,7 +182,6 @@ public class BlogPostService : IBlogPostService
         _logger.LogInformation("Current user retrieved: Id={UserId}, Name={UserName}", 
             currentUser.Id, currentUser.Name);
 
-        // Override AuthorId with current user's ID to ensure security
         createDto.AuthorId = currentUser.Id;
         _logger.LogInformation("Updated createDto.AuthorId to: {AuthorId}", createDto.AuthorId);
 
@@ -186,27 +198,40 @@ public class BlogPostService : IBlogPostService
     {
         _logger.LogInformation("Updating blog post with ID: {Id}", id);
 
-        // Get current user using authorization service
-        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
-        if (currentUser == null)
+        BlogPost? existingBlogPost = null;
+
+        // Check if this is a service-to-service call (e.g., from AdminService)
+        var isServiceRequest = httpContext.User.FindFirst("service")?.Value == "true";
+        
+        if (isServiceRequest)
         {
-            throw new UnauthorizedAccessException("Authorization token is required or invalid");
+            _logger.LogInformation("Service request detected, bypassing ownership check for blog post update");
+        }
+        else
+        {
+            // Get current user using authorization service for regular user requests
+            var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+            if (currentUser == null)
+            {
+                throw new UnauthorizedAccessException("Authorization token is required or invalid");
+            }
+
+            _logger.LogInformation("Current user retrieved for update: Id={UserId}, Name={UserName}", 
+                currentUser.Id, currentUser.Name);
+
+            existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
+            
+            // Check if the current user is the author of the blog post
+            if (existingBlogPost.AuthorId != currentUser.Id)
+            {
+                throw new UnauthorizedAccessException("You can only edit your own blog posts.");
+            }
         }
 
-        _logger.LogInformation("Current user retrieved for update: Id={UserId}, Name={UserName}", 
-            currentUser.Id, currentUser.Name);
-
-        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
-        
-        // Check if the current user is the author of the blog post
-        if (existingBlogPost.AuthorId != currentUser.Id)
-        {
-            throw new UnauthorizedAccessException("You can only edit your own blog posts.");
-        }
-        
-        _mapper.Map(updateDto, existingBlogPost);
-        existingBlogPost.UpdatedAt = DateTime.UtcNow;
-        var updatedBlogPost = await _blogPostRepository.UpdateAsync(existingBlogPost);
+        var blogPostToUpdate = existingBlogPost ?? await GetBlogPostByIdOrThrowAsync(id);
+        _mapper.Map(updateDto, blogPostToUpdate);
+        blogPostToUpdate.UpdatedAt = DateTime.UtcNow;
+        var updatedBlogPost = await _blogPostRepository.UpdateAsync(blogPostToUpdate);
         var blogPostDto = _mapper.Map<BlogPostDto>(updatedBlogPost);
         await PopulateAuthorInfoAsync(blogPostDto);
         return blogPostDto;
@@ -216,25 +241,39 @@ public class BlogPostService : IBlogPostService
     {
         _logger.LogInformation("Deleting blog post with ID: {Id}", id);
 
-        // Get current user using authorization service
-        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
-        if (currentUser == null)
+        // Check if this is a service-to-service call (e.g., from AdminService)
+        var isServiceRequest = httpContext.User.FindFirst("service")?.Value == "true";
+        
+        if (isServiceRequest)
         {
-            throw new UnauthorizedAccessException("Authorization token is required or invalid");
+            _logger.LogInformation("Service request detected, bypassing ownership check for blog post deletion");
+        }
+        else
+        {
+            // Get current user using authorization service for regular user requests
+            var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+            if (currentUser == null)
+            {
+                throw new UnauthorizedAccessException("Authorization token is required or invalid");
+            }
+
+            _logger.LogInformation("Current user retrieved for delete: Id={UserId}, Name={UserName}", 
+                currentUser.Id, currentUser.Name);
+
+            var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
+            
+            // Check if the current user is the author of the blog post
+            if (existingBlogPost.AuthorId != currentUser.Id)
+            {
+                throw new UnauthorizedAccessException("You can only delete your own blog posts.");
+            }
         }
 
-        _logger.LogInformation("Current user retrieved for delete: Id={UserId}, Name={UserName}", 
-            currentUser.Id, currentUser.Name);
-
-        var existingBlogPost = await GetBlogPostByIdOrThrowAsync(id);
-        
-        // Check if the current user is the author of the blog post
-        if (existingBlogPost.AuthorId != currentUser.Id)
-        {
-            throw new UnauthorizedAccessException("You can only delete your own blog posts.");
-        }
-        
-        await _blogPostRepository.DeleteAsync(id);
+        // Soft delete: Set status to Deleted instead of hard deleting
+        var blogPost = await GetBlogPostByIdOrThrowAsync(id);
+        blogPost.Status = PostStatus.Deleted;
+        blogPost.UpdatedAt = DateTime.UtcNow;
+        await _blogPostRepository.UpdateAsync(blogPost);
     }
 
     private async Task<BlogPost> GetBlogPostByIdOrThrowAsync(Guid id)

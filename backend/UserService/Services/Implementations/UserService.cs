@@ -14,17 +14,20 @@ namespace UserService.Services.Implementations;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IBanService _banService;
     private readonly IMapper _mapper;
     private readonly ILogger<UserService> _logger;
     private readonly IProfilePictureStrategyFactory _profilePictureStrategyFactory;
 
     public UserService(
         IUserRepository userRepository,
+        IBanService banService,
         IMapper mapper,
         ILogger<UserService> logger,
         IProfilePictureStrategyFactory profilePictureStrategyFactory)
     {
         _userRepository = userRepository;
+        _banService = banService;
         _mapper = mapper;
         _logger = logger;
         _profilePictureStrategyFactory = profilePictureStrategyFactory;
@@ -61,6 +64,20 @@ public class UserService : IUserService
 
         var users = await _userRepository.GetUsersByIdsAsync(userIds);
         return _mapper.Map<IEnumerable<UserDto>>(users);
+    }
+
+    public async Task<(IEnumerable<UserDto> users, int totalCount)> GetAllWithCountAsync(int page = 1, int pageSize = 10)
+    {
+        var (users, totalCount) = await _userRepository.GetAllWithCountAsync(page, pageSize);
+        var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
+        return (userDtos, totalCount);
+    }
+
+    public async Task<(IEnumerable<UserDto> users, int totalCount)> SearchUsersAsync(string searchTerm, int page = 1, int pageSize = 10)
+    {
+        var (users, totalCount) = await _userRepository.SearchUsersAsync(searchTerm, page, pageSize);
+        var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
+        return (userDtos, totalCount);
     }
 
     public async Task<UserDto> CreateAsync(CreateUserDto createDto)
@@ -281,8 +298,16 @@ public class UserService : IUserService
     {
         try
         {
-            var users = await GetAllAsync(page, pageSize);
-            return new OkObjectResult(users);
+            var (users, totalCount) = await GetAllWithCountAsync(page, pageSize);
+            var response = new 
+            { 
+                users = users,
+                totalCount = totalCount,
+                page = page,
+                pageSize = pageSize,
+                totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+            };
+            return new OkObjectResult(response);
         }
         catch (Exception ex)
         {
@@ -301,6 +326,29 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Get users by IDs error: {Message}", ex.Message);
+            return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
+        }
+    }
+
+    public async Task<IActionResult> SearchUsersAsync(HttpContext httpContext, string searchTerm, int page, int pageSize)
+    {
+        try
+        {
+            var (users, totalCount) = await SearchUsersAsync(searchTerm, page, pageSize);
+            var response = new 
+            { 
+                users = users,
+                totalCount = totalCount,
+                page = page,
+                pageSize = pageSize,
+                totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                searchTerm = searchTerm
+            };
+            return new OkObjectResult(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Search users error: {Message}", ex.Message);
             return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
         }
     }
@@ -367,5 +415,15 @@ public class UserService : IUserService
             _logger.LogError(ex, "Delete user error: {Message}", ex.Message);
             return new ObjectResult(new { message = "Internal server error" }) { StatusCode = 500 };
         }
+    }
+
+    public async Task<IActionResult> BanUserAsync(HttpContext httpContext, BanUserRequest request)
+    {
+        return await _banService.BanUserAsync(httpContext, request);
+    }
+
+    public async Task<IActionResult> UnbanUserAsync(HttpContext httpContext, UnbanUserRequest request)
+    {
+        return await _banService.UnbanUserAsync(httpContext, request);
     }
 }

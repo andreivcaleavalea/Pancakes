@@ -31,8 +31,12 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [Authorize]
-    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string search = "")
     {
+        if (!string.IsNullOrEmpty(search))
+        {
+            return await _userService.SearchUsersAsync(HttpContext, search, page, pageSize);
+        }
         return await _userService.GetAllAsync(HttpContext, page, pageSize);
     }
 
@@ -61,5 +65,21 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> Delete(string id)
     {
         return await _userService.DeleteAsync(HttpContext, id);
+    }
+
+    [HttpPost("{id}/ban")]
+    [Authorize]
+    public async Task<IActionResult> BanUser(string id, [FromBody] BanUserRequest request)
+    {
+        request.UserId = id; // Ensure the ID from route is used
+        return await _userService.BanUserAsync(HttpContext, request);
+    }
+
+    [HttpPost("{id}/unban")]
+    [Authorize]
+    public async Task<IActionResult> UnbanUser(string id, [FromBody] UnbanUserRequest request)
+    {
+        request.UserId = id; // Ensure the ID from route is used
+        return await _userService.UnbanUserAsync(HttpContext, request);
     }
 }

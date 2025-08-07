@@ -21,6 +21,7 @@ export function initiateOAuthLogin(provider: OAuthProvider): void {
   console.log(`🔐 OAuth: Starting login flow for ${provider}`);
 
   const config = oauthProviders[provider];
+  
   if (!config || !config.clientId) {
     console.error(
       `❌ OAuth: Unsupported provider or missing client ID: ${provider}`

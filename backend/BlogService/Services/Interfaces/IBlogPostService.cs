@@ -9,6 +9,7 @@ public interface IBlogPostService
 {
     Task<BlogPostDto?> GetByIdAsync(Guid id);
     Task<PaginatedResult<BlogPostDto>> GetAllAsync(BlogPostQueryParameters parameters);
+    Task<PaginatedResult<BlogPostDto>> GetAllAsync(BlogPostQueryParameters parameters, HttpContext httpContext);
     Task<IEnumerable<BlogPostDto>> GetFeaturedAsync(int count = 1);
     Task<IEnumerable<BlogPostDto>> GetPopularAsync(int count = 3);
     Task<PaginatedResult<BlogPostDto>> GetFriendsPostsAsync(IEnumerable<string> friendUserIds, int page = 1, int pageSize = 10);

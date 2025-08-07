@@ -1,0 +1,72 @@
+/* SettingsPage.css - Responsive styling for settings page */
+
+.settings-page {
+  padding: 16px;
+}
+
+.settings-page-title {
+  margin-bottom: 24px !important;
+  font-size: 1.5rem;
+}
+
+.settings-coming-soon-card {
+  text-align: center;
+}
+
+.settings-coming-soon-alert {
+  text-align: center;
+}
+
+/* Mobile styles */
+@media (max-width: 1024px) {
+  .settings-page {
+    padding: 12px;
+  }
+
+  .settings-page-title {
+    font-size: 1.25rem;
+    margin-bottom: 20px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 8px;
+  }
+
+  .settings-page-title {
+    font-size: 1.125rem;
+    margin-bottom: 16px !important;
+  }
+
+  .settings-coming-soon-alert .ant-alert-message {
+    font-size: 14px;
+  }
+
+  .settings-coming-soon-alert .ant-alert-description {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-page {
+    padding: 4px;
+  }
+
+  .settings-page-title {
+    font-size: 1rem;
+    margin-bottom: 12px !important;
+  }
+
+  .settings-coming-soon-alert .ant-alert-message {
+    font-size: 12px;
+  }
+
+  .settings-coming-soon-alert .ant-alert-description {
+    font-size: 11px;
+  }
+
+  .settings-coming-soon-alert .ant-alert-icon {
+    font-size: 16px;
+  }
+}

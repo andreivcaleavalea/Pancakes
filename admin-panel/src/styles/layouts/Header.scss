@@ -1,0 +1,118 @@
+.header {
+  background: #fff;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  height: 64px;
+
+  &__title {
+    margin: 0;
+    color: #1890ff;
+    font-size: 20px;
+  }
+
+  &__user-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .user-welcome {
+      color: #595959;
+      font-weight: 500;
+    }
+  }
+
+  &__logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    &:hover {
+      color: #ff4d4f;
+    }
+  }
+
+  &__mobile-menu {
+    display: none;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__menu-toggle {
+    display: none;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    color: #1890ff;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+
+    &:hover {
+      background: #f0f0f0;
+    }
+  }
+
+  // Tablet Responsive
+  @media (max-width: 1024px) {
+    padding: 0 16px;
+    
+    &__title {
+      font-size: 18px;
+    }
+
+    &__user-section {
+      gap: 12px;
+      
+      .user-welcome {
+        font-size: 14px;
+      }
+    }
+  }
+
+  // Mobile Responsive
+  @media (max-width: 768px) {
+    padding: 0 12px;
+    height: 56px;
+
+    &__title {
+      font-size: 16px;
+    }
+
+    &__mobile-menu {
+      display: flex;
+    }
+
+    &__menu-toggle {
+      display: block;
+    }
+
+    &__user-section {
+      gap: 8px;
+
+      .user-welcome {
+        display: none;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 0 8px;
+
+    &__title {
+      font-size: 14px;
+    }
+
+    &__user-section {
+      .ant-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+    }
+  }
+}

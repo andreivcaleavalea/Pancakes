@@ -35,20 +35,30 @@ const CachedAvatar: React.FC<CachedAvatarProps> = ({
       return;
     }
 
+    // Handle external URLs (like OAuth profile pictures) - use directly
+    if (src.startsWith('http')) {
+      setImageSrc(src);
+      setHasError(false);
+      return;
+    }
+
+    // For local files, construct the full URL
+    const fullSrc = `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${src}`;
+
     // Check if image is already cached
-    if (imageCache.has(src)) {
-      setImageSrc(imageCache.get(src));
+    if (imageCache.has(fullSrc)) {
+      setImageSrc(imageCache.get(fullSrc));
       setHasError(false);
       return;
     }
 
     // Check if image is currently being loaded
-    if (loadingImages.has(src)) {
+    if (loadingImages.has(fullSrc)) {
       // Wait for the existing load to complete
       const checkCache = setInterval(() => {
-        if (imageCache.has(src)) {
+        if (imageCache.has(fullSrc)) {
           if (mountedRef.current) {
-            setImageSrc(imageCache.get(src));
+            setImageSrc(imageCache.get(fullSrc));
             setHasError(false);
           }
           clearInterval(checkCache);
@@ -61,21 +71,21 @@ const CachedAvatar: React.FC<CachedAvatarProps> = ({
     }
 
     // Load the image
-    loadingImages.add(src);
+    loadingImages.add(fullSrc);
     const img = new Image();
 
     img.onload = () => {
-      loadingImages.delete(src);
-      imageCache.set(src, src);
+      loadingImages.delete(fullSrc);
+      imageCache.set(fullSrc, fullSrc);
       if (mountedRef.current) {
-        setImageSrc(src);
+        setImageSrc(fullSrc);
         setHasError(false);
       }
     };
 
     img.onerror = () => {
-      loadingImages.delete(src);
-      imageCache.set(src, fallbackSrc);
+      loadingImages.delete(fullSrc);
+      imageCache.set(fullSrc, fallbackSrc);
       if (mountedRef.current) {
         setImageSrc(fallbackSrc);
         setHasError(true);
@@ -84,9 +94,9 @@ const CachedAvatar: React.FC<CachedAvatarProps> = ({
 
     // Add a timeout to prevent hanging requests
     setTimeout(() => {
-      if (loadingImages.has(src)) {
-        loadingImages.delete(src);
-        imageCache.set(src, fallbackSrc);
+      if (loadingImages.has(fullSrc)) {
+        loadingImages.delete(fullSrc);
+        imageCache.set(fullSrc, fallbackSrc);
         if (mountedRef.current) {
           setImageSrc(fallbackSrc);
           setHasError(true);
@@ -94,7 +104,7 @@ const CachedAvatar: React.FC<CachedAvatarProps> = ({
       }
     }, 5000); // 5 second timeout
 
-    img.src = src;
+    img.src = fullSrc;
   }, [src, fallbackSrc]);
 
   const handleError = () => {

@@ -30,7 +30,7 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            var result = await _blogPostService.GetAllAsync(parameters);
+            var result = await _blogPostService.GetAllAsync(parameters, HttpContext);
             return Ok(result);
         }
         catch (Exception ex)
