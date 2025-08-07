@@ -148,7 +148,7 @@ public class LoginRequestValidatorTests
     [Fact]
     public void ValidateLoginRequest_WhenNullRequest()
     {
-        var result = LoginRequestValidator.ValidateLoginRequest(null!);
+        var result = LoginRequestValidator.ValidateLoginRequest(null);
 
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain("Email is required");
