@@ -127,7 +127,7 @@ public class UnbanRequestValidatorTests
     [Fact]
     public void ValidateUnbanRequest_WhenNullRequest()
     {
-        var result = UnbanRequestValidator.ValidateUnbanRequest(null);
+        var result = UnbanRequestValidator.ValidateUnbanRequest(null!);
 
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain("UserId is required");
