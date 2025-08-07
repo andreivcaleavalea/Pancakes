@@ -1,4 +1,4 @@
-import { authenticatedBlogRequest } from "@/utils/blogApi";
+import { authenticatedBlogRequest, publicBlogRequest } from "@/utils/blogApi";
 import type {
   BlogPost,
   PaginatedResult,
@@ -13,7 +13,7 @@ const ENDPOINTS = {
 
 // Blog Posts API
 export const blogPostsApi = {
-  // Get paginated blog posts with filtering
+  // Get paginated blog posts with filtering (PUBLIC - no auth required)
   getAll: async (
     params: BlogPostQueryParams = {}
   ): Promise<PaginatedResult<BlogPost>> => {
@@ -21,7 +21,14 @@ export const blogPostsApi = {
 
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "") {
-        searchParams.append(key, value.toString());
+        // Handle arrays (like tags) by sending multiple parameters with the same name
+        if (Array.isArray(value)) {
+          value.forEach((item) => {
+            searchParams.append(key, item.toString());
+          });
+        } else {
+          searchParams.append(key, value.toString());
+        }
       }
     });
 
@@ -30,42 +37,40 @@ export const blogPostsApi = {
       ? `${ENDPOINTS.BLOG_POSTS}?${queryString}`
       : ENDPOINTS.BLOG_POSTS;
 
-    return authenticatedBlogRequest<PaginatedResult<BlogPost>>(endpoint);
+    return publicBlogRequest<PaginatedResult<BlogPost>>(endpoint);
   },
 
-  // Get blog post by ID
+  // Get blog post by ID (PUBLIC - no auth required)
   getById: async (id: string): Promise<BlogPost> => {
-    return authenticatedBlogRequest<BlogPost>(`${ENDPOINTS.BLOG_POSTS}/${id}`);
+    return publicBlogRequest<BlogPost>(`${ENDPOINTS.BLOG_POSTS}/${id}`);
   },
 
-  // Get blog post by slug
+  // Get blog post by slug (PUBLIC - no auth required)
   getBySlug: async (slug: string): Promise<BlogPost> => {
-    return authenticatedBlogRequest<BlogPost>(
-      `${ENDPOINTS.BLOG_POSTS}/slug/${slug}`
-    );
+    return publicBlogRequest<BlogPost>(`${ENDPOINTS.BLOG_POSTS}/slug/${slug}`);
   },
 
-  // Get featured posts
+  // Get featured posts (PUBLIC - no auth required)
   getFeatured: async (count: number = 5): Promise<BlogPost[]> => {
-    return authenticatedBlogRequest<BlogPost[]>(
+    return publicBlogRequest<BlogPost[]>(
       `${ENDPOINTS.BLOG_POSTS}/featured?count=${count}`
     );
   },
 
-  // Get popular posts
+  // Get popular posts (PUBLIC - no auth required)
   getPopular: async (count: number = 5): Promise<BlogPost[]> => {
-    return authenticatedBlogRequest<BlogPost[]>(
+    return publicBlogRequest<BlogPost[]>(
       `${ENDPOINTS.BLOG_POSTS}/popular?count=${count}`
     );
   },
 
-  // Get posts by author
+  // Get posts by author (PUBLIC - no auth required)
   getByAuthor: async (
     authorId: string,
     page: number = 1,
     pageSize: number = 10
   ): Promise<BlogPost[]> => {
-    return authenticatedBlogRequest<BlogPost[]>(
+    return publicBlogRequest<BlogPost[]>(
       `${ENDPOINTS.BLOG_POSTS}/author/${authorId}?page=${page}&pageSize=${pageSize}`
     );
   },
@@ -96,14 +101,11 @@ export const blogPostsApi = {
     });
   },
 
-  // Increment view count
+  // Increment view count (PUBLIC - no auth required)
   incrementViewCount: async (id: string): Promise<void> => {
-    return authenticatedBlogRequest<void>(
-      `${ENDPOINTS.BLOG_POSTS}/${id}/view`,
-      {
-        method: "POST",
-      }
-    );
+    return publicBlogRequest<void>(`${ENDPOINTS.BLOG_POSTS}/${id}/view`, {
+      method: "POST",
+    });
   },
 
   // Toggle featured status

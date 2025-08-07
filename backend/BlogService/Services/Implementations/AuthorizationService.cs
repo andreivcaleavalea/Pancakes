@@ -56,9 +56,4 @@ public class AuthorizationService : IAuthorizationService
 
         return authHeader.Substring("Bearer ".Length);
     }
-
-    public bool IsTokenValid(string token)
-    {
-        return !string.IsNullOrEmpty(token) && token.Length > 10; // Basic validation
-    }
 }

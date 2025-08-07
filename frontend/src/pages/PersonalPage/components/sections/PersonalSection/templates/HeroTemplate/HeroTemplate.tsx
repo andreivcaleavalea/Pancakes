@@ -1,9 +1,10 @@
-import React from 'react';
-import { Card, Avatar, Typography, Row, Col } from 'antd';
-import SectionSettingsPopover from '../../../../SectionSettingsPopover';
-import { useAdvancedStyles } from '../../../../../hooks/useAdvancedStyles';
-import type { PersonalTemplateProps } from '../../../../../types';
-import './HeroTemplate.scss';
+import React from "react";
+import { Card, Avatar, Typography, Row, Col } from "antd";
+import SectionSettingsPopover from "../../../../SectionSettingsPopover";
+import { useAdvancedStyles } from "../../../../../hooks/useAdvancedStyles";
+import { getProfilePictureUrl } from "../../../../../../../utils/imageUtils";
+import type { PersonalTemplateProps } from "../../../../../types";
+import "./HeroTemplate.scss";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -18,17 +19,11 @@ const HeroTemplate: React.FC<PersonalTemplateProps> = ({
   editMode = true,
 }) => {
   // Use shared hook instead of duplicated code
-  const { cardStyles, cardClassName, getContentStyles, getTypographyStyles } = useAdvancedStyles(
-    advancedSettings,
-    'hero-template'
-  );
+  const { cardStyles, cardClassName, getContentStyles, getTypographyStyles } =
+    useAdvancedStyles(advancedSettings, "hero-template");
 
   return (
-    <Card 
-      key="personal" 
-      className={cardClassName}
-      style={cardStyles}
-    >
+    <Card key="personal" className={cardClassName} style={cardStyles}>
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -36,63 +31,71 @@ const HeroTemplate: React.FC<PersonalTemplateProps> = ({
         templateOptions={templateOptions}
         editMode={editMode}
       />
-      
+
       <div style={getContentStyles()}>
         <Row align="middle" gutter={32}>
-          <Col xs={24} md={8} style={{ textAlign: 'center' }}>
+          <Col xs={24} md={8} style={{ textAlign: "center" }}>
             <Avatar
               size={120}
-              src={(() => {
-            const imageUrl = user.avatar || user.image;
-            if (!imageUrl) return undefined;
-            return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
-          })()}
+              src={getProfilePictureUrl(user.avatar)}
               className="hero-template__avatar"
-              style={{ 
-                marginBottom: '16px', 
-                border: `3px solid ${sectionPrimaryColor}` 
+              style={{
+                marginBottom: "16px",
+                border: `3px solid ${sectionPrimaryColor}`,
               }}
             />
           </Col>
           <Col xs={24} md={16}>
-            <Title level={1} style={{ 
-              ...getTypographyStyles(), 
-              color: sectionPrimaryColor, 
-              marginBottom: '8px' 
-            }}>
+            <Title
+              level={1}
+              style={{
+                ...getTypographyStyles(),
+                color: sectionPrimaryColor,
+                marginBottom: "8px",
+              }}
+            >
               {user.name}
             </Title>
-            <Title level={3} style={{ 
-              ...getTypographyStyles(), 
-              marginBottom: '16px', 
-              fontWeight: 400 
-            }}>
+            <Title
+              level={3}
+              style={{
+                ...getTypographyStyles(),
+                marginBottom: "16px",
+                fontWeight: 400,
+              }}
+            >
               {user.email}
             </Title>
             {user.location && (
-              <Text style={{ 
-                ...getTypographyStyles(), 
-                display: 'block', 
-                marginBottom: '8px' 
-              }}>
+              <Text
+                style={{
+                  ...getTypographyStyles(),
+                  display: "block",
+                  marginBottom: "8px",
+                }}
+              >
                 📍 {user.location}
               </Text>
             )}
             {user.phoneNumber && (
-              <Text style={{ 
-                ...getTypographyStyles(), 
-                display: 'block', 
-                marginBottom: '16px' 
-              }}>
+              <Text
+                style={{
+                  ...getTypographyStyles(),
+                  display: "block",
+                  marginBottom: "16px",
+                }}
+              >
                 📞 {user.phoneNumber}
               </Text>
             )}
             {user.bio && (
-              <Paragraph style={{ 
-                ...getTypographyStyles(), 
-                fontSize: '16px', 
-                lineHeight: '1.6' 
-              }}>
+              <Paragraph
+                style={{
+                  ...getTypographyStyles(),
+                  fontSize: "16px",
+                  lineHeight: "1.6",
+                }}
+              >
                 {user.bio}
               </Paragraph>
             )}
@@ -103,4 +106,4 @@ const HeroTemplate: React.FC<PersonalTemplateProps> = ({
   );
 };
 
-export default HeroTemplate; 
+export default HeroTemplate;

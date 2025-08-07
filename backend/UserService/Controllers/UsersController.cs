@@ -40,6 +40,12 @@ public class UsersController : ControllerBase
         return await _userService.GetAllAsync(HttpContext, page, pageSize);
     }
 
+    [HttpPost("batch")]
+    public async Task<IActionResult> GetUsersByIds([FromBody] IEnumerable<string> userIds)
+    {
+        return await _userService.GetUsersByIdsAsync(HttpContext, userIds);
+    }
+
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Create([FromBody] CreateUserDto createDto)

@@ -1,8 +1,15 @@
-import React from 'react';
-import { Card, Avatar, Typography, Row, Col } from 'antd';
-import SectionSettingsPopover from '../../../../SectionSettingsPopover';
-import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
-import './ModernTemplate.scss';
+import React from "react";
+import { Card, Avatar, Typography, Row, Col } from "antd";
+import SectionSettingsPopover from "../../../../SectionSettingsPopover";
+import {
+  getBackgroundWithPattern,
+  getShadowStyle,
+  getFontSize,
+  getFontWeight,
+  getBackgroundSize,
+} from "../../../../../../../utils/templateUtils";
+import { getProfilePictureUrl } from "../../../../../../../utils/imageUtils";
+import "./ModernTemplate.scss";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -37,9 +44,9 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
     const defaultStyles = {
-      marginBottom: '32px',
-      borderRadius: '16px',
-      position: 'relative' as const,
+      marginBottom: "32px",
+      borderRadius: "16px",
+      position: "relative" as const,
     };
 
     if (!advancedSettings) return defaultStyles;
@@ -48,28 +55,43 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
     // Generate CSS custom properties for advanced settings
     const cssCustomProperties = {
-      '--advanced-background': (background.color || background.pattern !== 'none') ? 
-        getBackgroundWithPattern(background.color || '#ffffff', background.pattern, background.opacity) :
-        undefined,
-      '--advanced-background-size': getBackgroundSize(background.pattern),
-      '--advanced-border-radius': styling.roundCorners ? styling.borderRadius : '0px',
-      '--advanced-box-shadow': styling.shadow ? getShadowStyle(styling.shadowIntensity) : 'none',
-      '--advanced-margin-top': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-bottom': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
-      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
-      '--advanced-border': styling.border.enabled 
+      "--advanced-background":
+        background.color || background.pattern !== "none"
+          ? getBackgroundWithPattern(
+              background.color || "#ffffff",
+              background.pattern,
+              background.opacity
+            )
+          : undefined,
+      "--advanced-background-size": getBackgroundSize(background.pattern),
+      "--advanced-border-radius": styling.roundCorners
+        ? styling.borderRadius
+        : "0px",
+      "--advanced-box-shadow": styling.shadow
+        ? getShadowStyle(styling.shadowIntensity)
+        : "none",
+      "--advanced-margin-top": `${layout.margin}${
+        typeof layout.margin === "number" ? "px" : ""
+      }`,
+      "--advanced-margin-bottom": `${layout.margin}${
+        typeof layout.margin === "number" ? "px" : ""
+      }`,
+      "--advanced-margin-left": layout.fullscreen ? "calc(-50vw + 50%)" : "0px",
+      "--advanced-margin-right": layout.fullscreen
+        ? "calc(-50vw + 50%)"
+        : "0px",
+      "--advanced-border": styling.border.enabled
         ? `${styling.border.width} ${styling.border.style} ${styling.border.color}`
-        : 'none',
-      '--advanced-overflow': 'hidden',
-      '--advanced-width': layout.fullscreen ? '100vw' : 'auto',
+        : "none",
+      "--advanced-overflow": "hidden",
+      "--advanced-width": layout.fullscreen ? "100vw" : "auto",
     } as React.CSSProperties;
 
     // Add transition (no animation)
     const finalStyles = {
       ...cssCustomProperties,
-      position: 'relative' as const,
-      transition: 'none', // Animation disabled
+      position: "relative" as const,
+      transition: "none", // Animation disabled
       animation: undefined, // Animation disabled
     };
 
@@ -80,7 +102,7 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
   const getContentStyles = () => {
     if (!advancedSettings) return {};
     return {
-      padding: '32px', // Default padding
+      padding: "32px", // Default padding
     };
   };
 
@@ -89,21 +111,23 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
     if (!advancedSettings) return {};
     const { typography } = advancedSettings;
     return {
-      fontSize: typography.fontSize ? getFontSize(typography.fontSize) : undefined,
+      fontSize: typography.fontSize
+        ? getFontSize(typography.fontSize)
+        : undefined,
       color: typography.fontColor || undefined,
-      fontWeight: typography.fontWeight ? getFontWeight(typography.fontWeight) : undefined,
+      fontWeight: typography.fontWeight
+        ? getFontWeight(typography.fontWeight)
+        : undefined,
     };
   };
 
   const cardStyles = getCardStyles();
-  const cardClassName = advancedSettings ? 'modern-template modern-template--custom' : 'modern-template';
+  const cardClassName = advancedSettings
+    ? "modern-template modern-template--custom"
+    : "modern-template";
 
   return (
-    <Card 
-      key="personal" 
-      className={cardClassName}
-      style={cardStyles}
-    >
+    <Card key="personal" className={cardClassName} style={cardStyles}>
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -111,15 +135,15 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
         templateOptions={templateOptions}
         editMode={editMode}
       />
-      
+
       {/* Modern geometric pattern */}
-      <div 
+      <div
         className="modern-template__header-line"
         style={{
-          background: `linear-gradient(90deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}80, ${sectionPrimaryColor}60)`
+          background: `linear-gradient(90deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}80, ${sectionPrimaryColor}60)`,
         }}
       />
-      
+
       <div className="modern-template__content" style={getContentStyles()}>
         <Row gutter={[32, 24]}>
           <Col xs={24} sm={6}>
@@ -127,14 +151,10 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
               <div className="modern-template__avatar-wrapper">
                 <Avatar
                   size={90}
-                  src={(() => {
-                    const imageUrl = user.avatar || user.image;
-                    if (!imageUrl) return undefined;
-                    return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
-                  })()}
+                  src={getProfilePictureUrl(user.avatar)}
                   className="modern-template__avatar"
-                  style={{ 
-                    border: `3px solid ${sectionPrimaryColor}20`
+                  style={{
+                    border: `3px solid ${sectionPrimaryColor}20`,
                   }}
                 />
                 <div className="modern-template__status-indicator" />
@@ -143,46 +163,63 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
           </Col>
           <Col xs={24} sm={18}>
             <div>
-              <Title level={2} className="modern-template__name" style={getTypographyStyles()}>
+              <Title
+                level={2}
+                className="modern-template__name"
+                style={getTypographyStyles()}
+              >
                 {user.name}
               </Title>
-              
-              <Text className="modern-template__title" style={getTypographyStyles()}>
-                {user.title || 'Professional Profile'}
+
+              <Text
+                className="modern-template__title"
+                style={getTypographyStyles()}
+              >
+                {user.title || "Professional Profile"}
               </Text>
-              
+
               <div className="modern-template__contact-grid">
-                <div 
+                <div
                   className="modern-template__contact-icon"
                   style={{
-                    background: `${sectionPrimaryColor}15`
+                    background: `${sectionPrimaryColor}15`,
                   }}
                 >
                   <span>📧</span>
                 </div>
-                <Text className="modern-template__contact-text" style={getTypographyStyles()}>{user.email}</Text>
-                
+                <Text
+                  className="modern-template__contact-text"
+                  style={getTypographyStyles()}
+                >
+                  {user.email}
+                </Text>
+
                 {user.phoneNumber && (
                   <>
-                    <div 
+                    <div
                       className="modern-template__contact-icon"
                       style={{
-                        background: `${sectionPrimaryColor}15`
+                        background: `${sectionPrimaryColor}15`,
                       }}
                     >
                       <span>📞</span>
                     </div>
-                    <Text className="modern-template__contact-text" style={getTypographyStyles()}>{user.phoneNumber}</Text>
+                    <Text
+                      className="modern-template__contact-text"
+                      style={getTypographyStyles()}
+                    >
+                      {user.phoneNumber}
+                    </Text>
                   </>
                 )}
               </div>
-              
+
               {user.bio && (
-                <Paragraph 
+                <Paragraph
                   className="modern-template__bio"
                   style={{
                     borderLeft: `3px solid ${sectionPrimaryColor}30`,
-                    ...getTypographyStyles()
+                    ...getTypographyStyles(),
                   }}
                 >
                   {user.bio}
@@ -196,4 +233,4 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({
   );
 };
 
-export default ModernTemplate; 
+export default ModernTemplate;

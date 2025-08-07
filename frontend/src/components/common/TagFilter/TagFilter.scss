@@ -1,0 +1,127 @@
+.tag-filter {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--color-bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 2px 8px var(--shadow-light);
+
+  &--loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  &--error {
+    padding: 12px;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  &__title {
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  &__loading-text {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+  }
+
+  &__clear-btn {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--color-bg-secondary);
+    }
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__tag {
+    margin: 0;
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    transition: all 0.2s ease;
+    user-select: none;
+
+    &:hover {
+      border-color: var(--color-primary);
+      background: var(--color-bg-secondary);
+      color: var(--color-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(233, 131, 58, 0.2);
+    }
+
+    &--selected {
+      background: linear-gradient(
+        135deg,
+        var(--color-primary) 0%,
+        var(--butter) 100%
+      ) !important;
+      color: white !important;
+      border-color: var(--color-primary) !important;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(233, 131, 58, 0.3);
+
+      &:hover {
+        background: linear-gradient(
+          135deg,
+          var(--brown-sugar) 0%,
+          var(--color-primary) 100%
+        ) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(233, 131, 58, 0.4);
+      }
+    }
+  }
+}
+
+// Mobile responsive
+@media (max-width: 768px) {
+  .tag-filter {
+    margin: 16px 0;
+    padding: 12px;
+
+    &__header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    &__tags {
+      gap: 6px;
+    }
+
+    &__tag {
+      font-size: 11px;
+      padding: 3px 10px;
+    }
+  }
+}

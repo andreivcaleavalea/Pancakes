@@ -25,6 +25,8 @@ export interface BlogPost {
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;
+  // Tags
+  tags: string[];
   // Legacy/computed fields for backward compatibility
   description?: string;
   date?: string;
@@ -65,6 +67,7 @@ export interface BlogPostQueryParams {
   sortOrder?: "asc" | "desc";
   dateFrom?: string;
   dateTo?: string;
+  tags?: string[]; // Filter by specific tags
 }
 
 export interface CreateBlogPostDto {
@@ -74,6 +77,7 @@ export interface CreateBlogPostDto {
   status: PostStatus;
   authorId: string; // GUID string - will be overridden by backend with current user's ID
   publishedAt?: string;
+  tags?: string[];
 }
 
 export interface UpdateBlogPostDto {
@@ -82,6 +86,7 @@ export interface UpdateBlogPostDto {
   featuredImage?: string;
   status?: PostStatus;
   publishedAt?: string;
+  tags?: string[];
 }
 
 // UI Props types

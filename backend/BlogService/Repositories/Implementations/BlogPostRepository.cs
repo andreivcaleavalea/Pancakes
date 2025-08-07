@@ -25,7 +25,7 @@ public class BlogPostRepository : IBlogPostRepository
         var query = _context.BlogPosts.AsQueryable();
         if (!string.IsNullOrEmpty(parameters.Search))
         {
-            query = query.Where(bp => bp.Title.Contains(parameters.Search) || bp.Content.Contains(parameters.Search));
+            query = query.Where(bp => bp.Title.ToLower().Contains(parameters.Search.ToLower()) || bp.Content.ToLower().Contains(parameters.Search.ToLower()));
         }
         if (!string.IsNullOrEmpty(parameters.AuthorId))
         {
@@ -43,6 +43,7 @@ public class BlogPostRepository : IBlogPostRepository
         {
             query = query.Where(bp => bp.CreatedAt <= parameters.DateTo);
         }
+        
         // Sorting
         if (!string.IsNullOrEmpty(parameters.SortBy))
         {
@@ -67,9 +68,50 @@ public class BlogPostRepository : IBlogPostRepository
         {
             query = query.OrderByDescending(bp => bp.CreatedAt);
         }
-        var totalCount = await query.CountAsync();
-        var posts = await query.Skip((parameters.Page - 1) * parameters.PageSize).Take(parameters.PageSize).ToListAsync();
-        return (posts, totalCount);
+
+        // Tag filtering - temporarily using client-side evaluation
+        if (parameters.Tags != null && parameters.Tags.Any())
+        {
+            Console.WriteLine($"🔍 Tag filtering - Requested tags: [{string.Join(", ", parameters.Tags)}]");
+            
+            // Convert to list for client-side evaluation
+            var allPosts = await query.ToListAsync();
+            Console.WriteLine($"📊 Total posts before tag filtering: {allPosts.Count}");
+            
+            // Filter posts that contain ALL specified tags (AND logic)
+            var filteredPosts = allPosts.Where(bp => 
+            {
+                if (bp.Tags == null || !bp.Tags.Any()) 
+                {
+                    return false;
+                }
+                
+                // Check if this post contains ALL requested tags (case-insensitive)
+                var postContainsAllTags = parameters.Tags.All(requestedTag => 
+                    bp.Tags.Any(postTag => 
+                        string.Equals(postTag, requestedTag, StringComparison.OrdinalIgnoreCase)
+                    )
+                );
+                
+                if (postContainsAllTags)
+                {
+                    Console.WriteLine($"✅ Post '{bp.Title}' matches - Has tags: [{string.Join(", ", bp.Tags)}]");
+                }
+                
+                return postContainsAllTags;
+            }).ToList();
+            
+            Console.WriteLine($"🎯 Posts after tag filtering: {filteredPosts.Count}");
+            
+            var totalCount = filteredPosts.Count;
+            var posts = filteredPosts.Skip((parameters.Page - 1) * parameters.PageSize).Take(parameters.PageSize);
+            return (posts, totalCount);
+        }
+        
+        // Normal execution (no tag filtering)
+        var normalTotalCount = await query.CountAsync();
+        var normalPosts = await query.Skip((parameters.Page - 1) * parameters.PageSize).Take(parameters.PageSize).ToListAsync();
+        return (normalPosts, normalTotalCount);
     }
 
     // Today's special - returns the newest post
@@ -87,16 +129,6 @@ public class BlogPostRepository : IBlogPostRepository
         return await _context.BlogPosts.Where(bp => bp.Status == PostStatus.Published)
             .OrderByDescending(bp => bp.CreatedAt)
             .Take(count)
-            .ToListAsync();
-    }
-
-    public async Task<IEnumerable<BlogPost>> GetByAuthorAsync(Guid authorId, int page = 1, int pageSize = 10)
-    {
-        var authorIdString = authorId.ToString(); // Convert Guid to string for comparison
-        return await _context.BlogPosts.Where(bp => bp.AuthorId == authorIdString)
-            .OrderByDescending(bp => bp.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
             .ToListAsync();
     }
 

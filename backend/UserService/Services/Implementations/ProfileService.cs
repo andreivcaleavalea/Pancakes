@@ -15,6 +15,7 @@ public class ProfileService : IProfileService
     private readonly IProjectRepository _projectRepository;
     private readonly IFileService _fileService;
     private readonly IMapper _mapper;
+    private readonly IProfilePictureStrategyFactory _profilePictureStrategyFactory;
 
     public ProfileService(
         IUserRepository userRepository,
@@ -23,7 +24,8 @@ public class ProfileService : IProfileService
         IHobbyRepository hobbyRepository,
         IProjectRepository projectRepository,
         IFileService fileService,
-        IMapper mapper)
+        IMapper mapper,
+        IProfilePictureStrategyFactory profilePictureStrategyFactory)
     {
         _userRepository = userRepository;
         _educationRepository = educationRepository;
@@ -32,6 +34,7 @@ public class ProfileService : IProfileService
         _projectRepository = projectRepository;
         _fileService = fileService;
         _mapper = mapper;
+        _profilePictureStrategyFactory = profilePictureStrategyFactory;
     }
 
     public async Task<ProfileDataDto?> GetProfileDataAsync(string userId)
@@ -95,15 +98,12 @@ public class ProfileService : IProfileService
     {
         var user = await GetUserByIdOrThrowAsync(userId);
         
-        // Delete old profile picture if exists
-        if (!string.IsNullOrEmpty(user.Image))
-        {
-            await _fileService.DeleteProfilePictureAsync(user.Image);
-        }
-        
         // Save new profile picture
         var newImagePath = await _fileService.SaveProfilePictureAsync(profilePicture, userId);
-        user.Image = newImagePath;
+        
+        // Use strategy pattern to handle user upload (this will handle old image deletion and provider change)
+        var strategy = _profilePictureStrategyFactory.GetStrategyForUserUpload();
+        strategy.HandleUserUpload(user, newImagePath);
         
         var updatedUser = await _userRepository.UpdateAsync(user);
         return _mapper.Map<UserProfileDto>(updatedUser);

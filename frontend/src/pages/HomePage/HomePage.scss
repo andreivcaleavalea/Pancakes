@@ -1,7 +1,7 @@
 .home-page {
   background: var(--color-bg-card);
   min-height: calc(100vh - 140px);
-  
+
   .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -9,45 +9,65 @@
 
   &__section {
     margin-bottom: 32px;
-    
+
     &:last-child {
       margin-bottom: 0;
     }
   }
-  
+
   &__title {
     color: var(--color-text);
     margin-bottom: 24px;
     font-size: 24px !important;
-    
+
     &--mobile {
       font-size: 20px !important;
       text-align: center;
     }
   }
-  
+
   &__featured {
     margin-bottom: 32px;
   }
-  
+
   &__horizontal-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
     margin-bottom: 32px;
-    
+
     @media (max-width: 768px) {
       gap: 16px;
     }
   }
-  
+
   &__grid-posts {
     margin-bottom: 24px;
   }
-  
+
   &__pagination {
     margin-top: 24px;
     display: flex;
     justify-content: center;
   }
-} 
+
+  &__tag-filter {
+    margin-bottom: 24px;
+  }
+
+  &__loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    padding: 40px 20px;
+  }
+
+  &__error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    padding: 40px 20px;
+  }
+}

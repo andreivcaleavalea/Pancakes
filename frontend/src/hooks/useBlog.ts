@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { BlogService } from "@/services/blogService";
+import { isAuthenticated } from "@/lib/api";
 import type { BlogPost, FeaturedPost } from "@/types/blog";
 
 /**
@@ -41,7 +42,11 @@ export const useBlogData = () => {
 /**
  * Custom hook for managing paginated posts
  */
-export const usePaginatedPosts = (page: number, pageSize: number) => {
+export const usePaginatedPosts = (
+  page: number,
+  pageSize: number,
+  tags?: string[]
+) => {
   const [data, setData] = useState<BlogPost[]>([]);
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -58,7 +63,7 @@ export const usePaginatedPosts = (page: number, pageSize: number) => {
     try {
       setLoading(true);
       setError(null);
-      const result = await BlogService.getPaginatedPosts(page, pageSize);
+      const result = await BlogService.getPaginatedPosts(page, pageSize, tags);
       setData(result.data);
       setPagination(result.pagination);
     } catch (err) {
@@ -66,7 +71,7 @@ export const usePaginatedPosts = (page: number, pageSize: number) => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, tags]);
 
   useEffect(() => {
     fetchPosts();
@@ -144,6 +149,11 @@ export const useFavorite = (
   const [loading, setLoading] = useState(false);
 
   const toggleFavorite = useCallback(async () => {
+    // Check if user is authenticated before attempting to toggle favorite
+    if (!isAuthenticated()) {
+      throw new Error("Please log in to save blogs to your favorites.");
+    }
+
     try {
       setLoading(true);
 
@@ -168,9 +178,15 @@ export const useFavorite = (
     }
   }, [blogId, isFavorite]);
 
-  // Check initial favorite status
+  // Check initial favorite status (only for authenticated users)
   useEffect(() => {
     const checkFavoriteStatus = async () => {
+      // Skip favorite check for unauthenticated users
+      if (!isAuthenticated()) {
+        setIsFavorite(false);
+        return;
+      }
+
       try {
         const { savedBlogsApi } = await import("../services/savedBlogApi");
         const result = await savedBlogsApi.isBookmarked(blogId);
@@ -178,6 +194,7 @@ export const useFavorite = (
       } catch (error) {
         console.error("Error checking favorite status:", error);
         // Keep the initial value if API call fails
+        setIsFavorite(false);
       }
     };
 

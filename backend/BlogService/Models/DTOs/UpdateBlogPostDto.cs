@@ -16,4 +16,7 @@ public class UpdateBlogPostDto
     public PostStatus? Status { get; set; }
     
     public DateTime? PublishedAt { get; set; }
+    
+    // Tags
+    public List<string>? Tags { get; set; }
 }

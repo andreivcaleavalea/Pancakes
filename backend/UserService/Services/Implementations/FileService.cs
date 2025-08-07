@@ -92,4 +92,42 @@ public class FileService : IFileService
 
         return true;
     }
+
+    public async Task<(byte[] fileBytes, string contentType, string fileName)?> GetProfilePictureAsync(string filePath)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(filePath))
+                return null;
+
+            var fullPath = Path.Combine(_environment.ContentRootPath, filePath);
+            
+            if (!File.Exists(fullPath))
+            {
+                _logger.LogWarning("Profile picture not found: {FilePath}", filePath);
+                return null;
+            }
+
+            var fileBytes = await File.ReadAllBytesAsync(fullPath);
+            var fileName = Path.GetFileName(fullPath);
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            
+            var contentType = extension switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream"
+            };
+
+            _logger.LogDebug("Profile picture retrieved: {FilePath}", filePath);
+            return (fileBytes, contentType, fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving profile picture: {FilePath}", filePath);
+            return null;
+        }
+    }
 } 
