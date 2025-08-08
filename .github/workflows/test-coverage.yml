@@ -15,14 +15,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: |
             9.0.x
+          cache: false
 
       - name: Restore (solution-wide)
         run: |
           dotnet restore
+
+      - name: Dotnet info (diagnostics)
+        run: dotnet --info
 
       - name: Build (Release)
         run: |
