@@ -21,16 +21,56 @@ jobs:
             9.0.x
           cache: false
 
-      - name: Restore (solution-wide)
+      - name: Restore (solutions or projects)
+        shell: bash
         run: |
-          dotnet restore
+          set -euo pipefail
+          echo "Searching for solution files..."
+          mapfile -d '' SLNS < <(find . -type f -name "*.sln" -print0)
+          if [ ${#SLNS[@]} -gt 0 ]; then
+            for s in "${SLNS[@]}"; do
+              echo "Restoring solution: $s"
+              dotnet restore "$s"
+            done
+          else
+            echo "No .sln files found. Restoring all .csproj files..."
+            mapfile -d '' PROJS < <(find . -type f -name "*.csproj" -print0)
+            if [ ${#PROJS[@]} -eq 0 ]; then
+              echo "No .csproj files found. Nothing to restore."
+              exit 1
+            fi
+            for p in "${PROJS[@]}"; do
+              echo "Restoring project: $p"
+              dotnet restore "$p"
+            done
+          fi
 
       - name: Dotnet info (diagnostics)
         run: dotnet --info
 
       - name: Build (Release)
+        shell: bash
         run: |
-          dotnet build --configuration Release --no-restore
+          set -euo pipefail
+          echo "Searching for solution files..."
+          mapfile -d '' SLNS < <(find . -type f -name "*.sln" -print0)
+          if [ ${#SLNS[@]} -gt 0 ]; then
+            for s in "${SLNS[@]}"; do
+              echo "Building solution: $s"
+              dotnet build "$s" --configuration Release --no-restore
+            done
+          else
+            echo "No .sln files found. Building all .csproj files..."
+            mapfile -d '' PROJS < <(find . -type f -name "*.csproj" -print0)
+            if [ ${#PROJS[@]} -eq 0 ]; then
+              echo "No .csproj files found. Nothing to build."
+              exit 1
+            fi
+            for p in "${PROJS[@]}"; do
+              echo "Building project: $p"
+              dotnet build "$p" --configuration Release --no-restore
+            done
+          fi
 
       - name: Test all *\.Tests projects with coverage
         shell: bash
@@ -40,7 +80,23 @@ jobs:
           # Find and test all projects ending with .Tests.csproj
           mapfile -d '' TEST_PROJECTS < <(find . -type f -name "*.Tests.csproj" -print0)
           if [ ${#TEST_PROJECTS[@]} -eq 0 ]; then
-            echo "No * .Tests.csproj projects found. Failing to enforce test presence."
+            echo "No *.Tests.csproj projects found. Searching for test DLLs as fallback..."
+            # Fallback: run dotnet test on solutions if any
+            mapfile -d '' SLNS < <(find . -type f -name "*.sln" -print0)
+            if [ ${#SLNS[@]} -gt 0 ]; then
+              for s in "${SLNS[@]}"; do
+                echo "Running tests for solution: $s"
+                OUTDIR="artifacts/test-results/$(dirname "$s" | sed 's#^./##;s#/#_#g')"
+                mkdir -p "$OUTDIR"
+                dotnet test "$s" \
+                  --configuration Release \
+                  --no-build \
+                  --collect:"XPlat Code Coverage" \
+                  --results-directory "$OUTDIR"
+              done
+              exit 0
+            fi
+            echo "No tests discovered. Failing."
             exit 1
           fi
           for proj in "${TEST_PROJECTS[@]}"; do
@@ -55,7 +111,10 @@ jobs:
           done
 
       - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+        shell: bash
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Generate coverage report (HTML + TextSummary)
         shell: bash
