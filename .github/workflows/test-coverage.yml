@@ -14,6 +14,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Show test project files (debug)
+        shell: bash
+        run: |
+          echo "Repo root: $(pwd)"
+          ls -la
+          echo "Listing AdminService.Tests directory contents"
+          ls -la backend/AdminService.Tests || true
+          echo "Listing TestUtilities directory contents"
+          ls -la backend/AdminService.Tests/TestUtilities || true
+          echo "List all .cs files under AdminService.Tests"
+          find backend/AdminService.Tests -type f -name "*.cs" | sort
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
