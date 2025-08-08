@@ -30,11 +30,6 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
   </ItemGroup>
 
-  <!-- Ensure TestUtilities are included even if default items are disabled by upstream props -->
-  <ItemGroup>
-    <Compile Include="TestUtilities/**/*.cs" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="../AdminService/AdminService.csproj" />
   </ItemGroup>
