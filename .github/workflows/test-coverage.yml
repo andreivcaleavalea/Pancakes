@@ -1,0 +1,102 @@
+name: Test and Coverage
+
+on:
+  push:
+    branches: [ master, Master, dev, Dev ]
+  pull_request:
+    branches: [ master, Master, dev, Dev ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+          cache: true
+
+      - name: Restore (solution-wide)
+        run: |
+          dotnet restore
+
+      - name: Build (Release)
+        run: |
+          dotnet build --configuration Release --no-restore
+
+      - name: Test all *\.Tests projects with coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/test-results
+          # Find and test all projects ending with .Tests.csproj
+          mapfile -d '' TEST_PROJECTS < <(find . -type f -name "*.Tests.csproj" -print0)
+          if [ ${#TEST_PROJECTS[@]} -eq 0 ]; then
+            echo "No * .Tests.csproj projects found. Failing to enforce test presence."
+            exit 1
+          fi
+          for proj in "${TEST_PROJECTS[@]}"; do
+            echo "Running tests for: $proj"
+            OUTDIR="artifacts/test-results/$(dirname "$proj" | sed 's#^./##;s#/#_#g')"
+            mkdir -p "$OUTDIR"
+            dotnet test "$proj" \
+              --configuration Release \
+              --no-build \
+              --collect:"XPlat Code Coverage" \
+              --results-directory "$OUTDIR"
+          done
+
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Generate coverage report (HTML + TextSummary)
+        shell: bash
+        env:
+          REPORT_DIR: artifacts/coverage
+        run: |
+          mkdir -p "$REPORT_DIR"
+          reportgenerator \
+            -reports:"artifacts/test-results/**/coverage.cobertura.xml" \
+            -targetdir:"$REPORT_DIR" \
+            -reporttypes:"Html;TextSummary"
+          echo "---- Text Summary ----"
+          cat "$REPORT_DIR/Summary.txt" || true
+
+      - name: Enforce coverage thresholds (Line >= 70%, Branch >= 50%)
+        shell: bash
+        env:
+          REPORT_DIR: artifacts/coverage
+          MIN_LINE: "70"
+          MIN_BRANCH: "50"
+        run: |
+          set -euo pipefail
+          SUMMARY_FILE="$REPORT_DIR/Summary.txt"
+          if [ ! -f "$SUMMARY_FILE" ]; then
+            echo "Coverage summary not found at $SUMMARY_FILE"
+            exit 1
+          fi
+          LINE=$(grep -Po 'Line coverage:\s*\K[0-9.]+(?=%)' "$SUMMARY_FILE" || echo "0")
+          BRANCH=$(grep -Po 'Branch coverage:\s*\K[0-9.]+(?=%)' "$SUMMARY_FILE" || echo "0")
+          echo "Line: ${LINE}%  Branch: ${BRANCH}%"
+          FAIL=""
+          awk -v a="$LINE" -v b="$MIN_LINE" 'BEGIN{ if (a+0 < b+0) exit 1 }' || FAIL="line"
+          awk -v a="$BRANCH" -v b="$MIN_BRANCH" 'BEGIN{ if (a+0 < b+0) exit 1 }' || FAIL="$FAIL branch"
+          if [ -n "$FAIL" ]; then
+            echo "Coverage below thresholds ($FAIL). Required: Line >= ${MIN_LINE}%, Branch >= ${MIN_BRANCH}%"
+            exit 1
+          fi
+          echo "Coverage meets thresholds."
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: artifacts/coverage
+          if-no-files-found: error
+
+
