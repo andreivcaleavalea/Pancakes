@@ -132,13 +132,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
           <Form.Item
             name="description"
             label="Additional details (optional)"
-            extra="Provide any additional context that might help us understand the issue"
+            help="Provide any additional context that might help us understand the issue"
           >
             <TextArea
               rows={4}
               placeholder="Describe the issue in more detail..."
               maxLength={1000}
               showCount
+              className="report-modal__textarea"
             />
           </Form.Item>
 
