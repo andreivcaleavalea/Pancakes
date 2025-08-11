@@ -124,6 +124,10 @@ namespace AdminService.Configuration
 
                 // Audit Policies
                 options.AddPolicy("CanViewAuditLogs", policy => policy.RequirePermission(AdminPermissions.ViewAuditLogs));
+
+                // Report Management Policies
+                options.AddPolicy("CanViewReports", policy => policy.RequirePermission(AdminPermissions.ViewReports));
+                options.AddPolicy("CanManageReports", policy => policy.RequirePermission(AdminPermissions.ManageReports));
             });
 
             // Register authorization handler

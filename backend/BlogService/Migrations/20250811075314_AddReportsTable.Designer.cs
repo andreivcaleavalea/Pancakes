@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using BlogService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BlogService.Migrations
 {
     [DbContext(typeof(BlogDbContext))]
-    partial class BlogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250811075314_AddReportsTable")]
+    partial class AddReportsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,7 +67,7 @@ namespace BlogService.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BlogPosts", (string)null);
+                    b.ToTable("BlogPosts");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.Comment", b =>
@@ -109,7 +112,7 @@ namespace BlogService.Migrations
 
                     b.HasIndex("ParentCommentId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.CommentLike", b =>
@@ -140,7 +143,7 @@ namespace BlogService.Migrations
                     b.HasIndex("CommentId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("CommentLikes", (string)null);
+                    b.ToTable("CommentLikes");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.Friendship", b =>
@@ -174,7 +177,7 @@ namespace BlogService.Migrations
                     b.HasIndex("SenderId", "ReceiverId")
                         .IsUnique();
 
-                    b.ToTable("Friendships", null, t =>
+                    b.ToTable("Friendships", t =>
                         {
                             t.HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\"");
                         });
@@ -208,7 +211,7 @@ namespace BlogService.Migrations
                     b.HasIndex("BlogPostId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("PostRatings", (string)null);
+                    b.ToTable("PostRatings");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.Report", b =>
@@ -274,7 +277,7 @@ namespace BlogService.Migrations
 
                     b.HasIndex("ContentId");
 
-                    b.ToTable("Reports", null, t =>
+                    b.ToTable("Reports", t =>
                         {
                             t.HasCheckConstraint("CK_Report_NoSelfReport", "\"ReporterId\" != \"ReportedUserId\"");
                         });
@@ -295,7 +298,7 @@ namespace BlogService.Migrations
 
                     b.HasIndex("BlogPostId");
 
-                    b.ToTable("SavedBlogs", (string)null);
+                    b.ToTable("SavedBlogs");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.Comment", b =>

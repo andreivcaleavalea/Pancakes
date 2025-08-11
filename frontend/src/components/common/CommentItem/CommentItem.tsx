@@ -9,9 +9,10 @@ import {
 import type { CommentItemProps, CreateCommentDto } from "@/types/comment";
 import CommentForm from "../CommentForm/CommentForm";
 import CommentLikeButtons from "../CommentLikeButtons/CommentLikeButtons";
-import { CachedAvatar } from "@/components/common";
+import { CachedAvatar, ReportButton } from "@/components/common";
 import { getProfilePictureUrl } from "@/utils/imageUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import { ReportContentType } from "@/types/report";
 import "./CommentItem.scss";
 
 const { Text, Paragraph } = Typography;
@@ -137,6 +138,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
                         Reply
                       </Button>
                     )}
+                  <ReportButton
+                    contentType={ReportContentType.Comment}
+                    contentId={comment.id}
+                    contentTitle={
+                      comment.content.length > 50
+                        ? comment.content.substring(0, 50) + "..."
+                        : comment.content
+                    }
+                    authorId={comment.authorId}
+                    size="small"
+                    type="text"
+                    className="comment-item__action-btn"
+                  />
                   {onEdit && canModifyComment() && (
                     <Button
                       type="text"

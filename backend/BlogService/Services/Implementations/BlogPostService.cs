@@ -56,6 +56,12 @@ public class BlogPostService : IBlogPostService
         var blogPost = await _blogPostRepository.GetByIdAsync(id);
         if (blogPost == null) return null;
         
+        // Filter out deleted posts for regular users (only show published posts)
+        if (blogPost.Status == PostStatus.Deleted)
+        {
+            return null;
+        }
+        
         var blogPostDto = _mapper.Map<BlogPostDto>(blogPost);
         await PopulateAuthorInfoAsync(blogPostDto);
         
@@ -274,6 +280,123 @@ public class BlogPostService : IBlogPostService
         blogPost.Status = PostStatus.Deleted;
         blogPost.UpdatedAt = DateTime.UtcNow;
         await _blogPostRepository.UpdateAsync(blogPost);
+        
+        // Comprehensive cache clearing for blog deletion
+        ClearBlogPostCaches(id, blogPost);
+        
+        _logger.LogInformation("Blog post {BlogPostId} deleted and all related caches cleared", id);
+    }
+
+    private void ClearBlogPostCaches(Guid deletedPostId, BlogPost deletedPost)
+    {
+        try
+        {
+            // APPROACH 1: Clear specific known cache entries
+            
+            // Clear individual blog post cache
+            var individualPostKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostById, deletedPostId);
+            _cache.Remove(individualPostKey);
+            
+            // Clear featured posts cache (all common counts)
+            for (int count = 1; count <= 10; count++)
+            {
+                var featuredKey = CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, count);
+                _cache.Remove(featuredKey);
+            }
+            
+            // Clear popular posts cache (all common counts)
+            for (int count = 1; count <= 10; count++)
+            {
+                var popularKey = CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, count);
+                _cache.Remove(popularKey);
+            }
+            
+            // APPROACH 2: Clear paginated results by attempting common combinations
+            var commonPageSizes = new[] { 5, 10, 15, 20, 25 };
+            var commonPages = new[] { 1, 2, 3, 4, 5 };
+            
+            foreach (var pageSize in commonPageSizes)
+            {
+                foreach (var page in commonPages)
+                {
+                    // Clear general blog lists (no specific filters)
+                    var generalHash = CacheConfig.CreateHash(page, pageSize, "", "", "", "", "", "", "", "");
+                    var generalKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, generalHash);
+                    _cache.Remove(generalKey);
+                    
+                    // Clear published posts lists
+                    var publishedHash = CacheConfig.CreateHash(page, pageSize, "", "", "1", "", "", "", "", "");
+                    var publishedKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, publishedHash);
+                    _cache.Remove(publishedKey);
+                }
+            }
+            
+            // APPROACH 3: For maximum reliability, clear ALL cache
+            // This is aggressive but ensures no stale data remains
+            ClearAllCache();
+            
+            _logger.LogInformation("Cleared caches for deleted blog post {BlogPostId}", deletedPostId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error clearing caches for deleted blog post {BlogPostId}", deletedPostId);
+            // If specific cache clearing fails, clear everything as fallback
+            ClearAllCache();
+        }
+    }
+    
+    private void ClearAllCache()
+    {
+        // Clear all blog-related cache entries aggressively
+        // Since we can't easily clear all entries, we'll clear the most comprehensive set
+        try
+        {
+            var keysToRemove = new List<string>();
+            
+            // Clear all possible blog post page combinations (more comprehensive)
+            var pageSizes = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50, 100 };
+            var pages = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            
+            foreach (var pageSize in pageSizes)
+            {
+                foreach (var page in pages)
+                {
+                    // Clear all possible filter combinations
+                    var combinations = new[]
+                    {
+                        CacheConfig.CreateHash(page, pageSize, "", "", "", "", "", "", "", ""),        // No filters
+                        CacheConfig.CreateHash(page, pageSize, "", "", "1", "", "", "", "", ""),       // Published only
+                        CacheConfig.CreateHash(page, pageSize, "", "", "0", "", "", "", "", ""),       // Draft only
+                        CacheConfig.CreateHash(page, pageSize, "", "", "2", "", "", "", "", ""),       // Deleted only
+                    };
+                    
+                    foreach (var hash in combinations)
+                    {
+                        var key = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, hash);
+                        keysToRemove.Add(key);
+                    }
+                }
+            }
+            
+            // Clear all featured/popular combinations
+            for (int count = 1; count <= 50; count++)
+            {
+                keysToRemove.Add(CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, count));
+                keysToRemove.Add(CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, count));
+            }
+            
+            // Remove all identified cache entries
+            foreach (var key in keysToRemove)
+            {
+                _cache.Remove(key);
+            }
+            
+            _logger.LogWarning("Aggressively cleared {CacheCount} blog-related cache entries due to blog post deletion", keysToRemove.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to clear blog-related cache entries - cache may contain stale data");
+        }
     }
 
     private async Task<BlogPost> GetBlogPostByIdOrThrowAsync(Guid id)

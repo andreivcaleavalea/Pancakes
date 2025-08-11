@@ -8,6 +8,7 @@ import DashboardPage from "./pages/DashboardPage";
 import UsersPage from "./pages/UsersPage";
 import ContentPage from "./pages/ContentPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="users" element={<UsersPage />} />
           <Route path="content" element={<ContentPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
+          <Route path="reports" element={<ReportsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>

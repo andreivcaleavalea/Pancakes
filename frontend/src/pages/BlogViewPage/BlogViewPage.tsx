@@ -16,10 +16,12 @@ import {
   GlazeMeter,
   CachedAvatar,
   BlogTags,
+  ReportButton,
 } from "@/components/common";
 import { blogPostsApi } from "@/services/blogApi";
 import { DEFAULTS } from "@/utils/constants";
 import { getProfilePictureUrl } from "@/utils/imageUtils";
+import { ReportContentType } from "@/types/report";
 import "./BlogViewPage.scss";
 
 const { Title, Text } = Typography;
@@ -207,17 +209,27 @@ const BlogViewPage: React.FC = () => {
                 </Button>
               </Space>
             ) : (
-              <Button
-                type="text"
-                icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
-                onClick={handleFavoriteToggle}
-                loading={favoriteLoading}
-                className={`blog-view__favorite ${
-                  isFavorite ? "blog-view__favorite--active" : ""
-                }`}
-              >
-                {isFavorite ? "Favorited" : "Add to Favorites"}
-              </Button>
+              <Space size="middle">
+                <Button
+                  type="text"
+                  icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
+                  onClick={handleFavoriteToggle}
+                  loading={favoriteLoading}
+                  className={`blog-view__favorite ${
+                    isFavorite ? "blog-view__favorite--active" : ""
+                  }`}
+                >
+                  {isFavorite ? "Favorited" : "Add to Favorites"}
+                </Button>
+                <ReportButton
+                  contentType={ReportContentType.BlogPost}
+                  contentId={blog.id}
+                  contentTitle={blog.title}
+                  authorId={blog.authorId}
+                  size="middle"
+                  type="text"
+                />
+              </Space>
             )}
           </div>
         </div>

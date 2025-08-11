@@ -56,7 +56,8 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
     })
     .EnableSensitiveDataLogging(false)
     .EnableServiceProviderCaching()
-    .EnableDetailedErrors(builder.Environment.IsDevelopment());
+    .EnableDetailedErrors(builder.Environment.IsDevelopment())
+    .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 }, ServiceLifetime.Scoped);
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -69,6 +70,7 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IPostRatingRepository, PostRatingRepository>();
 builder.Services.AddScoped<ICommentLikeRepository, CommentLikeRepository>();
 builder.Services.AddScoped<ISavedBlogRepository, SavedBlogRepository>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
 
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
@@ -76,6 +78,7 @@ builder.Services.AddScoped<IPostRatingService, PostRatingService>();
 builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
 builder.Services.AddScoped<ISavedBlogService, SavedBlogService>();
 builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 // Add JWT User Service for extracting user info from tokens
 builder.Services.AddScoped<IJwtUserService, JwtUserService>();

@@ -1,0 +1,101 @@
+.report-modal {
+  .ant-modal-header {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 16px 24px;
+  }
+
+  .ant-modal-body {
+    padding: 24px;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #262626;
+  }
+
+  &__content {
+    .ant-typography {
+      margin-bottom: 24px;
+      color: #595959;
+      line-height: 1.6;
+    }
+  }
+
+  &__description {
+    display: block;
+    padding: 16px;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border-left: 4px solid #ff4d4f;
+    margin-bottom: 24px;
+  }
+
+  &__form {
+    .ant-form-item-label > label {
+      font-weight: 500;
+      color: #262626;
+    }
+
+    .ant-form-item-extra {
+      color: #8c8c8c;
+      font-size: 12px;
+    }
+
+    .ant-select {
+      .ant-select-selector {
+        border-radius: 6px;
+      }
+    }
+
+    .ant-input {
+      border-radius: 6px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+
+    .ant-btn {
+      border-radius: 6px;
+      font-weight: 500;
+    }
+  }
+}
+
+// Dark mode support
+[data-theme="dark"] {
+  .report-modal {
+    .ant-modal-content {
+      background-color: #141414;
+    }
+
+    .ant-modal-header {
+      background-color: #141414;
+      border-bottom-color: #303030;
+    }
+
+    &__title {
+      color: #ffffff;
+    }
+
+    &__description {
+      background-color: #1f1f1f;
+      color: #d9d9d9;
+      border-left-color: #ff4d4f;
+    }
+
+    &__content .ant-typography {
+      color: #d9d9d9;
+    }
+
+    &__actions {
+      border-top-color: #303030;
+    }
+  }
+}
