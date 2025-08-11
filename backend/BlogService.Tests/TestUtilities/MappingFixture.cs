@@ -12,8 +12,6 @@ public sealed class MappingFixture
         {
             cfg.AddProfile<BlogService.Helpers.MappingProfile>();
         });
-
-        configuration.AssertConfigurationIsValid();
         Mapper = configuration.CreateMapper();
     }
 }

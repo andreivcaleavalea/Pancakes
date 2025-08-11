@@ -126,13 +126,11 @@ public class BlogPostService : IBlogPostService
 
         var posts = await _blogPostRepository.GetFeaturedAsync(count);
         var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
-        
-        // Populate author information for all posts
-        foreach (var dto in blogPostDtos)
-        {
-            await PopulateAuthorInfoAsync(dto);
-        }
-        
+
+        // ✅ OPTIMIZED: Batch populate author information and cache result
+        await PopulateAuthorInfoBatchAsync(blogPostDtos);
+        _cache.Set(cacheKey, blogPostDtos, CacheConfig.Duration.Short);
+
         return blogPostDtos;
     }
 
