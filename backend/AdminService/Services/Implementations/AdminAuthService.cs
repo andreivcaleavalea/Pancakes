@@ -57,12 +57,14 @@ namespace AdminService.Services.Implementations
             var token = GenerateJwtToken(adminDto);
 
             // Set secure httpOnly cookie (4 hours expiry)
+            // Configure security settings based on environment
+            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true, // Requires HTTPS
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddHours(4), // Reduced from 24 to 4 hours
+                Secure = !isDevelopment, // Only require HTTPS in production
+                SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict, // More permissive in dev
+                Expires = DateTime.UtcNow.AddHours(4), 
                 Path = "/"
             };
             httpContext.Response.Cookies.Append("adminToken", token, cookieOptions);
@@ -104,20 +106,25 @@ namespace AdminService.Services.Implementations
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var adminId = jwtToken.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
 
-                var admin = await _context.AdminUsers
-                    .Include(a => a.Roles)
-                    .FirstOrDefaultAsync(a => a.Id == adminId && a.IsActive);
-
-                if (admin == null)
-                    throw new UnauthorizedAccessException("Admin not found or inactive");
-
-                return _mapper.Map<AdminUserDto>(admin);
+                return await GetAdminByIdAsync(adminId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error validating admin token");
                 throw new UnauthorizedAccessException("Invalid token");
             }
+        }
+
+        public async Task<AdminUserDto> GetAdminByIdAsync(string adminId)
+        {
+            var admin = await _context.AdminUsers
+                .Include(a => a.Roles)
+                .FirstOrDefaultAsync(a => a.Id == adminId && a.IsActive);
+
+            if (admin == null)
+                throw new UnauthorizedAccessException("Admin not found or inactive");
+
+            return _mapper.Map<AdminUserDto>(admin);
         }
 
 

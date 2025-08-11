@@ -197,13 +197,17 @@ export const adminApi = new AdminApiService();
 // Export the axios instance for direct use in other APIs
 export { api };
 
-// Request interceptor for error handling
+// Global error handler for authentication errors
+// This handles 401/403 errors in API calls outside of the auth context
+import { handleAuthError } from "../utils/authErrorHandler";
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("adminToken");
-      window.location.href = "/login";
+    // Only handle confirmed authentication failures, not network errors
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Use the global auth error handler (connected to AuthContext)
+      handleAuthError();
     }
     return Promise.reject(error);
   }
