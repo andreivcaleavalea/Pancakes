@@ -11,10 +11,9 @@ public interface IReportService
     Task<IEnumerable<ReportDto>> GetByReporterIdAsync(string reporterId);
     Task<IEnumerable<ReportDto>> GetByReportedUserIdAsync(string reportedUserId);
     Task<ReportDto> CreateReportAsync(CreateReportDto createReportDto, string reporterId, string reporterName);
-    Task<ReportDto> UpdateReportAsync(Guid id, UpdateReportDto updateReportDto, string reviewedBy);
-    Task DeleteReportAsync(Guid id);
-    Task<int> GetTotalCountAsync();
-    Task<int> GetPendingCountAsync();
+    Task<ReportDto> UpdateReportAsync(Guid id, UpdateReportDto updateReportDto);
+    Task<bool> DeleteReportAsync(Guid id);
+    Task<ReportStatsDto> GetReportStatsAsync();
     Task<bool> CanUserReportContentAsync(string userId, Guid contentId, ReportContentType contentType);
     Task<(bool CanReport, string ErrorMessage)> ValidateReportAsync(string userId, Guid contentId, ReportContentType contentType);
 }

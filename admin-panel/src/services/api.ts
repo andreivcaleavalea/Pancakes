@@ -11,6 +11,12 @@ import type {
   BlogPostStats,
 } from "../types";
 import { API_CONFIG } from "../constants";
+import {
+  adminCache,
+  userCache,
+  statsCache,
+  cacheUtils,
+} from "../utils/requestCache";
 
 // Create axios instance
 const api = axios.create({
@@ -64,8 +70,15 @@ class AdminApiService {
   }
 
   async getCurrentAdmin(): Promise<ApiResponse<AdminUser>> {
-    const response = await api.get("/adminauth/me");
-    return response.data;
+    const cacheKey = "current-admin";
+    return adminCache.execute(
+      cacheKey,
+      async () => {
+        const response = await api.get("/adminauth/me");
+        return response.data;
+      },
+      { ttl: 300000 } // 5 minutes cache for current admin
+    );
   }
 
   async validateToken(): Promise<ApiResponse<{ isValid: boolean }>> {
@@ -75,8 +88,15 @@ class AdminApiService {
 
   // Dashboard endpoints
   async getDashboardStats(): Promise<ApiResponse<DashboardStats>> {
-    const response = await api.get("/analytics/dashboard");
-    return response.data;
+    const cacheKey = "dashboard-stats";
+    return statsCache.execute(
+      cacheKey,
+      async () => {
+        const response = await api.get("/analytics/dashboard");
+        return response.data;
+      },
+      { ttl: 120000 } // 2 minutes cache for dashboard stats
+    );
   }
 
   // User management endpoints
@@ -85,10 +105,17 @@ class AdminApiService {
     pageSize = 20,
     searchTerm = ""
   ): Promise<ApiResponse<PagedResponse<UserOverview>>> {
-    const response = await api.get("/usermanagement/search", {
-      params: { page, pageSize, searchTerm },
-    });
-    return response.data;
+    const cacheKey = cacheUtils.createKey("users", page, pageSize, searchTerm);
+    return userCache.execute(
+      cacheKey,
+      async () => {
+        const response = await api.get("/usermanagement/search", {
+          params: { page, pageSize, searchTerm },
+        });
+        return response.data;
+      },
+      { ttl: 60000 } // 1 minute cache for user lists
+    );
   }
 
   async getUserDetails(userId: string): Promise<ApiResponse<any>> {
@@ -106,6 +133,11 @@ class AdminApiService {
       reason,
       expiresAt,
     });
+
+    // Invalidate user-related caches
+    cacheUtils.invalidateEntity("users");
+    userCache.delete(`user-details:${userId}`);
+
     return response.data;
   }
 
@@ -117,6 +149,11 @@ class AdminApiService {
       userId,
       reason,
     });
+
+    // Invalidate user-related caches
+    cacheUtils.invalidateEntity("users");
+    userCache.delete(`user-details:${userId}`);
+
     return response.data;
   }
 

@@ -127,7 +127,7 @@ public class ReportsController : ControllerBase
                 return Unauthorized("Admin ID not found in token");
             }
 
-            var report = await _reportService.UpdateReportAsync(id, updateReportDto, adminName);
+            var report = await _reportService.UpdateReportAsync(id, updateReportDto);
             
             return Ok(report);
         }
@@ -164,14 +164,8 @@ public class ReportsController : ControllerBase
     {
         try
         {
-            var totalCount = await _reportService.GetTotalCountAsync();
-            var pendingCount = await _reportService.GetPendingCountAsync();
-
-            return Ok(new
-            {
-                TotalReports = totalCount,
-                PendingReports = pendingCount
-            });
+            var stats = await _reportService.GetReportStatsAsync();
+            return Ok(stats);
         }
         catch (Exception ex)
         {

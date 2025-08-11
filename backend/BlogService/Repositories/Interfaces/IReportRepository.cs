@@ -12,7 +12,7 @@ public interface IReportRepository
     Task<IEnumerable<Report>> GetByContentIdAsync(Guid contentId, ReportContentType contentType);
     Task<Report> CreateAsync(Report report);
     Task<Report> UpdateAsync(Report report);
-    Task DeleteAsync(Guid id);
+    Task<bool> DeleteAsync(Guid id);
     Task<int> GetTotalCountAsync();
     Task<int> GetPendingCountAsync();
     Task<bool> HasUserReportedContentAsync(string userId, Guid contentId, ReportContentType contentType);

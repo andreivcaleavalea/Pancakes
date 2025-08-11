@@ -84,14 +84,16 @@ public class ReportRepository : IReportRepository
         return report;
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
         var report = await GetByIdAsync(id);
         if (report != null)
         {
             _context.Reports.Remove(report);
             await _context.SaveChangesAsync();
+            return true;
         }
+        return false;
     }
 
     public async Task<int> GetTotalCountAsync()

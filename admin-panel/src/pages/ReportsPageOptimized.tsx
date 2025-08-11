@@ -31,7 +31,6 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { useReports } from "@/hooks/useReports";
 import { adminActionsApi } from "@/services/adminActionsApi";
-import { ReportsPageSkeleton } from "@/components/LoadingSkeletons";
 import {
   ReportDto,
   UpdateReportDto,
@@ -394,11 +393,6 @@ const ReportsPage: React.FC = () => {
       })),
     []
   );
-
-  // Show skeleton on initial load
-  if (loading && reports.length === 0) {
-    return <ReportsPageSkeleton />;
-  }
 
   if (error) {
     return (
