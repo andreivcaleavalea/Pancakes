@@ -11,7 +11,7 @@ public class PostRatingService : IPostRatingService
     private readonly IPostRatingRepository _ratingRepository;
     private readonly IBlogPostRepository _blogPostRepository;
     private readonly IMapper _mapper;
-    private readonly IUserContextService _userContextService;
+    private readonly IAuthorizationService _authorizationService;
     private readonly IModelValidationService _modelValidationService;
     private readonly ILogger<PostRatingService> _logger;
 
@@ -19,14 +19,14 @@ public class PostRatingService : IPostRatingService
         IPostRatingRepository ratingRepository,
         IBlogPostRepository blogPostRepository,
         IMapper mapper,
-        IUserContextService userContextService,
+        IAuthorizationService authorizationService,
         IModelValidationService modelValidationService,
         ILogger<PostRatingService> logger)
     {
         _ratingRepository = ratingRepository;
         _blogPostRepository = blogPostRepository;
         _mapper = mapper;
-        _userContextService = userContextService;
+        _authorizationService = authorizationService;
         _modelValidationService = modelValidationService;
         _logger = logger;
     }
@@ -107,7 +107,8 @@ public class PostRatingService : IPostRatingService
     public async Task<PostRatingStatsDto> GetRatingStatsAsync(Guid blogPostId, HttpContext httpContext)
     {
         // Allow both authenticated and unauthenticated access to rating stats
-        var userId = _userContextService.GetCurrentUserId(httpContext);
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        var userId = currentUser?.Id;
         
         _logger.LogInformation("Getting rating stats for blog post {BlogPostId}, user {UserId}", 
             blogPostId, userId ?? "anonymous");
@@ -134,9 +135,16 @@ public class PostRatingService : IPostRatingService
             throw new ArgumentException(validationResult.ErrorMessage);
         }
 
-        // Set user identifier using context service
-        _logger.LogInformation("Attempting to get user ID...");
-        createDto.UserId = _userContextService.GetCurrentUserId(httpContext);
+        // Get authenticated user - require authentication for ratings
+        _logger.LogInformation("Attempting to get current user...");
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
+        {
+            throw new UnauthorizedAccessException("Authentication required to rate blog posts");
+        }
+        
+        // Always override UserId with authenticated user ID for security
+        createDto.UserId = currentUser.Id;
         _logger.LogInformation("Successfully extracted user ID: {UserId}", createDto.UserId);
 
         return await CreateOrUpdateRatingAsync(createDto);
@@ -144,13 +152,14 @@ public class PostRatingService : IPostRatingService
 
     public async Task DeleteRatingAsync(Guid blogPostId, HttpContext httpContext)
     {
-        var userId = _userContextService.GetCurrentUserId(httpContext);
-        if (userId == null)
+        // Get authenticated user - require authentication for deleting ratings
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
         {
-            throw new UnauthorizedAccessException("User not authenticated");
+            throw new UnauthorizedAccessException("Authentication required to delete ratings");
         }
 
-        _logger.LogInformation("User {UserId} deleting rating for blog post {BlogPostId}", userId, blogPostId);
-        await DeleteRatingAsync(blogPostId, userId);
+        _logger.LogInformation("User {UserId} deleting rating for blog post {BlogPostId}", currentUser.Id, blogPostId);
+        await DeleteRatingAsync(blogPostId, currentUser.Id);
     }
 } 

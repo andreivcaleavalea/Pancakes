@@ -35,6 +35,7 @@ public class CommentLikesController : ControllerBase
     }
 
     [HttpPost]
+    [HttpPut]
     public async Task<IActionResult> CreateOrUpdateLike([FromBody] CreateCommentLikeDto createDto)
     {
         try
@@ -52,6 +53,8 @@ public class CommentLikesController : ControllerBase
             return StatusCode(500, "An error occurred while processing the like");
         }
     }
+
+
 
     [HttpDelete("{commentId:guid}")]
     public async Task<IActionResult> DeleteLike(Guid commentId)

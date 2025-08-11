@@ -11,7 +11,6 @@ import {
   message,
   Badge,
   Popconfirm,
-
   Empty,
   Spin,
 } from "antd";
@@ -35,6 +34,7 @@ import { useAverageRatings } from "@/hooks/useAverageRatings";
 import { friendshipApi, type AvailableUser } from "@/services/friendshipApi";
 import { BlogCard } from "@/components/common/BlogCard";
 import Pagination from "@/components/Pagination/Pagination";
+import { getProfilePictureUrl } from "@/utils/imageUtils";
 import type { BlogPost } from "@/types/blog";
 import "./FriendsPage.scss";
 
@@ -227,7 +227,7 @@ const FriendsPage: React.FC = () => {
                       <List.Item.Meta
                         avatar={
                           <Avatar
-                            src={friend.image}
+                            src={getProfilePictureUrl(friend.image)}
                             icon={<UserOutlined />}
                             size={48}
                           />
@@ -291,7 +291,7 @@ const FriendsPage: React.FC = () => {
                       <List.Item.Meta
                         avatar={
                           <Avatar
-                            src={request.senderImage}
+                            src={getProfilePictureUrl(request.senderImage)}
                             icon={<UserOutlined />}
                             size={48}
                           />
@@ -403,7 +403,7 @@ const FriendsPage: React.FC = () => {
                   <List.Item.Meta
                     avatar={
                       <Avatar
-                        src={user.image}
+                        src={getProfilePictureUrl(user.image)}
                         icon={<UserOutlined />}
                         size={48}
                       />

@@ -1,6 +1,6 @@
 version: "3.8"
 services:
-  postgres:
+  postgres-blogs:
     image: postgres:15
     env_file:
       - .env
@@ -11,7 +11,20 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_blogs_data:/var/lib/postgresql/data
+
+  postgres-users:
+    image: postgres:15
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=PancakesUserDB
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
 
   postgres-admin:
     image: postgres:15
@@ -62,9 +75,5 @@ services:
 #     - pancakes-network
 
 volumes:
-  postgres_data:
-  postgres_admin_data:
-
-networks:
-  pancakes-network:
-    driver: bridge
+  postgres_blogs_data:
+  postgres_users_data:

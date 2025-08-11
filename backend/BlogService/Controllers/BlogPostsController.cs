@@ -1,6 +1,7 @@
 using BlogService.Models.DTOs;
 using BlogService.Models.Requests;
 using BlogService.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogService.Controllers;
@@ -24,6 +25,7 @@ public class BlogPostsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetBlogPosts([FromQuery] BlogPostQueryParameters parameters)
     {
         try
@@ -39,6 +41,7 @@ public class BlogPostsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetBlogPost(Guid id)
     {
         try
@@ -58,6 +61,7 @@ public class BlogPostsController : ControllerBase
     }
 
     [HttpGet("featured")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetFeaturedPosts([FromQuery] int count = 5)
     {
         try
@@ -73,6 +77,7 @@ public class BlogPostsController : ControllerBase
     }
 
     [HttpGet("popular")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetPopularPosts([FromQuery] int count = 5)
     {
         try
@@ -88,6 +93,7 @@ public class BlogPostsController : ControllerBase
     }
 
     [HttpPost("{id}/view")]
+    [AllowAnonymous]
     public IActionResult IncrementViewCount(Guid id)
     {
         try

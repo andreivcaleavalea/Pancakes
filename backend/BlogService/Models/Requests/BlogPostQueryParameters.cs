@@ -11,4 +11,5 @@ public class BlogPostQueryParameters : PaginationParameters
     public string SortOrder { get; set; } = "desc";
     public DateTime? DateFrom { get; set; }
     public DateTime? DateTo { get; set; }
+    public List<string>? Tags { get; set; } // Filter by specific tags
 }

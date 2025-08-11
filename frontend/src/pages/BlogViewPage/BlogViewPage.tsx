@@ -11,9 +11,15 @@ import { useRouter } from "@/router/RouterProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBlogPost, useFavorite } from "@/hooks/useBlog";
 import { usePostRating } from "@/hooks/useRating";
-import { CommentSection, GlazeMeter, CachedAvatar } from "@/components/common";
+import {
+  CommentSection,
+  GlazeMeter,
+  CachedAvatar,
+  BlogTags,
+} from "@/components/common";
 import { blogPostsApi } from "@/services/blogApi";
 import { DEFAULTS } from "@/utils/constants";
+import { getProfilePictureUrl } from "@/utils/imageUtils";
 import "./BlogViewPage.scss";
 
 const { Title, Text } = Typography;
@@ -163,7 +169,7 @@ const BlogViewPage: React.FC = () => {
         <div className="blog-view__meta">
           <div className="blog-view__author">
             <CachedAvatar
-              src={blogWithDisplay.authorAvatar}
+              src={getProfilePictureUrl(blogWithDisplay.authorAvatar)}
               fallbackSrc={DEFAULTS.AVATAR}
               size={48}
               className="blog-view__author-avatar"
@@ -231,6 +237,18 @@ const BlogViewPage: React.FC = () => {
             readonly={!isAuthenticated}
           />
         </div>
+
+        {/* Blog Tags */}
+        {blog.tags && blog.tags.length > 0 && (
+          <div className="blog-view__tags">
+            <BlogTags
+              tags={blog.tags}
+              maxVisible={8}
+              size="default"
+              className="blog-view__blog-tags"
+            />
+          </div>
+        )}
 
         <div className="blog-view__stats">
           <Text className="blog-view__view-count">

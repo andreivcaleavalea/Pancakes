@@ -1,13 +1,18 @@
-import React from 'react';
-import { Card, Avatar, Typography, Row, Col } from 'antd';
-import SectionSettingsPopover from '../../../../SectionSettingsPopover';
-import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
-import type { AdvancedSectionSettings } from '../../../../../../../services/personalPageService';
-import './CreativeTemplate.scss';
+import React from "react";
+import { Card, Avatar, Typography, Row, Col } from "antd";
+import SectionSettingsPopover from "../../../../SectionSettingsPopover";
+import {
+  getBackgroundWithPattern,
+  getShadowStyle,
+  getFontSize,
+  getFontWeight,
+  getBackgroundSize,
+} from "../../../../../../../utils/templateUtils";
+import { getProfilePictureUrl } from "../../../../../../../utils/imageUtils";
+import type { AdvancedSectionSettings } from "../../../../../../../services/personalPageService";
+import "./CreativeTemplate.scss";
 
 const { Title, Text, Paragraph } = Typography;
-
-
 
 interface CreativeTemplateProps {
   user: any;
@@ -34,12 +39,12 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
   const getCardStyles = () => {
     const defaultStyles = {
       background: `linear-gradient(45deg, ${sectionPrimaryColor}05, ${sectionPrimaryColor}15)`,
-      marginBottom: '32px',
-      position: 'relative' as const,
-      borderRadius: '24px',
-      overflow: 'hidden' as const,
-      border: 'none',
-      boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
+      marginBottom: "32px",
+      position: "relative" as const,
+      borderRadius: "24px",
+      overflow: "hidden" as const,
+      border: "none",
+      boxShadow: "0 15px 35px rgba(0,0,0,0.1)",
     };
 
     if (!advancedSettings) {
@@ -50,28 +55,43 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
 
     // Generate CSS custom properties for advanced settings
     const cssCustomProperties = {
-      '--advanced-background': (background.color || background.pattern !== 'none') ? 
-        getBackgroundWithPattern(background.color || '#ffffff', background.pattern, background.opacity) :
-        defaultStyles.background,
-      '--advanced-background-size': getBackgroundSize(background.pattern),
-      '--advanced-border-radius': styling.roundCorners ? styling.borderRadius : '0px',
-      '--advanced-box-shadow': styling.shadow ? getShadowStyle(styling.shadowIntensity) : 'none',
-      '--advanced-margin-top': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-bottom': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
-      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
-      '--advanced-border': styling.border.enabled 
+      "--advanced-background":
+        background.color || background.pattern !== "none"
+          ? getBackgroundWithPattern(
+              background.color || "#ffffff",
+              background.pattern,
+              background.opacity
+            )
+          : defaultStyles.background,
+      "--advanced-background-size": getBackgroundSize(background.pattern),
+      "--advanced-border-radius": styling.roundCorners
+        ? styling.borderRadius
+        : "0px",
+      "--advanced-box-shadow": styling.shadow
+        ? getShadowStyle(styling.shadowIntensity)
+        : "none",
+      "--advanced-margin-top": `${layout.margin}${
+        typeof layout.margin === "number" ? "px" : ""
+      }`,
+      "--advanced-margin-bottom": `${layout.margin}${
+        typeof layout.margin === "number" ? "px" : ""
+      }`,
+      "--advanced-margin-left": layout.fullscreen ? "calc(-50vw + 50%)" : "0px",
+      "--advanced-margin-right": layout.fullscreen
+        ? "calc(-50vw + 50%)"
+        : "0px",
+      "--advanced-border": styling.border.enabled
         ? `${styling.border.width} ${styling.border.style} ${styling.border.color}`
-        : 'none',
-      '--advanced-overflow': 'hidden',
-      '--advanced-width': layout.fullscreen ? '100vw' : 'auto',
+        : "none",
+      "--advanced-overflow": "hidden",
+      "--advanced-width": layout.fullscreen ? "100vw" : "auto",
     } as React.CSSProperties;
 
     // Add animation and transition as regular inline styles (these work fine)
     const finalStyles = {
       ...cssCustomProperties,
-      position: 'relative' as const,
-      transition: 'none', // Animation disabled
+      position: "relative" as const,
+      transition: "none", // Animation disabled
       animation: undefined, // Animation disabled
     };
 
@@ -80,10 +100,10 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
 
   // Build content styles
   const getContentStyles = () => {
-    if (!advancedSettings) return { padding: '40px' };
+    if (!advancedSettings) return { padding: "40px" };
     return {
-      padding: '32px', // Default padding
-      position: 'relative' as const,
+      padding: "32px", // Default padding
+      position: "relative" as const,
       zIndex: 1,
     };
   };
@@ -94,23 +114,25 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
 
     const { typography } = advancedSettings;
     return {
-      fontSize: typography.fontSize ? getFontSize(typography.fontSize) : undefined,
+      fontSize: typography.fontSize
+        ? getFontSize(typography.fontSize)
+        : undefined,
       color: typography.fontColor || undefined,
-      fontWeight: typography.fontWeight ? getFontWeight(typography.fontWeight) : undefined,
+      fontWeight: typography.fontWeight
+        ? getFontWeight(typography.fontWeight)
+        : undefined,
     };
   };
 
   const cardStyles = getCardStyles();
 
   // Use different className when advanced settings are active to avoid SCSS conflicts
-  const cardClassName = advancedSettings ? 'creative-template creative-template--custom' : 'creative-template';
+  const cardClassName = advancedSettings
+    ? "creative-template creative-template--custom"
+    : "creative-template";
 
   return (
-    <Card 
-      key="personal" 
-      className={cardClassName}
-      style={cardStyles}
-    >
+    <Card key="personal" className={cardClassName} style={cardStyles}>
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -120,14 +142,16 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
       />
 
       {/* Creative Background Pattern - only show if no custom background */}
-      {(!advancedSettings?.background.color && (!advancedSettings?.background.pattern || advancedSettings?.background.pattern === 'none')) && (
-        <div 
-          className="creative-template__bg-pattern"
-          style={{
-            background: `radial-gradient(circle, ${sectionPrimaryColor}20, transparent)`,
-          }}
-        />
-      )}
+      {!advancedSettings?.background.color &&
+        (!advancedSettings?.background.pattern ||
+          advancedSettings?.background.pattern === "none") && (
+          <div
+            className="creative-template__bg-pattern"
+            style={{
+              background: `radial-gradient(circle, ${sectionPrimaryColor}20, transparent)`,
+            }}
+          />
+        )}
 
       <div className="creative-template__content" style={getContentStyles()}>
         <Row align="middle" gutter={[32, 24]}>
@@ -135,7 +159,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
             <div className="creative-template__avatar-container">
               <div className="creative-template__avatar-wrapper">
                 {/* Rotating Ring Animation */}
-                <div 
+                <div
                   className="creative-template__rotating-ring"
                   style={{
                     background: `conic-gradient(${sectionPrimaryColor}60, transparent, ${sectionPrimaryColor}60, transparent, ${sectionPrimaryColor}60)`,
@@ -143,7 +167,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
                 />
 
                 {/* Pulsing Inner Ring */}
-                <div 
+                <div
                   className="creative-template__pulsing-ring"
                   style={{
                     background: `linear-gradient(45deg, ${sectionPrimaryColor}30, transparent, ${sectionPrimaryColor}30)`,
@@ -152,25 +176,25 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
 
                 <Avatar
                   size={100}
-                  src={(() => {
-                    const imageUrl = user.avatar || user.image;
-                    if (!imageUrl) return undefined;
-                    return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
-                  })()}
+                  src={getProfilePictureUrl(user.avatar)}
                   className="creative-template__avatar"
                 />
               </div>
             </div>
           </Col>
-          
+
           <Col xs={24} md={16}>
             <div>
-              <Title level={2} className="creative-template__name" style={getTypographyStyles()}>
+              <Title
+                level={2}
+                className="creative-template__name"
+                style={getTypographyStyles()}
+              >
                 {user.name}
               </Title>
 
               <div className="creative-template__contact-tags">
-                <div 
+                <div
                   className="creative-template__contact-tag"
                   style={{
                     background: `${sectionPrimaryColor}15`,
@@ -182,7 +206,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
                   <Text>📧 {user.email}</Text>
                 </div>
                 {user.phoneNumber && (
-                  <div 
+                  <div
                     className="creative-template__contact-tag"
                     style={{
                       background: `${sectionPrimaryColor}15`,
@@ -197,7 +221,10 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
               </div>
 
               {user.bio && (
-                <Paragraph className="creative-template__bio" style={getTypographyStyles()}>
+                <Paragraph
+                  className="creative-template__bio"
+                  style={getTypographyStyles()}
+                >
                   "{user.bio}"
                 </Paragraph>
               )}
@@ -209,4 +236,4 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({
   );
 };
 
-export default CreativeTemplate; 
+export default CreativeTemplate;

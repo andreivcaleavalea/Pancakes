@@ -63,6 +63,9 @@ Thumbs.db
 *.nupkg
 *.snupkg
 
-
 # Coverage files
 *coverage*
+
+# Assets from db
+backend/UserService/assets/
+

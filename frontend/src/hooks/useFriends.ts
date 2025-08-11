@@ -37,9 +37,18 @@ export function usePaginatedFriendsPosts(
       setLoading(true);
       setError(null);
 
+      console.log(
+        `[Friends Posts] Fetching friends posts - page: ${page}, pageSize: ${pageSize}`
+      );
+
       const response = await authenticatedBlogRequest<
         PaginatedResult<BlogPost>
       >(`/api/blogposts/friends?page=${page}&pageSize=${pageSize}`);
+
+      console.log(`[Friends Posts] API Response:`, response);
+      console.log(`[Friends Posts] Posts data:`, response.data);
+      console.log(`[Friends Posts] Pagination:`, response.pagination);
+
       setData(response.data || []);
 
       if (response.pagination) {

@@ -10,7 +10,7 @@ import "./CommentSection.scss";
 const { Title } = Typography;
 
 const CommentSection: React.FC<CommentSectionProps> = ({ blogPostId }) => {
-  const { comments, loading, error, addComment, deleteComment } =
+  const { comments, loading, error, addComment, updateComment, deleteComment } =
     useComments(blogPostId);
   const { modal, message } = App.useApp();
 
@@ -28,6 +28,48 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogPostId }) => {
           message.success("Comment deleted successfully");
         } catch (error) {
           message.error("Failed to delete comment");
+        }
+      },
+    });
+  };
+
+  const handleEditComment = async (comment: Comment) => {
+    // Create a simple input modal for editing
+    let newContent = comment.content;
+
+    modal.confirm({
+      title: "Edit Comment",
+      content: (
+        <div style={{ marginTop: 16 }}>
+          <textarea
+            defaultValue={comment.content}
+            onChange={(e) => (newContent = e.target.value)}
+            style={{
+              width: "100%",
+              minHeight: "100px",
+              padding: "8px",
+              border: "1px solid #d9d9d9",
+              borderRadius: "4px",
+              resize: "vertical",
+            }}
+            placeholder="Edit your comment..."
+          />
+        </div>
+      ),
+      okText: "Save",
+      cancelText: "Cancel",
+      onOk: async () => {
+        if (newContent.trim() && newContent !== comment.content) {
+          try {
+            await updateComment(comment.id, {
+              content: newContent.trim(),
+              blogPostId: comment.blogPostId,
+              parentCommentId: comment.parentCommentId,
+            });
+            message.success("Comment updated successfully");
+          } catch (error) {
+            message.error("Failed to update comment");
+          }
         }
       },
     });
@@ -78,6 +120,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ blogPostId }) => {
               <CommentItem
                 key={comment.id}
                 comment={comment}
+                onEdit={handleEditComment}
                 onDelete={handleDeleteComment}
                 onReply={addComment}
                 depth={0}

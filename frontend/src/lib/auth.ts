@@ -18,9 +18,14 @@ export type OAuthProvider = keyof typeof oauthProviders;
  * Initiates OAuth login flow for the specified provider
  */
 export function initiateOAuthLogin(provider: OAuthProvider): void {
+  console.log(`🔐 OAuth: Starting login flow for ${provider}`);
+
   const config = oauthProviders[provider];
   
   if (!config || !config.clientId) {
+    console.error(
+      `❌ OAuth: Unsupported provider or missing client ID: ${provider}`
+    );
     throw new Error(`Unsupported provider or missing client ID: ${provider}`);
   }
 
@@ -29,6 +34,13 @@ export function initiateOAuthLogin(provider: OAuthProvider): void {
   const redirectUri = `${
     import.meta.env.VITE_USER_API_URL || "http://localhost:5141"
   }/auth/${provider}/callback`;
+
+  console.log(`🔐 OAuth: Generated state and redirect URI:`, {
+    provider,
+    redirectUri,
+    state: state.substring(0, 8) + "...", // Only log first 8 chars for security
+    scope: config.scope,
+  });
 
   // Store state for verification
   sessionStorage.setItem("oauth-state", state);
@@ -42,7 +54,10 @@ export function initiateOAuthLogin(provider: OAuthProvider): void {
     state: state,
   });
 
-  window.location.href = `${config.authUrl}?${params.toString()}`;
+  const authUrl = `${config.authUrl}?${params.toString()}`;
+  console.log(`🔐 OAuth: Redirecting to ${provider} authorization server...`);
+
+  window.location.href = authUrl;
 }
 
 /**

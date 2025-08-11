@@ -74,7 +74,8 @@ export class BlogService {
    */
   static async getPaginatedPosts(
     page: number,
-    pageSize: number = 9
+    pageSize: number = 9,
+    tags?: string[]
   ): Promise<PaginatedResult<BlogPost>> {
     try {
       const params: BlogPostQueryParams = {
@@ -82,6 +83,7 @@ export class BlogService {
         pageSize,
         sortBy: "createdAt",
         sortOrder: "desc",
+        ...(tags && tags.length > 0 && { tags }),
       };
 
       const result = await blogPostsApi.getAll(params);

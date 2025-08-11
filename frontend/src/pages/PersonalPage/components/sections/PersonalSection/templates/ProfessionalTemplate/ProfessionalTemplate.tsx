@@ -1,8 +1,15 @@
-import React from 'react';
-import { Card, Avatar, Typography, Row, Col } from 'antd';
-import SectionSettingsPopover from '../../../../SectionSettingsPopover';
-import { getBackgroundWithPattern, getShadowStyle, getFontSize, getFontWeight, getBackgroundSize } from '../../../../../../../utils/templateUtils';
-import './ProfessionalTemplate.scss';
+import React from "react";
+import { Card, Avatar, Typography, Row, Col } from "antd";
+import SectionSettingsPopover from "../../../../SectionSettingsPopover";
+import {
+  getBackgroundWithPattern,
+  getShadowStyle,
+  getFontSize,
+  getFontWeight,
+  getBackgroundSize,
+} from "../../../../../../../utils/templateUtils";
+import { getProfilePictureUrl } from "../../../../../../../utils/imageUtils";
+import "./ProfessionalTemplate.scss";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -37,9 +44,9 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
   // Build card styles with advanced settings overrides
   const getCardStyles = () => {
     const defaultStyles = {
-      marginBottom: '32px',
-      borderRadius: '16px',
-      position: 'relative' as const,
+      marginBottom: "32px",
+      borderRadius: "16px",
+      position: "relative" as const,
     };
 
     if (!advancedSettings) return defaultStyles;
@@ -48,28 +55,43 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
 
     // Generate CSS custom properties for advanced settings
     const cssCustomProperties = {
-      '--advanced-background': (background.color || background.pattern !== 'none') ? 
-        getBackgroundWithPattern(background.color || '#ffffff', background.pattern, background.opacity) :
-        undefined,
-      '--advanced-background-size': getBackgroundSize(background.pattern),
-      '--advanced-border-radius': styling.roundCorners ? styling.borderRadius : '0px',
-      '--advanced-box-shadow': styling.shadow ? getShadowStyle(styling.shadowIntensity) : 'none',
-      '--advanced-margin-top': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-bottom': `${layout.margin}${typeof layout.margin === 'number' ? 'px' : ''}`,
-      '--advanced-margin-left': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
-      '--advanced-margin-right': layout.fullscreen ? 'calc(-50vw + 50%)' : '0px',
-      '--advanced-border': styling.border.enabled 
+      "--advanced-background":
+        background.color || background.pattern !== "none"
+          ? getBackgroundWithPattern(
+              background.color || "#ffffff",
+              background.pattern,
+              background.opacity
+            )
+          : undefined,
+      "--advanced-background-size": getBackgroundSize(background.pattern),
+      "--advanced-border-radius": styling.roundCorners
+        ? styling.borderRadius
+        : "0px",
+      "--advanced-box-shadow": styling.shadow
+        ? getShadowStyle(styling.shadowIntensity)
+        : "none",
+      "--advanced-margin-top": `${layout.margin}${
+        typeof layout.margin === "number" ? "px" : ""
+      }`,
+      "--advanced-margin-bottom": `${layout.margin}${
+        typeof layout.margin === "number" ? "px" : ""
+      }`,
+      "--advanced-margin-left": layout.fullscreen ? "calc(-50vw + 50%)" : "0px",
+      "--advanced-margin-right": layout.fullscreen
+        ? "calc(-50vw + 50%)"
+        : "0px",
+      "--advanced-border": styling.border.enabled
         ? `${styling.border.width} ${styling.border.style} ${styling.border.color}`
-        : 'none',
-      '--advanced-overflow': 'hidden',
-      '--advanced-width': layout.fullscreen ? '100vw' : 'auto',
+        : "none",
+      "--advanced-overflow": "hidden",
+      "--advanced-width": layout.fullscreen ? "100vw" : "auto",
     } as React.CSSProperties;
 
     // Add transition (no animation)
     const finalStyles = {
       ...cssCustomProperties,
-      position: 'relative' as const,
-      transition: 'none', // Animation disabled
+      position: "relative" as const,
+      transition: "none", // Animation disabled
       animation: undefined, // Animation disabled
     };
 
@@ -80,7 +102,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
   const getContentStyles = () => {
     if (!advancedSettings) return {};
     return {
-      padding: '32px', // Default padding
+      padding: "32px", // Default padding
     };
   };
 
@@ -89,21 +111,23 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
     if (!advancedSettings) return {};
     const { typography } = advancedSettings;
     return {
-      fontSize: typography.fontSize ? getFontSize(typography.fontSize) : undefined,
+      fontSize: typography.fontSize
+        ? getFontSize(typography.fontSize)
+        : undefined,
       color: typography.fontColor || undefined,
-      fontWeight: typography.fontWeight ? getFontWeight(typography.fontWeight) : undefined,
+      fontWeight: typography.fontWeight
+        ? getFontWeight(typography.fontWeight)
+        : undefined,
     };
   };
 
   const cardStyles = getCardStyles();
-  const cardClassName = advancedSettings ? 'professional-template professional-template--custom' : 'professional-template';
+  const cardClassName = advancedSettings
+    ? "professional-template professional-template--custom"
+    : "professional-template";
 
   return (
-    <Card 
-      key="personal" 
-      className={cardClassName}
-      style={cardStyles}
-    >
+    <Card key="personal" className={cardClassName} style={cardStyles}>
       <SectionSettingsPopover
         sectionKey={sectionKey}
         sectionSettings={currentSectionSettings}
@@ -111,9 +135,9 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
         templateOptions={templateOptions}
         editMode={editMode}
       />
-      
+
       {/* Professional Header */}
-      <div 
+      <div
         className="professional-template__header"
         style={{
           background: `linear-gradient(135deg, ${sectionPrimaryColor}, ${sectionPrimaryColor}dd)`,
@@ -122,32 +146,35 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
         <div className="professional-template__avatar-wrapper">
           <Avatar
             size={80}
-            src={(() => {
-              const imageUrl = user.avatar || user.image;
-              if (!imageUrl) return undefined;
-              return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${imageUrl}`;
-            })()}
+            src={getProfilePictureUrl(user.avatar)}
             className="professional-template__avatar"
           />
         </div>
       </div>
-      
-      <div className="professional-template__content" style={getContentStyles()}>
-        <Title level={2} className="professional-template__name" style={getTypographyStyles()}>
+
+      <div
+        className="professional-template__content"
+        style={getContentStyles()}
+      >
+        <Title
+          level={2}
+          className="professional-template__name"
+          style={getTypographyStyles()}
+        >
           {user.name}
         </Title>
-        
-        <Text 
+
+        <Text
           className="professional-template__title"
           style={{ color: sectionPrimaryColor, ...getTypographyStyles() }}
         >
-          {user.title || 'Professional'}
+          {user.title || "Professional"}
         </Text>
-        
+
         <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <div className="professional-template__contact-item">
-              <span 
+              <span
                 className="professional-template__contact-icon"
                 style={{ color: sectionPrimaryColor }}
               >
@@ -159,7 +186,7 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
           {user.phoneNumber && (
             <Col xs={24} sm={12}>
               <div className="professional-template__contact-item">
-                <span 
+                <span
                   className="professional-template__contact-icon"
                   style={{ color: sectionPrimaryColor }}
                 >
@@ -170,13 +197,16 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
             </Col>
           )}
         </Row>
-        
+
         {user.bio && (
-          <div 
+          <div
             className="professional-template__bio"
             style={{ borderLeft: `4px solid ${sectionPrimaryColor}` }}
           >
-            <Paragraph className="professional-template__bio-text" style={getTypographyStyles()}>
+            <Paragraph
+              className="professional-template__bio-text"
+              style={getTypographyStyles()}
+            >
               {user.bio}
             </Paragraph>
           </div>
@@ -186,4 +216,4 @@ const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
   );
 };
 
-export default ProfessionalTemplate; 
+export default ProfessionalTemplate;

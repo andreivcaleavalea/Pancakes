@@ -3,6 +3,7 @@ import { Typography, Row, Col, Spin, Alert } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { BlogCard } from "@common/BlogCard";
 import { FloatingActionButton } from "@common/FloatingActionButton";
+import { TagFilter } from "@components/common";
 import Pagination from "@components/Pagination/Pagination";
 import { useBlogData, usePaginatedPosts, useResponsive } from "@/hooks/useBlog";
 import { useAverageRatings } from "@/hooks/useAverageRatings";
@@ -14,6 +15,7 @@ const { Title } = Typography;
 
 const HomePage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Use custom hooks
   const {
@@ -26,7 +28,11 @@ const HomePage: React.FC = () => {
     pagination,
     loading: postsLoading,
     error: postsError,
-  } = usePaginatedPosts(currentPage, PAGINATION.DEFAULT_PAGE_SIZE);
+  } = usePaginatedPosts(
+    currentPage,
+    PAGINATION.DEFAULT_PAGE_SIZE,
+    selectedTags
+  );
   const isMobile = useResponsive(BREAKPOINTS.MOBILE);
   const { navigate } = useRouter();
 
@@ -49,6 +55,11 @@ const HomePage: React.FC = () => {
     document
       .querySelector(".home-page__grid-posts")
       ?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleTagsChange = (tags: string[]) => {
+    setSelectedTags(tags);
+    setCurrentPage(1); // Reset to first page when filtering changes
   };
 
   const handleCreateBlog = () => {
@@ -139,6 +150,13 @@ const HomePage: React.FC = () => {
         >
           All Recipes
         </Title>
+
+        {/* Tag Filter Component */}
+        <TagFilter
+          selectedTags={selectedTags}
+          onTagsChange={handleTagsChange}
+          className="home-page__tag-filter"
+        />
 
         {postsError ? (
           <Alert

@@ -60,6 +60,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (storedSession) {
       try {
         const parsedSession = JSON.parse(storedSession);
+
         // Check if session is still valid
         if (new Date(parsedSession.expires) > new Date()) {
           setSession(parsedSession);
@@ -67,10 +68,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.removeItem("auth-session");
         }
       } catch (error) {
-        console.error("Error parsing stored session:", error);
+        console.error("❌ AuthContext: Error parsing stored session:", error);
         localStorage.removeItem("auth-session");
       }
     }
+
     setLoading(false);
   }, []);
 
@@ -79,12 +81,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Use the simplified OAuth system from auth.ts
       initiateOAuthLogin(provider.toLowerCase() as OAuthProvider);
     } catch (error) {
-      console.error("Sign in error:", error);
+      console.error("❌ AuthContext: Sign in error:", error);
       throw error;
     }
   };
 
   const signOut = async () => {
+    console.log("🔐 AuthContext: Signing out user...", {
+      userId: session?.user?.id,
+      userName: session?.user?.name,
+    });
+
     try {
       // Optionally call backend logout endpoint for logging/analytics
       // In a stateless system, the backend doesn't need to clear any state
@@ -98,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       }
     } catch (error) {
-      console.error("Error calling logout endpoint:", error);
+      console.error("❌ AuthContext: Error calling logout endpoint:", error);
     } finally {
       setSession(null);
       localStorage.removeItem("auth-session");
