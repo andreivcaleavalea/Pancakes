@@ -1,11 +1,9 @@
 import React from 'react';
-import { Row, Col, Card, Statistic, Typography, Spin, Alert, Button, Badge } from "antd";
+import { Row, Col, Card, Typography, Spin, Alert, Button, Badge } from "antd";
 import { 
   UserOutlined, 
   ReloadOutlined,
-  CheckCircleOutlined,
-  ThunderboltOutlined,
-  HeartOutlined,
+  FileTextOutlined,
   ClockCircleOutlined
 } from '@ant-design/icons';
 import { useDashboard } from '../hooks/useDashboard';
@@ -51,7 +49,7 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  const { userStats } = stats;
+  const { userStats, contentStats } = stats;
 
   return (
     <div className="dashboard-container">
@@ -70,53 +68,39 @@ const DashboardPage: React.FC = () => {
         </Button>
       </div>
       
-      {/* User Statistics */}
-      <Title level={4} style={{ marginBottom: 16 }}>User Statistics</Title>
+      {/* Statistics */}
+      <Title level={4} style={{ marginBottom: 16 }}>Statistics</Title>
       <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={12}>
           <Card className="stats-card">
             <UserOutlined className="stats-icon" style={{ color: '#3f8600' }} />
             <div className="stats-value" style={{ color: '#3f8600' }}>
-              {userStats?.totalUsers || 0}
+              {loading ? '...' : (userStats?.totalUsers?.toLocaleString() || '0')}
             </div>
             <div className="stats-label">Total Users</div>
-            <Badge 
-              count={`+${userStats?.dailySignups || 0}`} 
-              style={{ backgroundColor: '#52c41a', marginTop: 8 }} 
-              title="New today"
-            />
+            {!loading && (
+              <Badge 
+                count={userStats?.dailySignups ? `+${userStats.dailySignups}` : '0'} 
+                style={{ backgroundColor: '#52c41a', marginTop: 8 }} 
+                title="New since last login"
+              />
+            )}
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={12}>
           <Card className="stats-card">
-            <CheckCircleOutlined className="stats-icon" style={{ color: '#1890ff' }} />
+            <FileTextOutlined className="stats-icon" style={{ color: '#1890ff' }} />
             <div className="stats-value" style={{ color: '#1890ff' }}>
-              {userStats?.activeUsers || 0}
+              {loading ? '...' : (contentStats?.totalBlogPosts?.toLocaleString() || '0')}
             </div>
-            <div className="stats-label">
-              Active Users ({userStats ? Math.round((userStats.activeUsers / userStats.totalUsers) * 100) : 0}%)
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Online Now"
-              value={userStats?.onlineUsers || 0}
-              prefix={<ThunderboltOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Growth Rate"
-              value={userStats?.growthRate || 0}
-              prefix={<HeartOutlined />}
-              suffix="%"
-              valueStyle={{ color: (userStats?.growthRate || 0) >= 0 ? '#3f8600' : '#cf1322' }}
-            />
+            <div className="stats-label">Total Posts</div>
+            {!loading && (
+              <Badge 
+                count={contentStats?.blogPostsToday ? `+${contentStats.blogPostsToday}` : '0'} 
+                style={{ backgroundColor: '#1890ff', marginTop: 8 }} 
+                title="New since last login"
+              />
+            )}
           </Card>
         </Col>
       </Row>
