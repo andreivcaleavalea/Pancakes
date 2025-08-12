@@ -41,6 +41,19 @@ public class BlogPostsControllerTests
     }
 
     [Fact]
+    public async Task GetBlogPosts_Returns_500_On_Exception()
+    {
+        var controller = CreateController(out var blogService, out _);
+        var parameters = new BlogPostQueryParameters { Page = 1, PageSize = 10 };
+        blogService
+            .Setup(s => s.GetAllAsync(parameters, controller.HttpContext))
+            .ThrowsAsync(new Exception("boom"));
+
+        var action = await controller.GetBlogPosts(parameters);
+        action.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
     public async Task GetBlogPost_NotFound_Returns_404()
     {
         var controller = CreateController(out var blogService, out _);

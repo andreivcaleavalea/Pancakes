@@ -25,6 +25,16 @@ public class TagsControllerTests
     }
 
     [Fact]
+    public async Task GetPopularTags_Returns_500_On_Exception()
+    {
+        var controller = CreateController(out var svc);
+        svc.Setup(s => s.GetPopularTagsAsync(5)).ThrowsAsync(new Exception("boom"));
+
+        var action = await controller.GetPopularTags(5);
+        action.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
     public async Task SearchTags_Returns_Ok()
     {
         var controller = CreateController(out var svc);
@@ -32,6 +42,16 @@ public class TagsControllerTests
 
         var action = await controller.SearchTags("q", 10) as OkObjectResult;
         action.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task SearchTags_Returns_500_On_Exception()
+    {
+        var controller = CreateController(out var svc);
+        svc.Setup(s => s.SearchTagsAsync("q", 10)).ThrowsAsync(new Exception("boom"));
+
+        var action = await controller.SearchTags("q", 10);
+        action.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(500);
     }
 }
 

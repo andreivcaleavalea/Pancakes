@@ -33,6 +33,17 @@ public class PostRatingsControllerTests
     }
 
     [Fact]
+    public async Task GetRatingStats_Returns_500_On_Exception()
+    {
+        var controller = CreateController(out var svc);
+        var id = Guid.NewGuid();
+        svc.Setup(s => s.GetRatingStatsAsync(id, controller.HttpContext)).ThrowsAsync(new Exception("boom"));
+
+        var action = await controller.GetRatingStats(id);
+        action.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
     public async Task CreateOrUpdate_Returns_Ok()
     {
         var controller = CreateController(out var svc);

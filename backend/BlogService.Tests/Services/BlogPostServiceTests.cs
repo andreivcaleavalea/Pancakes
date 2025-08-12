@@ -268,6 +268,49 @@ public class BlogPostServiceTests : IClassFixture<MappingFixture>
         result.AuthorName.Should().Be("User");
         result.AuthorImage.Should().Be("http://localhost:5141/assets/profile-pictures/photo.png");
     }
+
+    [Fact]
+    public async Task GetById_Returns_Null_When_NotFound()
+    {
+        var httpContext = CreateHttpContext();
+        var service = CreateService(_mapper, httpContext, out var repoMock, out _, out _, out _);
+
+        var id = Guid.NewGuid();
+        repoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((BlogPost?)null);
+
+        var result = await service.GetByIdAsync(id);
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task PopulateAuthorImage_Absolute_Passthrough()
+    {
+        var httpContext = CreateHttpContext();
+        var service = CreateService(_mapper, httpContext, out var repoMock, out var userClientMock, out _, out _);
+
+        var id = Guid.NewGuid();
+        var entity = new BlogPost { Id = id, AuthorId = "u1", Title = "T" };
+        repoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(entity);
+        userClientMock.Setup(c => c.GetUserByIdAsync("u1")).ReturnsAsync(new UserInfoDto { Id = "u1", Name = "U", Image = "https://cdn.me/p.png" });
+
+        var result = await service.GetByIdAsync(id);
+        result!.AuthorImage.Should().Be("https://cdn.me/p.png");
+    }
+
+    [Fact]
+    public async Task PopulateAuthorImage_Empty_Becomes_Empty()
+    {
+        var httpContext = CreateHttpContext();
+        var service = CreateService(_mapper, httpContext, out var repoMock, out var userClientMock, out _, out _);
+
+        var id = Guid.NewGuid();
+        var entity = new BlogPost { Id = id, AuthorId = "u1", Title = "T" };
+        repoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(entity);
+        userClientMock.Setup(c => c.GetUserByIdAsync("u1")).ReturnsAsync(new UserInfoDto { Id = "u1", Name = "U", Image = string.Empty });
+
+        var result = await service.GetByIdAsync(id);
+        result!.AuthorImage.Should().BeEmpty();
+    }
     private static HttpContext CreateHttpContext(bool isServiceRequest = false, string? bearerToken = null)
     {
         var context = new DefaultHttpContext();

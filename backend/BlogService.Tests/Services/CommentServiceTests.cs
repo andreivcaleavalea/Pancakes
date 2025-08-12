@@ -133,6 +133,190 @@ public class CommentServiceTests : IClassFixture<MappingFixture>
         Func<Task> act = async () => await service.CreateAsync(dto, http, new ModelStateDictionary());
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
+
+    [Fact]
+    public async Task GetById_Returns_Null_When_NotFound()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out var postRepo, out var userClient, out var auth, out var validator);
+        var id = Guid.NewGuid();
+        commentRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((Comment?)null);
+
+        var result = await service.GetByIdAsync(id);
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetById_Cache_Miss_Then_Hit()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out var userClient, out _, out _);
+        var id = Guid.NewGuid();
+        var entity = new Comment { Id = id, BlogPostId = Guid.NewGuid(), AuthorId = "u1", AuthorName = string.Empty, Content = "c" };
+        commentRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(entity);
+        userClient.Setup(u => u.GetUserByIdAsync("u1")).ReturnsAsync(new UserInfoDto { Id = "u1", Name = "User" });
+
+        var first = await service.GetByIdAsync(id);
+        var second = await service.GetByIdAsync(id);
+
+        first!.AuthorName.Should().Be("User");
+        second!.AuthorName.Should().Be("User");
+        commentRepo.Verify(r => r.GetByIdAsync(id), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetByBlogPost_Populate_Author_Anonymous_When_AuthorId_Empty()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out var userClient, out _, out _);
+        var blogId = Guid.NewGuid();
+        var entity = new Comment { Id = Guid.NewGuid(), BlogPostId = blogId, AuthorId = string.Empty, AuthorName = string.Empty, Content = "c", Replies = new List<Comment>() };
+        commentRepo.Setup(r => r.GetByBlogPostIdAsync(blogId)).ReturnsAsync(new[] { entity });
+
+        var result = (await service.GetByBlogPostIdAsync(blogId)).ToList();
+        result.Should().HaveCount(1);
+        result[0].AuthorName.Should().Be("Anonymous");
+        result[0].AuthorImage.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetById_UserClient_Returns_Null_Sets_Unknown()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out var userClient, out _, out _);
+        var id = Guid.NewGuid();
+        var entity = new Comment { Id = id, BlogPostId = Guid.NewGuid(), AuthorId = "ux", AuthorName = string.Empty, Content = "c" };
+        commentRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(entity);
+        userClient.Setup(u => u.GetUserByIdAsync("ux")).ReturnsAsync((UserInfoDto?)null);
+
+        var result = await service.GetByIdAsync(id);
+        result!.AuthorName.Should().Be("Unknown User");
+        result.AuthorImage.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetById_UserClient_Throws_Sets_Unknown()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out var userClient, out _, out _);
+        var id = Guid.NewGuid();
+        var entity = new Comment { Id = id, BlogPostId = Guid.NewGuid(), AuthorId = "ux", AuthorName = string.Empty, Content = "c" };
+        commentRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(entity);
+        userClient.Setup(u => u.GetUserByIdAsync("ux")).ThrowsAsync(new Exception("boom"));
+
+        var result = await service.GetByIdAsync(id);
+        result!.AuthorName.Should().Be("Unknown User");
+        result.AuthorImage.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Update_HttpContext_Success_When_Author()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out var userClient, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        validator.Setup(v => v.ValidateModel(It.IsAny<ModelStateDictionary>())).Returns(new ValidationResult { IsValid = true });
+        var id = Guid.NewGuid();
+        var user = new UserInfoDto { Id = "u1", Name = "User" };
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync(user);
+        var existing = new Comment { Id = id, BlogPostId = Guid.NewGuid(), AuthorId = "u1", AuthorName = "User", Content = "old" };
+        commentRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(existing);
+        commentRepo.Setup(r => r.UpdateAsync(existing)).ReturnsAsync(existing);
+        userClient.Setup(u => u.GetUserByIdAsync("u1")).ReturnsAsync(user);
+
+        var result = await service.UpdateAsync(id, new CreateCommentDto { Content = "new" }, http, new ModelStateDictionary());
+        result.Content.Should().Be("new");
+    }
+
+    [Fact]
+    public async Task Update_HttpContext_Invalid_Model_Throws()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out _, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        validator.Setup(v => v.ValidateModel(It.IsAny<ModelStateDictionary>())).Returns(new ValidationResult { IsValid = false, ErrorMessage = "err" });
+
+        Func<Task> act = async () => await service.UpdateAsync(Guid.NewGuid(), new CreateCommentDto { Content = "x" }, http, new ModelStateDictionary());
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task Update_HttpContext_Unauthorized_When_No_User()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out _, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        validator.Setup(v => v.ValidateModel(It.IsAny<ModelStateDictionary>())).Returns(new ValidationResult { IsValid = true });
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync((UserInfoDto?)null);
+
+        Func<Task> act = async () => await service.UpdateAsync(Guid.NewGuid(), new CreateCommentDto { Content = "x" }, http, new ModelStateDictionary());
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task Update_HttpContext_Forbid_When_Not_Author()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out _, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        validator.Setup(v => v.ValidateModel(It.IsAny<ModelStateDictionary>())).Returns(new ValidationResult { IsValid = true });
+        var id = Guid.NewGuid();
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync(new UserInfoDto { Id = "u2", Name = "U" });
+        commentRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(new Comment { Id = id, BlogPostId = Guid.NewGuid(), AuthorId = "u1", AuthorName = "A", Content = "c" });
+
+        Func<Task> act = async () => await service.UpdateAsync(id, new CreateCommentDto { Content = "x" }, http, new ModelStateDictionary());
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task Delete_HttpContext_Unauthorized_When_No_User()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out _, out var auth, out _);
+        var http = new DefaultHttpContext();
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync((UserInfoDto?)null);
+
+        Func<Task> act = async () => await service.DeleteAsync(Guid.NewGuid(), http);
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task Delete_HttpContext_Forbid_When_Not_Author()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out _, out var auth, out _);
+        var http = new DefaultHttpContext();
+        var id = Guid.NewGuid();
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync(new UserInfoDto { Id = "u2", Name = "U" });
+        commentRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(new Comment { Id = id, BlogPostId = Guid.NewGuid(), AuthorId = "u1", AuthorName = "A", Content = "c" });
+
+        Func<Task> act = async () => await service.DeleteAsync(id, http);
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task Delete_HttpContext_Soft_Delete_Returns_Updated_Dto()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out var userClient, out var auth, out _);
+        var http = new DefaultHttpContext();
+        var id = Guid.NewGuid();
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync(new UserInfoDto { Id = "u1", Name = "U" });
+        var existing = new Comment { Id = id, BlogPostId = Guid.NewGuid(), AuthorId = "u1", AuthorName = "U", Content = "c" };
+        commentRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(existing);
+        commentRepo.Setup(r => r.HasRepliesAsync(id)).ReturnsAsync(true);
+        commentRepo.Setup(r => r.UpdateAsync(It.IsAny<Comment>())).ReturnsAsync((Comment c) => c);
+        commentRepo.Setup(r => r.GetByIdWithRepliesAsync(id)).ReturnsAsync(existing);
+        userClient.Setup(u => u.GetUserByIdAsync("u1")).ReturnsAsync(new UserInfoDto { Id = "u1", Name = "U" });
+
+        var result = await service.DeleteAsync(id, http);
+        result.Should().NotBeNull();
+        result!.Content.Should().Be("[deleted]");
+    }
+
+    [Fact]
+    public async Task Delete_HttpContext_Hard_Delete_Returns_Null()
+    {
+        var service = CreateService(_mapper, out var commentRepo, out _, out _, out var auth, out _);
+        var http = new DefaultHttpContext();
+        var id = Guid.NewGuid();
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync(new UserInfoDto { Id = "u1", Name = "U" });
+        var existing = new Comment { Id = id, BlogPostId = Guid.NewGuid(), AuthorId = "u1", AuthorName = "U", Content = "c" };
+        commentRepo.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(existing);
+        commentRepo.Setup(r => r.HasRepliesAsync(id)).ReturnsAsync(false);
+        commentRepo.Setup(r => r.DeleteAsync(id)).Returns(Task.CompletedTask);
+
+        var result = await service.DeleteAsync(id, http);
+        result.Should().BeNull();
+    }
 }
 
 

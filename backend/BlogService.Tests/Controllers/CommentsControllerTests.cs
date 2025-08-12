@@ -32,6 +32,17 @@ public class CommentsControllerTests
     }
 
     [Fact]
+    public async Task GetCommentsByBlogPost_Returns_500_On_Exception()
+    {
+        var controller = CreateController(out var svc);
+        var blogId = Guid.NewGuid();
+        svc.Setup(s => s.GetByBlogPostIdAsync(blogId)).ThrowsAsync(new Exception("boom"));
+
+        var action = await controller.GetCommentsByBlogPostId(blogId);
+        action.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(500);
+    }
+
+    [Fact]
     public async Task GetComment_NotFound_Returns_404()
     {
         var controller = CreateController(out var svc);

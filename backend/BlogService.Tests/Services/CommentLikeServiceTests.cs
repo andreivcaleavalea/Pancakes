@@ -5,6 +5,7 @@ using BlogService.Repositories.Interfaces;
 using BlogService.Services.Implementations;
 using BlogService.Services.Interfaces;
 using BlogService.Tests.TestUtilities;
+using Microsoft.AspNetCore.Http;
 
 namespace BlogService.Tests.Services;
 
@@ -92,6 +93,42 @@ public class CommentLikeServiceTests : IClassFixture<MappingFixture>
 
         var statsAnon = await service.GetLikeStatsAsync(commentId, (string?)null);
         statsAnon.UserLike.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdate_Http_InvalidModel_Throws()
+    {
+        var service = CreateService(_mapper, out _, out _, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        validator.Setup(v => v.ValidateModel(It.IsAny<Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary>()))
+            .Returns(new ValidationResult { IsValid = false, ErrorMessage = "err" });
+
+        Func<Task> act = async () => await service.CreateOrUpdateLikeAsync(new CreateCommentLikeDto { CommentId = Guid.NewGuid(), IsLike = true }, http, new Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary());
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdate_Http_Unauthorized_When_No_User()
+    {
+        var service = CreateService(_mapper, out _, out _, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        validator.Setup(v => v.ValidateModel(It.IsAny<Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary>()))
+            .Returns(new ValidationResult { IsValid = true });
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync((UserInfoDto?)null);
+
+        Func<Task> act = async () => await service.CreateOrUpdateLikeAsync(new CreateCommentLikeDto { CommentId = Guid.NewGuid(), IsLike = true }, http, new Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary());
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task Delete_Http_Unauthorized_When_No_User()
+    {
+        var service = CreateService(_mapper, out _, out _, out var auth, out _);
+        var http = new DefaultHttpContext();
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync((UserInfoDto?)null);
+
+        Func<Task> act = async () => await service.DeleteLikeAsync(Guid.NewGuid(), http);
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
 }
 
