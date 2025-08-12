@@ -65,6 +65,8 @@ Thumbs.db
 
 # Coverage files
 *coverage*
+!**/coverage.runsettings
+!**/coverage.runnersettings
 
 # Assets from db
 backend/UserService/assets/
