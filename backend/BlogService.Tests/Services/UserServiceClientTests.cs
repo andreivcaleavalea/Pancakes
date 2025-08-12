@@ -163,7 +163,7 @@ public class UserServiceClientTests
             req.Headers.Authorization.Should().NotBeNull();
             req.RequestUri!.AbsolutePath.Should().Be("/api/friendships/friends");
 
-            var friends = new[]
+            var friends = new object[]
             {
                 new { userId = "u1", name = "A", image = "i1.png", friendsSince = new DateTime(2024,1,1) },
                 new { userId = "u2", name = "B", image = (string?)null, friendsSince = new DateTime(2024,1,2) }
