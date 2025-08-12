@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using BlogService.Tests.TestUtilities;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using BlogService.Services.Interfaces;
-using BlogService.Models.DTOs;
 
 namespace BlogService.Tests.Services;
 
