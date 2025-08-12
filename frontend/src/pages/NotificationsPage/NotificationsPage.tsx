@@ -18,10 +18,10 @@ import {
   BellOutlined,
   DeleteOutlined,
   CheckOutlined,
-  ExclamationCircleOutlined,
   FileTextOutlined,
 } from "@ant-design/icons";
 import { notificationApi } from "../../services/notificationApi";
+import { useNotificationContext } from "../../contexts/NotificationContext";
 import { useRouter } from "../../router/RouterProvider";
 import type { Notification } from "../../types/notification";
 import "./NotificationsPage.scss";
@@ -34,6 +34,7 @@ const NotificationsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const { navigate } = useRouter();
+  const { markAsRead, markAllAsRead } = useNotificationContext();
 
   const loadNotifications = async () => {
     try {
@@ -53,7 +54,13 @@ const NotificationsPage: React.FC = () => {
   const handleMarkAsRead = async (notificationId: string) => {
     try {
       setActionLoading(notificationId);
-      await notificationApi.markAsRead(notificationId);
+
+      // Check if notification is already read to avoid double decrementing
+      const notification = notifications.find((n) => n.id === notificationId);
+      const wasUnread = notification && !notification.isRead;
+
+      // Use context method which automatically updates the badge count
+      await markAsRead(notificationId);
 
       // Update local state
       setNotifications((prev) =>
@@ -75,7 +82,9 @@ const NotificationsPage: React.FC = () => {
   const handleMarkAllAsRead = async () => {
     try {
       setActionLoading("all");
-      await notificationApi.markAllAsRead();
+
+      // Use context method which automatically updates the badge count
+      await markAllAsRead();
 
       // Update local state
       setNotifications((prev) =>
@@ -323,4 +332,3 @@ const NotificationsPage: React.FC = () => {
 };
 
 export default NotificationsPage;
-
