@@ -84,8 +84,8 @@ public class FriendsPostServiceTests
         jwt.Setup(j => j.GetCurrentUserId()).Returns("me");
         userClient.Setup(u => u.GetUserFriendsAsync("tok")).ReturnsAsync(new[]
         {
-            new FriendDto { UserId = "u1" },
-            new FriendDto { UserId = "u2" },
+            new FriendDto { UserId = "u1", Name = "A" },
+            new FriendDto { UserId = "u2", Name = "B" },
         });
 
         blogPostService

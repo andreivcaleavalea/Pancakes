@@ -96,5 +96,3 @@ public class RepositorySmokeTests
         (await repo.IsBookmarkedAsync("u", blog.Id)).Should().BeFalse();
     }
 }
-
-

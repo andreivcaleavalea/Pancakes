@@ -302,12 +302,22 @@ public class UserServiceClient : IUserServiceClient
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                var options = new JsonSerializerOptions
+                try
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                };
-                var result = JsonSerializer.Deserialize<dynamic>(jsonContent, options);
-                return result?.areFriends ?? false;
+                    using var doc = JsonDocument.Parse(jsonContent);
+                    if (doc.RootElement.TryGetProperty("areFriends", out var areFriendsElement))
+                    {
+                        if (areFriendsElement.ValueKind == JsonValueKind.True || areFriendsElement.ValueKind == JsonValueKind.False)
+                        {
+                            return areFriendsElement.GetBoolean();
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Invalid JSON when parsing AreFriends response: {Json}", jsonContent);
+                }
+                return false;
             }
 
             _logger.LogWarning("Failed to check friendship between {UserId1} and {UserId2} from UserService. Status: {StatusCode}", 

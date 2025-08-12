@@ -7,6 +7,9 @@ using BlogService.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using BlogService.Tests.TestUtilities;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using BlogService.Services.Interfaces;
+using BlogService.Models.DTOs;
 
 namespace BlogService.Tests.Services;
 
@@ -19,6 +22,114 @@ public class PostRatingServiceTests : IClassFixture<MappingFixture>
         _mapper = mapping.Mapper;
     }
 
+    [Fact]
+    public async Task CreateOrUpdate_Http_ModelState_Invalid_Throws()
+    {
+        var service = CreateService(_mapper, out var ratingRepo, out var postRepo, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        var modelState = new ModelStateDictionary();
+        modelState.AddModelError("rating", "invalid");
+
+        validator.Setup(v => v.ValidateModel(modelState))
+            .Returns(new ValidationResult { IsValid = false, ErrorMessage = "invalid" });
+
+        var dto = new CreatePostRatingDto { BlogPostId = Guid.NewGuid(), Rating = 1.0m };
+        Func<Task> act = async () => await service.CreateOrUpdateRatingAsync(dto, http, modelState);
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("invalid");
+    }
+
+    [Fact]
+    public async Task CreateOrUpdate_Http_Unauthorized_Throws()
+    {
+        var service = CreateService(_mapper, out var ratingRepo, out var postRepo, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        var modelState = new ModelStateDictionary();
+
+        validator.Setup(v => v.ValidateModel(modelState))
+            .Returns(new ValidationResult { IsValid = true });
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync((UserInfoDto?)null);
+
+        var dto = new CreatePostRatingDto { BlogPostId = Guid.NewGuid(), Rating = 1.0m };
+        Func<Task> act = async () => await service.CreateOrUpdateRatingAsync(dto, http, modelState);
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task CreateOrUpdate_Http_Sets_UserId_And_Creates()
+    {
+        var service = CreateService(_mapper, out var ratingRepo, out var postRepo, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        var modelState = new ModelStateDictionary();
+
+        validator.Setup(v => v.ValidateModel(modelState))
+            .Returns(new ValidationResult { IsValid = true });
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync(new UserInfoDto { Id = "user-123" });
+
+        var postId = Guid.NewGuid();
+        postRepo.Setup(p => p.ExistsAsync(postId)).ReturnsAsync(true);
+        ratingRepo.Setup(r => r.GetByBlogPostAndUserAsync(postId, "user-123")).ReturnsAsync((PostRating?)null);
+
+        PostRating? created = null;
+        ratingRepo.Setup(r => r.CreateAsync(It.IsAny<PostRating>()))
+            .ReturnsAsync((PostRating pr) => { created = pr; return pr; });
+
+        var dto = new CreatePostRatingDto { BlogPostId = postId, Rating = 4.2m };
+        var result = await service.CreateOrUpdateRatingAsync(dto, http, modelState);
+
+        result.BlogPostId.Should().Be(postId);
+        result.Rating.Should().Be(4.0m);
+        created!.UserId.Should().Be("user-123");
+    }
+
+    [Fact]
+    public async Task Delete_Http_Unauthorized_Throws()
+    {
+        var service = CreateService(_mapper, out var ratingRepo, out var postRepo, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync((UserInfoDto?)null);
+
+        Func<Task> act = async () => await service.DeleteRatingAsync(Guid.NewGuid(), http);
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task Delete_Http_Success_Calls_Delete()
+    {
+        var service = CreateService(_mapper, out var ratingRepo, out var postRepo, out var auth, out var validator);
+        var http = new DefaultHttpContext();
+        auth.Setup(a => a.GetCurrentUserAsync(http)).ReturnsAsync(new UserInfoDto { Id = "uX" });
+
+        var postId = Guid.NewGuid();
+        var existing = new PostRating { Id = Guid.NewGuid(), BlogPostId = postId, UserId = "uX", Rating = 3.0m };
+        ratingRepo.Setup(r => r.GetByBlogPostAndUserAsync(postId, "uX")).ReturnsAsync(existing);
+        ratingRepo.Setup(r => r.DeleteAsync(existing.Id)).Returns(Task.CompletedTask);
+
+        await service.DeleteRatingAsync(postId, http);
+    }
+
+    [Fact]
+    public async Task GetStats_Http_With_User_And_Anonymous()
+    {
+        var service = CreateService(_mapper, out var ratingRepo, out var postRepo, out var auth, out var validator);
+        var http1 = new DefaultHttpContext();
+        var http2 = new DefaultHttpContext();
+
+        var postId = Guid.NewGuid();
+        ratingRepo.Setup(r => r.GetAverageRatingAsync(postId)).ReturnsAsync(2.94m);
+        ratingRepo.Setup(r => r.GetTotalRatingsAsync(postId)).ReturnsAsync(3);
+        ratingRepo.Setup(r => r.GetRatingDistributionAsync(postId)).ReturnsAsync(new Dictionary<decimal, int>());
+
+        // With user
+        auth.Setup(a => a.GetCurrentUserAsync(http1)).ReturnsAsync(new UserInfoDto { Id = "me" });
+        ratingRepo.Setup(r => r.GetByBlogPostAndUserAsync(postId, "me")).ReturnsAsync(new PostRating { Rating = 2.5m });
+        var withUser = await service.GetRatingStatsAsync(postId, http1);
+        withUser.UserRating.Should().Be(2.5m);
+
+        // Anonymous
+        auth.Setup(a => a.GetCurrentUserAsync(http2)).ReturnsAsync((UserInfoDto?)null);
+        var anon = await service.GetRatingStatsAsync(postId, http2);
+        anon.UserRating.Should().BeNull();
+    }
     private static PostRatingService CreateService(
         IMapper mapper,
         out Mock<IPostRatingRepository> ratingRepo,
