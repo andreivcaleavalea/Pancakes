@@ -9,12 +9,12 @@ namespace AdminService.Services.Implementations
 {
     public class BlogManagementService : IBlogManagementService
     {
-        private readonly BlogServiceClient _blogServiceClient;
+        private readonly IBlogServiceClient _blogServiceClient;
         private readonly IAuditService _auditService;
         private readonly ILogger<BlogManagementService> _logger;
 
         public BlogManagementService(
-            BlogServiceClient blogServiceClient,
+            IBlogServiceClient blogServiceClient,
             IAuditService auditService,
             ILogger<BlogManagementService> logger)
         {

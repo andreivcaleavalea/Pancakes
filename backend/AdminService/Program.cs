@@ -49,3 +49,5 @@ await DatabaseInitializer.InitializeDatabaseAsync(app.Services);
 app.PrintStartupInfo();
 
 app.Run();
+
+public partial class Program {}
