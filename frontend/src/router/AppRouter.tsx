@@ -6,6 +6,7 @@ import AuthCallback from "@pages/AuthCallback/AuthCallback";
 import CreateBlogPage from "@pages/CreateBlogPage/CreateBlogPage";
 import FriendsPage from "@pages/FriendsPage/FriendsPage";
 import SavedBlogsPage from "@pages/SavedBlogsPage/SavedBlogsPage";
+import NotificationsPage from "@pages/NotificationsPage/NotificationsPage";
 import ProfilePage from "@pages/ProfilePage/ProfilePage";
 import PublicPersonalPage from "@pages/PersonalPage/PublicPersonalPage";
 import BannedPage from "@pages/BannedPage/BannedPage";
@@ -13,7 +14,12 @@ import BannedPage from "@pages/BannedPage/BannedPage";
 const AppRouter: React.FC = () => {
   const { currentPage, loginMode, publicSlug } = useRouter();
 
-  console.log('AppRouter: currentPage:', currentPage, 'publicSlug:', publicSlug); // Debug logging
+  console.log(
+    "AppRouter: currentPage:",
+    currentPage,
+    "publicSlug:",
+    publicSlug
+  ); // Debug logging
 
   // Handle auth callback
   if (window.location.pathname === "/auth/callback") {
@@ -31,6 +37,8 @@ const AppRouter: React.FC = () => {
       return <FriendsPage />;
     case "saved":
       return <SavedBlogsPage />;
+    case "notifications":
+      return <NotificationsPage />;
     case "profile":
       return <ProfilePage />;
     case "personal-page":
@@ -38,9 +46,12 @@ const AppRouter: React.FC = () => {
       window.history.pushState({}, "", "/profile");
       return <ProfilePage />;
     case "public":
-      console.log('AppRouter: Rendering PublicPersonalPage with slug:', publicSlug); // Debug logging
+      console.log(
+        "AppRouter: Rendering PublicPersonalPage with slug:",
+        publicSlug
+      ); // Debug logging
       if (!publicSlug) {
-        console.error('AppRouter: No publicSlug provided for public page');
+        console.error("AppRouter: No publicSlug provided for public page");
         return <HomePage />;
       }
       return <PublicPersonalPage pageSlug={publicSlug} />;

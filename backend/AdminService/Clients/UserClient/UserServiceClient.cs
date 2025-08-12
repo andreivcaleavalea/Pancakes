@@ -239,5 +239,45 @@ namespace AdminService.Clients.UserClient
                 return Task.FromResult(new Dictionary<string, object>());
             }
         }
+
+        public async Task<bool> CreateNotificationAsync(string userId, string type, string title, string message, string reason, string source, string? blogTitle = null, string? blogId = null, string? additionalData = null)
+        {
+            try
+            {
+                AddAuthenticationHeader();
+                
+                var notificationData = new
+                {
+                    UserId = userId,
+                    Type = type,
+                    Title = title,
+                    Message = message,
+                    BlogTitle = blogTitle,
+                    BlogId = blogId,
+                    Reason = reason,
+                    Source = source,
+                    AdditionalData = additionalData
+                };
+                
+                var json = JsonSerializer.Serialize(notificationData);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                
+                var response = await _httpClient.PostAsync("/api/notifications", content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("Notification created successfully for user {UserId}", userId);
+                    return true;
+                }
+                
+                _logger.LogError("Failed to create notification for user {UserId}. Status: {StatusCode}", userId, response.StatusCode);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating notification for user {UserId}", userId);
+                return false;
+            }
+        }
     }
 }

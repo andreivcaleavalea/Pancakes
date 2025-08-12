@@ -31,7 +31,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { useReports } from "@/hooks/useReports";
 import { adminActionsApi } from "@/services/adminActionsApi";
-import { ReportsPageSkeleton } from "@/components/LoadingSkeletons";
+import { ReportsPageSkeleton } from "@/components/LoadingSkeletons/LoadingSkeletons";
 import {
   ReportDto,
   UpdateReportDto,

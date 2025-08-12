@@ -7,3 +7,4 @@ public class ReportStatsDto
     public int ResolvedReports { get; set; }
     public int DismissedReports { get; set; }
 }
+

@@ -57,6 +57,7 @@ builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IHobbyRepository, HobbyRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IPersonalPageSettingsRepository, PersonalPageSettingsRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 // Add custom services
 builder.Services.AddScoped<IOAuthService, OAuthService>();
@@ -74,6 +75,7 @@ builder.Services.AddScoped<IHobbyService, HobbyService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IPersonalPageService, PersonalPageService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Add profile picture strategy services
 builder.Services.AddScoped<IProfilePictureStrategy, UserService.Services.Implementations.ProfilePictureStrategies.OAuthProfilePictureStrategy>();

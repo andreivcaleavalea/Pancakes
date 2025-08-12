@@ -23,6 +23,10 @@ const api = axios.create({
   baseURL: `${API_CONFIG.BASE_URL}/api`,
   headers: {
     "Content-Type": "application/json",
+    // Prevent HTTP caching for admin operations
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
   },
   timeout: API_CONFIG.TIMEOUT,
   withCredentials: true,
@@ -173,7 +177,15 @@ class AdminApiService {
     searchRequest: BlogPostSearchRequest
   ): Promise<ApiResponse<PagedResponse<BlogPost>>> {
     const response = await api.get("/blogmanagement/search", {
-      params: searchRequest,
+      params: {
+        ...searchRequest,
+        _cache_bust: Date.now(), // Add cache busting
+      },
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
     });
     return response.data;
   }
@@ -204,6 +216,14 @@ class AdminApiService {
     const response = await api.delete(`/blogmanagement/posts/${blogPostId}`, {
       data: { blogPostId, reason },
     });
+
+    // Invalidate blog-related cache entries after successful deletion
+    if (response.data?.success) {
+      cacheUtils.invalidateEntity("blogposts");
+      cacheUtils.invalidateEntity("blog");
+      adminCache.invalidatePattern("blogmanagement");
+    }
+
     return response.data;
   }
 
@@ -220,6 +240,14 @@ class AdminApiService {
         reason,
       }
     );
+
+    // Invalidate blog-related cache entries after successful status update
+    if (response.data?.success) {
+      cacheUtils.invalidateEntity("blogposts");
+      cacheUtils.invalidateEntity("blog");
+      adminCache.invalidatePattern("blogmanagement");
+    }
+
     return response.data;
   }
 

@@ -8,6 +8,7 @@ import EditBlogPage from "../pages/EditBlogPage/EditBlogPage";
 import BlogViewPage from "../pages/BlogViewPage/BlogViewPage";
 import FriendsPage from "../pages/FriendsPage/FriendsPage";
 import SavedBlogsPage from "../pages/SavedBlogsPage/SavedBlogsPage";
+import NotificationsPage from "../pages/NotificationsPage/NotificationsPage";
 import ProfilePage from "../pages/ProfilePage/ProfilePage";
 import PublicPersonalPage from "../pages/PersonalPage/PublicPersonalPage";
 import { useRouter } from "./RouterProvider";
@@ -32,7 +33,7 @@ const PageRenderer: React.FC = () => {
       return <PersonalPage />;
     case "public":
       if (!publicSlug) {
-        console.error('PageRenderer: No publicSlug provided for public page');
+        console.error("PageRenderer: No publicSlug provided for public page");
         return <HomePage />;
       }
       return <PublicPersonalPage pageSlug={publicSlug} />;
@@ -46,6 +47,8 @@ const PageRenderer: React.FC = () => {
       return <BlogViewPage />;
     case "saved":
       return <SavedBlogsPage />;
+    case "notifications":
+      return <NotificationsPage />;
     case "home":
     default:
       return <HomePage />;

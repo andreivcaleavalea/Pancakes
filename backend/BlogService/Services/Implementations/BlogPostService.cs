@@ -235,9 +235,20 @@ public class BlogPostService : IBlogPostService
         }
 
         var blogPostToUpdate = existingBlogPost ?? await GetBlogPostByIdOrThrowAsync(id);
+        
+        // Store original status to check if it changed (for cache invalidation)
+        var originalStatus = blogPostToUpdate.Status;
+        
         _mapper.Map(updateDto, blogPostToUpdate);
         blogPostToUpdate.UpdatedAt = DateTime.UtcNow;
         var updatedBlogPost = await _blogPostRepository.UpdateAsync(blogPostToUpdate);
+        
+        // Clear cache - comprehensive clearing for admin operations or when status changes
+        var statusChanged = originalStatus != updatedBlogPost.Status;
+        ClearBlogPostCaches(id, updatedBlogPost);
+        _logger.LogInformation("Blog post {BlogPostId} updated and caches cleared. Status changed from {OldStatus} to {NewStatus}", 
+            id, originalStatus, updatedBlogPost.Status);
+        
         var blogPostDto = _mapper.Map<BlogPostDto>(updatedBlogPost);
         await PopulateAuthorInfoAsync(blogPostDto);
         return blogPostDto;
@@ -287,14 +298,14 @@ public class BlogPostService : IBlogPostService
         _logger.LogInformation("Blog post {BlogPostId} deleted and all related caches cleared", id);
     }
 
-    private void ClearBlogPostCaches(Guid deletedPostId, BlogPost deletedPost)
+    private void ClearBlogPostCaches(Guid updatedPostId, BlogPost updatedPost)
     {
         try
         {
             // APPROACH 1: Clear specific known cache entries
             
             // Clear individual blog post cache
-            var individualPostKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostById, deletedPostId);
+            var individualPostKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostById, updatedPostId);
             _cache.Remove(individualPostKey);
             
             // Clear featured posts cache (all common counts)
@@ -328,6 +339,16 @@ public class BlogPostService : IBlogPostService
                     var publishedHash = CacheConfig.CreateHash(page, pageSize, "", "", "1", "", "", "", "", "");
                     var publishedKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, publishedHash);
                     _cache.Remove(publishedKey);
+                    
+                    // Clear draft posts lists
+                    var draftHash = CacheConfig.CreateHash(page, pageSize, "", "", "0", "", "", "", "", "");
+                    var draftKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, draftHash);
+                    _cache.Remove(draftKey);
+                    
+                    // Clear deleted posts lists
+                    var deletedHash = CacheConfig.CreateHash(page, pageSize, "", "", "2", "", "", "", "", "");
+                    var deletedKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, deletedHash);
+                    _cache.Remove(deletedKey);
                 }
             }
             
@@ -335,11 +356,11 @@ public class BlogPostService : IBlogPostService
             // This is aggressive but ensures no stale data remains
             ClearAllCache();
             
-            _logger.LogInformation("Cleared caches for deleted blog post {BlogPostId}", deletedPostId);
+            _logger.LogInformation("Cleared caches for updated blog post {BlogPostId}", updatedPostId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error clearing caches for deleted blog post {BlogPostId}", deletedPostId);
+            _logger.LogError(ex, "Error clearing caches for updated blog post {BlogPostId}", updatedPostId);
             // If specific cache clearing fails, clear everything as fallback
             ClearAllCache();
         }

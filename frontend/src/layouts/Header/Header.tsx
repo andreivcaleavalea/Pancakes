@@ -24,6 +24,8 @@ const Header: React.FC = () => {
         return ["saved"];
       case "friends":
         return ["friends"];
+      case "notifications":
+        return ["notifications"];
       case "profile":
         return ["profile"];
       default:
@@ -42,6 +44,9 @@ const Header: React.FC = () => {
       case "friends":
         navigate("friends");
         break;
+      case "notifications":
+        navigate("notifications");
+        break;
       case "profile":
         navigate("profile");
         break;
@@ -54,6 +59,7 @@ const Header: React.FC = () => {
     { key: "home", label: "Home" },
     { key: "saved", label: "Saved" },
     { key: "friends", label: "Friends" },
+    { key: "notifications", label: "Notifications" },
     { key: "profile", label: "Profile" },
   ];
 

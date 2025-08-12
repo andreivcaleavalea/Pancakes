@@ -146,7 +146,7 @@ namespace AdminService.Configuration
                 options.AddPolicy("AllowAdminPanel", policy =>
                     policy.WithOrigins(allowedOrigins)
                           .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") 
-                          .WithHeaders("Content-Type", "Authorization", "Accept", "X-Requested-With") 
+                          .WithHeaders("Content-Type", "Authorization", "Accept", "X-Requested-With", "Cache-Control", "Pragma", "Expires") 
                           .AllowCredentials()); // Required for httpOnly cookies
             });
 

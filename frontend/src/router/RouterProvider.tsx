@@ -15,8 +15,9 @@ export type PageType =
   | "edit-blog"
   | "saved"
   | "friends"
+  | "notifications"
   | "profile"
-  | "personal-page" 
+  | "personal-page"
   | "public";
 export type LoginMode = "signin" | "register";
 
@@ -88,6 +89,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       setCurrentPage("friends");
     } else if (path === "/saved") {
       setCurrentPage("saved");
+    } else if (path === "/notifications") {
+      setCurrentPage("notifications");
     } else if (path === "/profile") {
       setCurrentPage("profile");
     } else if (path === "/personal-page") {
@@ -113,10 +116,10 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       updatePageFromPath();
     };
 
-    window.addEventListener('popstate', handlePopState);
-    
+    window.addEventListener("popstate", handlePopState);
+
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener("popstate", handlePopState);
     };
   }, []);
 
@@ -145,7 +148,9 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
   };
 
   return (
-    <RouterContext.Provider value={{ currentPage, loginMode, publicSlug, blogId, navigate }}>
+    <RouterContext.Provider
+      value={{ currentPage, loginMode, publicSlug, blogId, navigate }}
+    >
       {children}
     </RouterContext.Provider>
   );

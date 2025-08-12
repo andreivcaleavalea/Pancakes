@@ -113,6 +113,36 @@ namespace AdminService.Clients.BlogClient.Services
             }
         }
 
+        public async Task<BlogPostDTO?> GetBlogPostByIdAsync(string blogPostId)
+        {
+            try
+            {
+                AddAuthenticationHeader();
+                
+                var response = await _httpClient.GetAsync($"/api/BlogPosts/{blogPostId}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var blogPost = JsonSerializer.Deserialize<BlogPostDTO>(content, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    
+                    _logger.LogInformation("Retrieved blog post {BlogPostId} for admin action", blogPostId);
+                    return blogPost;
+                }
+                
+                _logger.LogError("Failed to get blog post {BlogPostId}. Status: {StatusCode}", blogPostId, response.StatusCode);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting blog post {BlogPostId}", blogPostId);
+                return null;
+            }
+        }
+
         public async Task<bool> DeleteBlogPostAsync(string blogPostId, string adminId)
         {
             try
