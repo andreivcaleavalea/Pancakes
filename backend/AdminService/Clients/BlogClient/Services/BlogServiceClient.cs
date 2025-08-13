@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace AdminService.Clients.BlogClient.Services
 {
-    public class BlogServiceClient
+    public class BlogServiceClient : IBlogServiceClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<BlogServiceClient> _logger;

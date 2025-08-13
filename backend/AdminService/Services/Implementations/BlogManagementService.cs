@@ -10,14 +10,14 @@ namespace AdminService.Services.Implementations
 {
     public class BlogManagementService : IBlogManagementService
     {
-        private readonly BlogServiceClient _blogServiceClient;
-        private readonly UserServiceClient _userServiceClient;
+        private readonly IBlogServiceClient _blogServiceClient;
+        private readonly IUserServiceClient _userServiceClient;
         private readonly IAuditService _auditService;
         private readonly ILogger<BlogManagementService> _logger;
 
         public BlogManagementService(
-            BlogServiceClient blogServiceClient,
-            UserServiceClient userServiceClient,
+            IBlogServiceClient blogServiceClient,
+            IUserServiceClient userServiceClient,
             IAuditService auditService,
             ILogger<BlogManagementService> logger)
         {

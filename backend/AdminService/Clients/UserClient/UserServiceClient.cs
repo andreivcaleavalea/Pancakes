@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace AdminService.Clients.UserClient
 {
-    public class UserServiceClient
+    public class UserServiceClient : IUserServiceClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<UserServiceClient> _logger;

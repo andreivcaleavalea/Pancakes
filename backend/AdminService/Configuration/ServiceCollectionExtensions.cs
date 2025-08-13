@@ -47,11 +47,13 @@ namespace AdminService.Configuration
 
         public static IServiceCollection AddHttpClients(this IServiceCollection services)
         {
+            // Register UserServiceClient with interface
             services.AddHttpClient<AdminService.Clients.UserClient.UserServiceClient>();
-            services.AddScoped<AdminService.Clients.UserClient.UserServiceClient>();
+            services.AddScoped<AdminService.Clients.UserClient.IUserServiceClient, AdminService.Clients.UserClient.UserServiceClient>();
 
+            // Register BlogServiceClient with interface
             services.AddHttpClient<AdminService.Clients.BlogClient.Services.BlogServiceClient>();
-            services.AddScoped<AdminService.Clients.BlogClient.Services.BlogServiceClient>();
+            services.AddScoped<AdminService.Clients.BlogClient.Services.IBlogServiceClient, AdminService.Clients.BlogClient.Services.BlogServiceClient>();
 
             return services;
         }

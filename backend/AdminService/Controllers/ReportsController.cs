@@ -12,12 +12,12 @@ namespace AdminService.Controllers
     [Authorize]
     public class ReportsController : ControllerBase
     {
-        private readonly BlogServiceClient _blogServiceClient;
+        private readonly IBlogServiceClient _blogServiceClient;
         private readonly IAuditService _auditService;
         private readonly ILogger<ReportsController> _logger;
 
         public ReportsController(
-            BlogServiceClient blogServiceClient,
+            IBlogServiceClient blogServiceClient,
             IAuditService auditService,
             ILogger<ReportsController> logger)
         {
