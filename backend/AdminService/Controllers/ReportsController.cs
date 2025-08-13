@@ -1,9 +1,7 @@
-using AdminService.Clients.BlogClient.Services;
 using AdminService.Models.Responses;
 using AdminService.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace AdminService.Controllers
 {
@@ -12,17 +10,14 @@ namespace AdminService.Controllers
     [Authorize]
     public class ReportsController : ControllerBase
     {
-        private readonly IBlogServiceClient _blogServiceClient;
-        private readonly IAuditService _auditService;
+        private readonly IReportsService _reportsService;
         private readonly ILogger<ReportsController> _logger;
 
         public ReportsController(
-            IBlogServiceClient blogServiceClient,
-            IAuditService auditService,
+            IReportsService reportsService,
             ILogger<ReportsController> logger)
         {
-            _blogServiceClient = blogServiceClient;
-            _auditService = auditService;
+            _reportsService = reportsService;
             _logger = logger;
         }
 
@@ -48,159 +43,126 @@ namespace AdminService.Controllers
         [Authorize(Policy = "CanViewReports")]
         public async Task<IActionResult> GetReports([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] int? status = null)
         {
-            try
+            var result = await _reportsService.GetReportsAsync(page, pageSize, status);
+            
+            if (result.Success)
             {
-                var reportsJson = await _blogServiceClient.GetReportsAsync(page, pageSize, status);
-                
-                // Parse and return the reports as JSON
-                var reports = JsonSerializer.Deserialize<object>(reportsJson);
-
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Data = reports,
-                    Message = "Reports retrieved successfully"
+                    Data = result.Data,
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            _logger.LogError("Error getting reports: {Errors}", string.Join(", ", result.Errors));
+            return StatusCode(500, new ApiResponse<object>
             {
-                _logger.LogError(ex, "Error getting reports");
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving reports"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpGet("{id}")]
         [Authorize(Policy = "CanViewReports")]
         public async Task<IActionResult> GetReport(string id)
         {
-            try
+            var result = await _reportsService.GetReportByIdAsync(id);
+            
+            if (result.Success)
             {
-                var reportJson = await _blogServiceClient.GetReportByIdAsync(id);
-                var report = JsonSerializer.Deserialize<object>(reportJson);
-
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Data = report,
-                    Message = "Report retrieved successfully"
+                    Data = result.Data,
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            _logger.LogError("Error getting report {ReportId}: {Errors}", id, string.Join(", ", result.Errors));
+            return StatusCode(500, new ApiResponse<object>
             {
-                _logger.LogError(ex, "Error getting report {ReportId}", id);
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving the report"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpPut("{id}")]
         [Authorize(Policy = "CanManageReports")]
         public async Task<IActionResult> UpdateReport(string id, [FromBody] object updateData)
         {
-            try
+            var currentAdminId = GetCurrentAdminId();
+            var ipAddress = GetClientIpAddress();
+            var userAgent = GetUserAgent();
+            
+            var result = await _reportsService.UpdateReportAsync(id, updateData, currentAdminId, ipAddress, userAgent);
+            
+            if (result.Success)
             {
-                var currentAdminId = GetCurrentAdminId();
-                var success = await _blogServiceClient.UpdateReportAsync(id, updateData);
-
-                if (!success)
-                {
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Failed to update report"
-                    });
-                }
-
-                await _auditService.LogActionAsync(currentAdminId, "REPORT_UPDATED", "Report", id,
-                    updateData, GetClientIpAddress(), GetUserAgent());
-
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "Report updated successfully"
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            _logger.LogError("Error updating report {ReportId}: {Errors}", id, string.Join(", ", result.Errors));
+            return BadRequest(new ApiResponse<object>
             {
-                _logger.LogError(ex, "Error updating report {ReportId}", id);
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while updating the report"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpDelete("{id}")]
         [Authorize(Policy = "CanManageReports")]
         public async Task<IActionResult> DeleteReport(string id)
         {
-            try
+            var currentAdminId = GetCurrentAdminId();
+            var ipAddress = GetClientIpAddress();
+            var userAgent = GetUserAgent();
+            
+            var result = await _reportsService.DeleteReportAsync(id, currentAdminId, ipAddress, userAgent);
+            
+            if (result.Success)
             {
-                var currentAdminId = GetCurrentAdminId();
-                var success = await _blogServiceClient.DeleteReportAsync(id);
-
-                if (!success)
-                {
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Failed to delete report"
-                    });
-                }
-
-                await _auditService.LogActionAsync(currentAdminId, "REPORT_DELETED", "Report", id,
-                    null, GetClientIpAddress(), GetUserAgent());
-
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "Report deleted successfully"
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            _logger.LogError("Error deleting report {ReportId}: {Errors}", id, string.Join(", ", result.Errors));
+            return BadRequest(new ApiResponse<object>
             {
-                _logger.LogError(ex, "Error deleting report {ReportId}", id);
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while deleting the report"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpGet("stats")]
         [Authorize(Policy = "CanViewReports")]
         public async Task<IActionResult> GetReportStats()
         {
-            try
+            var result = await _reportsService.GetReportStatsAsync();
+            
+            if (result.Success)
             {
-                var statsJson = await _blogServiceClient.GetReportStatsAsync();
-                var stats = JsonSerializer.Deserialize<object>(statsJson);
-
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Data = stats,
-                    Message = "Report statistics retrieved successfully"
+                    Data = result.Data,
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            _logger.LogError("Error getting report statistics: {Errors}", string.Join(", ", result.Errors));
+            return StatusCode(500, new ApiResponse<object>
             {
-                _logger.LogError(ex, "Error getting report statistics");
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving report statistics"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
     }
 }

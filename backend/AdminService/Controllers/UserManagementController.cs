@@ -1,10 +1,8 @@
 using AdminService.Models.DTOs;
 using AdminService.Models.Requests;
 using AdminService.Models.Responses;
-using AdminService.Clients.UserClient;
 using AdminService.Clients.UserClient.DTOs;
 using AdminService.Services.Interfaces;
-using AdminService.Validations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,8 +12,7 @@ namespace AdminService.Controllers
     [Route("api/[controller]")]
     [Authorize]
     public class UserManagementController(
-        UserServiceClient userServiceClient,
-        IAuditService auditService,
+        IUserManagementService userManagementService,
         ILogger<UserManagementController> logger)
         : ControllerBase
     {
@@ -23,249 +20,227 @@ namespace AdminService.Controllers
         [Authorize(Policy = "CanViewUsers")]
         public async Task<IActionResult> SearchUsers([FromQuery] UserSearchRequest request)
         {
-            logger.LogError("Starting search");
-            try
+            var result = await userManagementService.SearchUsersAsync(request);
+            
+            if (result.Success)
             {
-                var users = await userServiceClient.SearchUsersAsync(request);
                 return Ok(new ApiResponse<PagedResponse<UserOverviewDto>>
                 {
                     Success = true,
-                    Data = users,
-                    Message = "Users retrieved successfully"
+                    Data = result.Data,
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            logger.LogError("Error searching users: {Errors}", string.Join(", ", result.Errors));
+            return StatusCode(500, new ApiResponse<object>
             {
-                logger.LogError(ex, "Error searching users");
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while searching users"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpGet("users/{userId}")]
         [Authorize(Policy = "CanViewUserDetails")]
         public async Task<IActionResult> GetUserDetail(string userId)
         {
-            try
+            var result = await userManagementService.GetUserDetailAsync(userId);
+            
+            if (result.Success)
             {
-                var user = await userServiceClient.GetUserDetailAsync(userId);
-                if (user == null)
-                {
-                    return NotFound(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "User not found"
-                    });
-                }
-
                 return Ok(new ApiResponse<UserDetailDto>
                 {
                     Success = true,
-                    Data = user,
-                    Message = "User details retrieved successfully"
+                    Data = result.Data,
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            logger.LogError("Error getting user details for {UserId}: {Errors}", userId, string.Join(", ", result.Errors));
+            
+            // Check if it's a not found vs server error
+            if (result.Errors.Any(e => e.Contains("not found", StringComparison.OrdinalIgnoreCase)))
             {
-                logger.LogError(ex, "Error getting user details for {UserId}", userId);
-                return StatusCode(500, new ApiResponse<object>
+                return NotFound(new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "An error occurred while retrieving user details"
+                    Message = result.Message
                 });
             }
+
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpPost("ban")]
         [Authorize(Policy = "CanBanUsers")]
         public async Task<IActionResult> BanUser([FromBody] BanUserRequest request)
         {
-            try
+            var currentAdminId = GetCurrentAdminId();
+            var ipAddress = GetClientIpAddress();
+            var userAgent = GetUserAgent();
+            
+            var result = await userManagementService.BanUserAsync(request, currentAdminId, ipAddress, userAgent);
+            
+            if (result.Success)
             {
-                var validationResult = BanRequestValidator.ValidateBanRequest(request);
-                if (!validationResult.IsValid)
-                {
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Validation failed",
-                        Errors = validationResult.Errors.ToList()
-                    });
-                }
-
-                var currentAdminId = GetCurrentAdminId();
-                var success = await userServiceClient.BanUserAsync(request, currentAdminId);
-
-                if (!success)
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Failed to ban user"
-                    });
-                await auditService.LogActionAsync(currentAdminId, "USER_BANNED", "User", request.UserId,
-                    request, GetClientIpAddress(), GetUserAgent());
-
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "User banned successfully"
+                    Message = result.Message
                 });
-
             }
-            catch (Exception ex)
+
+            logger.LogError("Error banning user {UserId}: {Errors}", request.UserId, string.Join(", ", result.Errors));
+            
+            // Check if it's a validation error vs server error
+            if (result.Errors.Any(e => e.Contains("Validation failed", StringComparison.OrdinalIgnoreCase)))
             {
-                logger.LogError(ex, "Error banning user {UserId}", request.UserId);
-                return StatusCode(500, new ApiResponse<object>
+                return BadRequest(new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "An error occurred while banning user"
+                    Message = result.Message,
+                    Errors = result.Errors.ToList()
                 });
             }
+
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpPost("unban")]
         [Authorize(Policy = "CanUnbanUsers")]
         public async Task<IActionResult> UnbanUser([FromBody] UnbanUserRequest request)
         {
-            try
+            var currentAdminId = GetCurrentAdminId();
+            var ipAddress = GetClientIpAddress();
+            var userAgent = GetUserAgent();
+            
+            var result = await userManagementService.UnbanUserAsync(request, currentAdminId, ipAddress, userAgent);
+            
+            if (result.Success)
             {
-                var validationResult = UnbanRequestValidator.ValidateUnbanRequest(request);
-                if (!validationResult.IsValid)
+                return Ok(new ApiResponse<object>
                 {
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Validation failed",
-                        Errors = validationResult.Errors.ToList()
-                    });
-                }
+                    Success = true,
+                    Message = result.Message
+                });
+            }
 
-                var currentAdminId = GetCurrentAdminId();
-                var success = await userServiceClient.UnbanUserAsync(request, currentAdminId);
-                
-                if (success)
-                {
-                    await auditService.LogActionAsync(currentAdminId, "USER_UNBANNED", "User", request.UserId,
-                        request, GetClientIpAddress(), GetUserAgent());
-
-                    return Ok(new ApiResponse<object>
-                    {
-                        Success = true,
-                        Message = "User unbanned successfully"
-                    });
-                }
-
+            logger.LogError("Error unbanning user {UserId}: {Errors}", request.UserId, string.Join(", ", result.Errors));
+            
+            // Check if it's a validation error vs server error
+            if (result.Errors.Any(e => e.Contains("Validation failed", StringComparison.OrdinalIgnoreCase)))
+            {
                 return BadRequest(new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "Failed to unban user"
+                    Message = result.Message,
+                    Errors = result.Errors.ToList()
                 });
             }
-            catch (Exception ex)
+
+            return StatusCode(500, new ApiResponse<object>
             {
-                logger.LogError(ex, "Error unbanning user {UserId}", request.UserId);
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while unbanning user"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpPut("users/{userId}")]
         [Authorize(Policy = "CanUpdateUsers")]
         public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserRequest request)
         {
-            try
+            var currentAdminId = GetCurrentAdminId();
+            var ipAddress = GetClientIpAddress();
+            var userAgent = GetUserAgent();
+            
+            var result = await userManagementService.UpdateUserAsync(userId, request, currentAdminId, ipAddress, userAgent);
+            
+            if (result.Success)
             {
-                var currentAdminId = GetCurrentAdminId();
-                var user = await userServiceClient.UpdateUserAsync(userId, request, currentAdminId);
-                
-                if (user != null)
+                return Ok(new ApiResponse<UserDetailDto>
                 {
-                    await auditService.LogActionAsync(currentAdminId, "USER_UPDATED", "User", userId,
-                        request, GetClientIpAddress(), GetUserAgent());
+                    Success = true,
+                    Data = result.Data,
+                    Message = result.Message
+                });
+            }
 
-                    return Ok(new ApiResponse<UserDetailDto>
-                    {
-                        Success = true,
-                        Data = user,
-                        Message = "User updated successfully"
-                    });
-                }
-
+            logger.LogError("Error updating user {UserId}: {Errors}", userId, string.Join(", ", result.Errors));
+            
+            // Check if it's a not found vs server error
+            if (result.Errors.Any(e => e.Contains("not found", StringComparison.OrdinalIgnoreCase)))
+            {
                 return NotFound(new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "User not found"
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            return StatusCode(500, new ApiResponse<object>
             {
-                logger.LogError(ex, "Error updating user {UserId}", userId);
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while updating user"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpPost("force-password-reset")]
         [Authorize(Policy = "CanUpdateUsers")]
         public async Task<IActionResult> ForcePasswordReset([FromBody] ForcePasswordResetRequest request)
         {
-            try
+            var currentAdminId = GetCurrentAdminId();
+            var ipAddress = GetClientIpAddress();
+            var userAgent = GetUserAgent();
+            
+            var result = await userManagementService.ForcePasswordResetAsync(request, currentAdminId, ipAddress, userAgent);
+            
+            if (result.Success)
             {
-                var currentAdminId = GetCurrentAdminId();
-                var success = await userServiceClient.ForcePasswordResetAsync(request, currentAdminId);
-                
-                await auditService.LogActionAsync(currentAdminId, "FORCE_PASSWORD_RESET", "User", request.UserId,
-                    request, GetClientIpAddress(), GetUserAgent());
-
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "Password reset initiated successfully"
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            logger.LogError("Error forcing password reset for user {UserId}: {Errors}", request.UserId, string.Join(", ", result.Errors));
+            return StatusCode(500, new ApiResponse<object>
             {
-                logger.LogError(ex, "Error forcing password reset for user {UserId}", request.UserId);
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while initiating password reset"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
 
         [HttpGet("statistics")]
         [Authorize(Policy = "CanViewAnalytics")]
         public async Task<IActionResult> GetUserStatistics()
         {
-            try
+            var result = await userManagementService.GetUserStatisticsAsync();
+            
+            if (result.Success)
             {
-                var stats = await userServiceClient.GetUserStatisticsAsync();
                 return Ok(new ApiResponse<Dictionary<string, object>>
                 {
                     Success = true,
-                    Data = stats,
-                    Message = "User statistics retrieved successfully"
+                    Data = result.Data,
+                    Message = result.Message
                 });
             }
-            catch (Exception ex)
+
+            logger.LogError("Error getting user statistics: {Errors}", string.Join(", ", result.Errors));
+            return StatusCode(500, new ApiResponse<object>
             {
-                logger.LogError(ex, "Error getting user statistics");
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving user statistics"
-                });
-            }
+                Success = false,
+                Message = result.Message
+            });
         }
 
         private string GetCurrentAdminId()

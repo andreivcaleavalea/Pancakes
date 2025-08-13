@@ -38,6 +38,8 @@ namespace AdminService.Configuration
             services.AddScoped<IAnalyticsService, AdminService.Services.Implementations.AnalyticsService>();
             services.AddScoped<IServiceJwtService, AdminService.Services.Implementations.ServiceJwtService>();
             services.AddScoped<IBlogManagementService, AdminService.Services.Implementations.BlogManagementService>();
+            services.AddScoped<IReportsService, AdminService.Services.Implementations.ReportsService>();
+            services.AddScoped<IUserManagementService, AdminService.Services.Implementations.UserManagementService>();
 
             // Add Background Services
             services.AddHostedService<AdminService.Services.Implementations.RateLimitCleanupService>();
