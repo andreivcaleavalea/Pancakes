@@ -8,6 +8,7 @@ import EditBlogPage from "../pages/EditBlogPage/EditBlogPage";
 import BlogViewPage from "../pages/BlogViewPage/BlogViewPage";
 import FriendsPage from "../pages/FriendsPage/FriendsPage";
 import SavedBlogsPage from "../pages/SavedBlogsPage/SavedBlogsPage";
+import DraftsPage from "../pages/DraftsPage/DraftsPage";
 import NotificationsPage from "../pages/NotificationsPage/NotificationsPage";
 import ProfilePage from "../pages/ProfilePage/ProfilePage";
 import PublicPersonalPage from "../pages/PersonalPage/PublicPersonalPage";
@@ -47,6 +48,8 @@ const PageRenderer: React.FC = () => {
       return <BlogViewPage />;
     case "saved":
       return <SavedBlogsPage />;
+    case "drafts":
+      return <DraftsPage />;
     case "notifications":
       return <NotificationsPage />;
     case "home":

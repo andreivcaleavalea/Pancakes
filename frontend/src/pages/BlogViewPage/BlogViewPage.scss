@@ -18,6 +18,19 @@
     margin-bottom: 30px;
   }
 
+  &__header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__draft-indicator {
+    font-weight: 600;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 16px;
+  }
+
   &__back-button {
     color: #666;
     font-weight: 500;

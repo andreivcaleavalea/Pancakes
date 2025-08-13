@@ -15,3 +15,4 @@ export { default as SearchDropdown } from "./SearchDropdown/SearchDropdown";
 export { ReportButton } from "./ReportButton/ReportButton";
 export { ReportModal } from "./ReportModal/ReportModal";
 export { NotificationBadge } from "./NotificationBadge";
+export { default as ImageUpload } from "./ImageUpload";

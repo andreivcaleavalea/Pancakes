@@ -154,6 +154,69 @@ public class BlogPostsController : ControllerBase
         }
     }
 
+    [HttpGet("drafts")]
+    public async Task<IActionResult> GetDrafts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var result = await _blogPostService.GetUserDraftsAsync(HttpContext, page, pageSize);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user drafts");
+            return StatusCode(500, "An error occurred while retrieving drafts");
+        }
+    }
+
+    [HttpPatch("{id:guid}/convert-to-draft")]
+    public async Task<IActionResult> ConvertToDraft(Guid id)
+    {
+        try
+        {
+            var blogPost = await _blogPostService.ConvertToDraftAsync(id, HttpContext);
+            return Ok(blogPost);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized attempt to convert blog post {Id} to draft", id);
+            return Forbid(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error converting blog post {Id} to draft", id);
+            return StatusCode(500, "An error occurred while converting the blog post to draft");
+        }
+    }
+
+    [HttpPatch("{id:guid}/publish")]
+    public async Task<IActionResult> PublishDraft(Guid id)
+    {
+        try
+        {
+            var blogPost = await _blogPostService.PublishDraftAsync(id, HttpContext);
+            return Ok(blogPost);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized attempt to publish blog post {Id}", id);
+            return Forbid(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error publishing blog post {Id}", id);
+            return StatusCode(500, "An error occurred while publishing the blog post");
+        }
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteBlogPost(Guid id)
     {

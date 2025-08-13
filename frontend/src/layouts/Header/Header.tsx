@@ -27,6 +27,8 @@ const Header: React.FC = () => {
         return ["saved"];
       case "friends":
         return ["friends"];
+      case "drafts":
+        return ["drafts"];
       case "notifications":
         return ["notifications"];
       case "profile":
@@ -47,6 +49,9 @@ const Header: React.FC = () => {
       case "friends":
         navigate("friends");
         break;
+      case "drafts":
+        navigate("drafts");
+        break;
       case "notifications":
         navigate("notifications");
         break;
@@ -62,6 +67,7 @@ const Header: React.FC = () => {
     { key: "home", label: "Home" },
     { key: "saved", label: "Saved" },
     { key: "friends", label: "Friends" },
+    { key: "drafts", label: "Drafts" },
     {
       key: "notifications",
       label: (

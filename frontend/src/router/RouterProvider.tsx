@@ -15,6 +15,7 @@ export type PageType =
   | "edit-blog"
   | "saved"
   | "friends"
+  | "drafts"
   | "notifications"
   | "profile"
   | "personal-page"
@@ -95,6 +96,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       setCurrentPage("profile");
     } else if (path === "/personal-page") {
       setCurrentPage("personal-page");
+    } else if (path === "/drafts") {
+      setCurrentPage("drafts");
     } else {
       setCurrentPage("home");
     }

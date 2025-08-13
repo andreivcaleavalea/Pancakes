@@ -1,0 +1,141 @@
+.image-upload {
+  width: 100%;
+
+  &__preview {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__preview-container {
+    position: relative;
+    border: 2px dashed #d9d9d9;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fafafa;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: #1890ff;
+
+      .image-upload__overlay {
+        opacity: 1;
+      }
+    }
+  }
+
+  &__image {
+    width: 100% !important;
+    height: 200px !important;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &__action-btn {
+    color: white;
+    border-color: white;
+
+    &:hover {
+      color: #1890ff;
+      background: white;
+      border-color: white;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__empty {
+    border: 2px dashed #d9d9d9;
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    background: #fafafa;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: #1890ff;
+      background: #f6f8ff;
+    }
+  }
+
+  &__upload-btn {
+    height: auto;
+    padding: 16px 32px;
+    font-size: 16px;
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+    color: #1890ff;
+    font-size: 14px;
+  }
+
+  // Mobile responsive
+  @media (max-width: 768px) {
+    &__image {
+      height: 150px !important;
+    }
+
+    &__empty {
+      padding: 24px;
+    }
+
+    &__upload-btn {
+      padding: 12px 24px;
+      font-size: 14px;
+    }
+  }
+}
+
+// Dark theme support
+[data-theme="dark"] {
+  .image-upload {
+    &__preview-container,
+    &__empty {
+      border-color: #303030;
+      background: #1f1f1f;
+
+      &:hover {
+        border-color: #4096ff;
+        background: #111b26;
+      }
+    }
+
+    &__action-btn {
+      color: white;
+      border-color: rgba(255, 255, 255, 0.5);
+
+      &:hover {
+        color: #4096ff;
+        background: rgba(255, 255, 255, 0.9);
+      }
+    }
+
+    &__loading {
+      color: #4096ff;
+    }
+  }
+}
+

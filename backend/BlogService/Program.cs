@@ -88,6 +88,7 @@ builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 builder.Services.AddScoped<IModelValidationService, ModelValidationService>();
 builder.Services.AddScoped<IFriendsPostService, FriendsPostService>();
+builder.Services.AddScoped<IBlogImageService, BlogImageService>();
 
 // Add HttpClient for UserService communication
 builder.Services.AddHttpClient<IUserServiceClient, UserServiceClient>();
