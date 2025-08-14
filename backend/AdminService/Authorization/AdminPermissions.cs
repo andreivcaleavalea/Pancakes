@@ -22,5 +22,9 @@ namespace AdminService.Authorization
 
         // Audit Permissions
         public const string ViewAuditLogs = "audit:view";
+
+        // Report Management Permissions
+        public const string ViewReports = "reports:view";
+        public const string ManageReports = "reports:manage";
     }
 }

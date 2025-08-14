@@ -1,5 +1,6 @@
 using System.Net.Mail;
 using System.Text.RegularExpressions;
+using System.Net.Mail;
 
 namespace AdminService.Validations
 {
@@ -45,7 +46,7 @@ namespace AdminService.Validations
                 @"(\<|\>|\""|'|%|script|javascript|vbscript|onload|onerror|onclick)"
             };
 
-            return patterns.Any(pattern => 
+            return patterns.Any(pattern =>
                 Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase));
         }
 
@@ -64,7 +65,7 @@ namespace AdminService.Validations
                 @"(1=1|'=')"
             };
 
-            return patterns.Any(pattern => 
+            return patterns.Any(pattern =>
                 Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase));
         }
 
@@ -79,7 +80,7 @@ namespace AdminService.Validations
                 @"<\s*object"
             };
 
-            return patterns.Any(pattern => 
+            return patterns.Any(pattern =>
                 Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase));
         }
     }

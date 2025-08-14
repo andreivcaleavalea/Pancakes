@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import { Form, Input, Button, Card, Typography, Space, message } from "antd";
-import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  SaveOutlined,
+  SendOutlined,
+} from "@ant-design/icons";
 import { useRouter } from "@/router/RouterProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { blogPostsApi } from "@/services/blogApi";
 import { PostStatus } from "@/types/blog";
 import type { CreateBlogPostDto } from "@/types/blog";
-import { TagInput } from "@/components/common";
+import { TagInput, ImageUpload } from "@/components/common";
 import "./CreateBlogPage.scss";
 
 const { Title } = Typography;
@@ -16,12 +20,16 @@ interface CreateBlogFormValues {
   title: string;
   content: string;
   featuredImage?: string;
+  featuredImageUrl?: string;
   tags: string[];
 }
 
 const CreateBlogPage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [actionType, setActionType] = useState<"draft" | "publish" | null>(
+    null
+  );
   const { navigate } = useRouter();
   const { user, isAuthenticated } = useAuth();
 
@@ -33,7 +41,10 @@ const CreateBlogPage: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const handleSubmit = async (values: CreateBlogFormValues) => {
+  const handleSubmit = async (
+    values: CreateBlogFormValues,
+    isDraft: boolean = false
+  ) => {
     // Check if user is authenticated
     if (!isAuthenticated || !user) {
       message.error("You must be logged in to create a blog post");
@@ -42,30 +53,80 @@ const CreateBlogPage: React.FC = () => {
     }
 
     setLoading(true);
+    setActionType(isDraft ? "draft" : "publish");
+
     try {
       const currentDate = new Date().toISOString();
+
+      // Use uploaded image URL or external URL, with uploaded taking priority
+      const featuredImage =
+        values.featuredImage || values.featuredImageUrl || undefined;
 
       const createDto: CreateBlogPostDto = {
         title: values.title,
         content: values.content,
-        featuredImage: values.featuredImage || undefined,
-        status: PostStatus.Published, // Always set to published (status code 1)
+        featuredImage: featuredImage,
+        status: isDraft ? PostStatus.Draft : PostStatus.Published,
         authorId: "00000000-0000-0000-0000-000000000000", // Placeholder GUID - backend will override with current user's ID
-        publishedAt: currentDate,
+        publishedAt: isDraft ? undefined : currentDate,
         tags: values.tags || [],
       };
 
       console.log("Sending createDto:", createDto);
 
       await blogPostsApi.create(createDto);
-      message.success("Blog post created successfully!");
-      navigate("home");
+
+      if (isDraft) {
+        message.success("Blog post saved as draft!");
+        navigate("drafts");
+      } else {
+        message.success("Blog post published successfully!");
+        navigate("home");
+      }
     } catch (error) {
       console.error("Error creating blog post:", error);
-      message.error("Failed to create blog post. Please try again.");
+      message.error(
+        `Failed to ${
+          isDraft ? "save draft" : "publish blog post"
+        }. Please try again.`
+      );
     } finally {
       setLoading(false);
+      setActionType(null);
     }
+  };
+
+  const handleSaveAsDraft = () => {
+    form
+      .validateFields()
+      .then((values) => {
+        handleSubmit(values, true);
+      })
+      .catch((errorInfo) => {
+        // Only require title for drafts, content can be optional
+        const titleErrors = errorInfo.errorFields?.filter(
+          (field: any) => field.name[0] === "title"
+        );
+        if (titleErrors && titleErrors.length > 0) {
+          message.error("Please enter a title to save as draft");
+          return;
+        }
+
+        // Get current form values even if some validations fail
+        const values = form.getFieldsValue();
+        if (!values.title || values.title.trim() === "") {
+          message.error("Please enter a title to save as draft");
+          return;
+        }
+
+        handleSubmit(values, true);
+      });
+  };
+
+  const handlePublish = () => {
+    form.validateFields().then((values) => {
+      handleSubmit(values, false);
+    });
   };
 
   return (
@@ -89,7 +150,7 @@ const CreateBlogPage: React.FC = () => {
           <Form
             form={form}
             layout="vertical"
-            onFinish={handleSubmit}
+            onFinish={handlePublish}
             className="create-blog-page__form"
           >
             <Form.Item
@@ -107,8 +168,19 @@ const CreateBlogPage: React.FC = () => {
             </Form.Item>
 
             <Form.Item
-              label="Featured Image URL"
+              label="Featured Image"
               name="featuredImage"
+              help="Upload an image from your computer or enter a URL"
+            >
+              <ImageUpload
+                placeholder="Upload or enter image URL"
+                disabled={loading}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Or enter image URL"
+              name="featuredImageUrl"
               rules={[
                 { max: 500, message: "URL must be less than 500 characters" },
                 { type: "url", message: "Please enter a valid URL" },
@@ -127,6 +199,7 @@ const CreateBlogPage: React.FC = () => {
                 { required: true, message: "Please enter content" },
                 { min: 10, message: "Content must be at least 10 characters" },
               ]}
+              help="Content is required for publishing, but optional for drafts"
             >
               <TextArea
                 rows={12}
@@ -157,13 +230,24 @@ const CreateBlogPage: React.FC = () => {
                   Cancel
                 </Button>
                 <Button
+                  type="default"
+                  icon={<SaveOutlined />}
+                  loading={loading && actionType === "draft"}
+                  disabled={loading}
+                  onClick={handleSaveAsDraft}
+                  className="create-blog-page__draft-button"
+                >
+                  Save as Draft
+                </Button>
+                <Button
                   type="primary"
                   htmlType="submit"
-                  icon={<SaveOutlined />}
-                  loading={loading}
+                  icon={<SendOutlined />}
+                  loading={loading && actionType === "publish"}
+                  disabled={loading}
                   className="create-blog-page__submit-button"
                 >
-                  Create Blog Post
+                  Publish
                 </Button>
               </Space>
             </Form.Item>

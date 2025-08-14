@@ -113,6 +113,36 @@ namespace AdminService.Clients.BlogClient.Services
             }
         }
 
+        public async Task<BlogPostDTO?> GetBlogPostByIdAsync(string blogPostId)
+        {
+            try
+            {
+                AddAuthenticationHeader();
+                
+                var response = await _httpClient.GetAsync($"/api/BlogPosts/{blogPostId}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var blogPost = JsonSerializer.Deserialize<BlogPostDTO>(content, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    
+                    _logger.LogInformation("Retrieved blog post {BlogPostId} for admin action", blogPostId);
+                    return blogPost;
+                }
+                
+                _logger.LogError("Failed to get blog post {BlogPostId}. Status: {StatusCode}", blogPostId, response.StatusCode);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting blog post {BlogPostId}", blogPostId);
+                return null;
+            }
+        }
+
         public async Task<bool> DeleteBlogPostAsync(string blogPostId, string adminId)
         {
             try
@@ -170,6 +200,121 @@ namespace AdminService.Clients.BlogClient.Services
             {
                 _logger.LogError(ex, "Error getting blog statistics");
                 return Task.FromResult(new Dictionary<string, object>());
+            }
+        }
+
+        // Report management methods
+        public async Task<string> GetReportsAsync(int page = 1, int pageSize = 20, int? status = null)
+        {
+            try
+            {
+                AddAuthenticationHeader();
+
+                var queryParams = new List<string>
+                {
+                    $"page={page}",
+                    $"pageSize={pageSize}"
+                };
+
+                if (status.HasValue)
+                    queryParams.Add($"status={status.Value}");
+
+                var queryString = "?" + string.Join("&", queryParams);
+                var response = await _httpClient.GetAsync($"/api/reports{queryString}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+
+                _logger.LogError("Failed to get reports. Status: {StatusCode}", response.StatusCode);
+                return "[]";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reports");
+                return "[]";
+            }
+        }
+
+        public async Task<string> GetReportByIdAsync(string reportId)
+        {
+            try
+            {
+                AddAuthenticationHeader();
+
+                var response = await _httpClient.GetAsync($"/api/reports/{reportId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+
+                _logger.LogError("Failed to get report {ReportId}. Status: {StatusCode}", reportId, response.StatusCode);
+                return "{}";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting report {ReportId}", reportId);
+                return "{}";
+            }
+        }
+
+        public async Task<bool> UpdateReportAsync(string reportId, object updateData)
+        {
+            try
+            {
+                AddAuthenticationHeader();
+
+                var json = JsonSerializer.Serialize(updateData);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PutAsync($"/api/reports/{reportId}", content);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating report {ReportId}", reportId);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteReportAsync(string reportId)
+        {
+            try
+            {
+                AddAuthenticationHeader();
+
+                var response = await _httpClient.DeleteAsync($"/api/reports/{reportId}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting report {ReportId}", reportId);
+                return false;
+            }
+        }
+
+        public async Task<string> GetReportStatsAsync()
+        {
+            try
+            {
+                AddAuthenticationHeader();
+
+                var response = await _httpClient.GetAsync("/api/reports/stats");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+
+                _logger.LogError("Failed to get report stats. Status: {StatusCode}", response.StatusCode);
+                return "{}";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting report stats");
+                return "{}";
             }
         }
     }

@@ -1,0 +1,28 @@
+.notification-badge {
+  .ant-badge-count {
+    font-size: 10px;
+    height: 16px;
+    min-width: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    line-height: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+  }
+
+  .ant-badge-count-sm {
+    font-size: 9px;
+    height: 14px;
+    min-width: 14px;
+    line-height: 14px;
+    border-radius: 7px;
+  }
+
+  // Ensure badge is properly positioned
+  .ant-badge-count,
+  .ant-badge-count-sm {
+    position: absolute;
+    transform: translate(50%, -50%);
+    transform-origin: center;
+  }
+}

@@ -38,6 +38,8 @@ namespace AdminService.Configuration
             services.AddScoped<IAnalyticsService, AdminService.Services.Implementations.AnalyticsService>();
             services.AddScoped<IServiceJwtService, AdminService.Services.Implementations.ServiceJwtService>();
             services.AddScoped<IBlogManagementService, AdminService.Services.Implementations.BlogManagementService>();
+            services.AddScoped<IReportsService, AdminService.Services.Implementations.ReportsService>();
+            services.AddScoped<IUserManagementService, AdminService.Services.Implementations.UserManagementService>();
 
             // Add Background Services
             services.AddHostedService<AdminService.Services.Implementations.RateLimitCleanupService>();
@@ -47,11 +49,13 @@ namespace AdminService.Configuration
 
         public static IServiceCollection AddHttpClients(this IServiceCollection services)
         {
+            // Register UserServiceClient with interface
             services.AddHttpClient<AdminService.Clients.UserClient.UserServiceClient>();
-            services.AddScoped<AdminService.Clients.UserClient.UserServiceClient>();
+            services.AddScoped<AdminService.Clients.UserClient.IUserServiceClient, AdminService.Clients.UserClient.UserServiceClient>();
 
+            // Register BlogServiceClient with interface
             services.AddHttpClient<AdminService.Clients.BlogClient.Services.BlogServiceClient>();
-            services.AddScoped<AdminService.Clients.BlogClient.Services.BlogServiceClient>();
+            services.AddScoped<AdminService.Clients.BlogClient.Services.IBlogServiceClient, AdminService.Clients.BlogClient.Services.BlogServiceClient>();
 
             return services;
         }
@@ -124,6 +128,10 @@ namespace AdminService.Configuration
 
                 // Audit Policies
                 options.AddPolicy("CanViewAuditLogs", policy => policy.RequirePermission(AdminPermissions.ViewAuditLogs));
+
+                // Report Management Policies
+                options.AddPolicy("CanViewReports", policy => policy.RequirePermission(AdminPermissions.ViewReports));
+                options.AddPolicy("CanManageReports", policy => policy.RequirePermission(AdminPermissions.ManageReports));
             });
 
             // Register authorization handler
@@ -142,7 +150,7 @@ namespace AdminService.Configuration
                 options.AddPolicy("AllowAdminPanel", policy =>
                     policy.WithOrigins(allowedOrigins)
                           .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") 
-                          .WithHeaders("Content-Type", "Authorization", "Accept", "X-Requested-With") 
+                          .WithHeaders("Content-Type", "Authorization", "Accept", "X-Requested-With", "Cache-Control", "Pragma", "Expires") 
                           .AllowCredentials()); // Required for httpOnly cookies
             });
 

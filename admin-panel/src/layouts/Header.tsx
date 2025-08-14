@@ -13,7 +13,10 @@ interface HeaderProps {
   onMenuToggle?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ isMobile = false, onMenuToggle }) => {
+export const Header: React.FC<HeaderProps> = ({
+  isMobile = false,
+  onMenuToggle,
+}) => {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
@@ -37,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ isMobile = false, onMenuToggle }
           {isMobile ? "Pancakes" : "Pancakes Admin"}
         </Title>
       </div>
-      
+
       <Space className="header__user-section">
         {!isMobile && (
           <span className="user-welcome">Welcome, {user?.name || "Admin"}</span>

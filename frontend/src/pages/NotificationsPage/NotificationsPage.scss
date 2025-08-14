@@ -1,0 +1,193 @@
+.notifications-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+
+  &__loading,
+  &__error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+  }
+
+  &__header {
+    margin-bottom: 24px;
+
+    .ant-card-body {
+      padding: 24px;
+    }
+  }
+
+  &__title-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+  }
+
+  &__stats {
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  &__content {
+    .ant-card-body {
+      padding: 0;
+    }
+
+    .ant-list {
+      .ant-list-item {
+        padding: 0;
+      }
+    }
+  }
+}
+
+.notification-item {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #fafafa;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &--unread {
+    background-color: #f6ffed;
+    border-left: 4px solid #52c41a;
+
+    &:hover {
+      background-color: #f0f9ff;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-weight: 600;
+    color: #262626;
+    margin-right: 8px;
+
+    &:hover {
+      color: #1890ff;
+    }
+  }
+
+  &__content {
+    margin-top: 8px;
+  }
+
+  &__message {
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+
+    .ant-typography {
+      margin-bottom: 0;
+    }
+  }
+
+  &__blog-info,
+  &__reason {
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  &__timestamp {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .ant-list-item-meta-avatar {
+    margin-right: 16px;
+
+    .anticon {
+      font-size: 18px;
+    }
+  }
+
+  .ant-list-item-action {
+    margin-left: 16px;
+
+    li {
+      padding: 0 4px;
+    }
+
+    @media (max-width: 768px) {
+      margin-left: 0;
+      margin-top: 12px;
+
+      .ant-btn {
+        font-size: 12px;
+        height: 28px;
+        padding: 0 8px;
+      }
+    }
+  }
+}
+
+// Mobile responsive adjustments
+@media (max-width: 768px) {
+  .notifications-page {
+    padding: 16px;
+
+    &__header,
+    &__content {
+      .ant-card-body {
+        padding: 16px;
+      }
+    }
+  }
+
+  .notification-item {
+    padding: 16px;
+
+    &__header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .ant-list-item-meta {
+      .ant-list-item-meta-content {
+        .ant-list-item-meta-title {
+          margin-bottom: 8px;
+        }
+      }
+    }
+  }
+}
+
+// Badge and tag styling
+.ant-badge {
+  .ant-badge-count {
+    box-shadow: 0 0 0 1px #fff;
+  }
+}
+
+.ant-tag {
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+

@@ -96,6 +96,15 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.SectionTemplates, opt => opt.MapFrom<SectionTemplatesResolver>())
             .ForMember(dest => dest.SectionColors, opt => opt.MapFrom<SectionColorsResolver>())
             .ForMember(dest => dest.SectionAdvancedSettings, opt => opt.MapFrom<SectionAdvancedSettingsResolver>());
+
+        // Notification mappings
+        CreateMap<Notification, NotificationDto>();
+        CreateMap<CreateNotificationDto, Notification>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.IsRead, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.ReadAt, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore());
     }
 }
 

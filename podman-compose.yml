@@ -7,7 +7,7 @@ services:
     environment:
       - POSTGRES_DB=PancakesBlogDB
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=team
+      - POSTGRES_PASSWORD=postgres123
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -33,47 +33,12 @@ services:
     environment:
       - POSTGRES_DB=PancakesAdminDB
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=team
+      - POSTGRES_PASSWORD=postgres123
     ports:
       - "${ADMIN_POSTGRES_PORT:-5434}:5432"
     volumes:
       - postgres_admin_data:/var/lib/postgresql/data
-
-  admin-service:
-    build: ./backend/AdminService
-    ports:
-      - "5002:80"
-    environment:
-      - ADMIN_DB_HOST=postgres-admin
-      - ADMIN_DB_PORT=5432
-      - ADMIN_DB_DATABASE=PancakesAdminDB
-      - ADMIN_DB_USERNAME=postgres
-      - ADMIN_DB_PASSWORD=team
-      - USER_SERVICE_URL=http://user-service:80
-      - BLOG_SERVICE_URL=http://blog-service:80
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - JWT_ISSUER=${JWT_ISSUER:-PancakesAdmin}
-      - JWT_AUDIENCE=${JWT_AUDIENCE:-PancakesAdminUsers}
-      - ALLOWED_ORIGINS=http://localhost:3001,http://localhost:5174
-      - DOTNET_RUNNING_IN_CONTAINER=true
-    depends_on:
-      - postgres-admin
-    networks:
-      - pancakes-network
-
-# admin-panel:
-#   build: ./admin-panel
-#   ports:
-#     - "3001:3000"
-#   environment:
-#     - REACT_APP_ADMIN_API_URL=http://localhost:5002
-#     - REACT_APP_USER_API_URL=http://localhost:5141
-#     - REACT_APP_BLOG_API_URL=http://localhost:5001
-#   depends_on:
-#     - admin-service
-#   networks:
-#     - pancakes-network
-
 volumes:
   postgres_blogs_data:
   postgres_users_data:
+  postgres_admin_data:

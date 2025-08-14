@@ -18,4 +18,9 @@ public interface IBlogPostService
     Task<BlogPostDto> CreateAsync(CreateBlogPostDto createDto, HttpContext httpContext);
     Task<BlogPostDto> UpdateAsync(Guid id, UpdateBlogPostDto updateDto, HttpContext httpContext);
     Task DeleteAsync(Guid id, HttpContext httpContext);
+    
+    // Draft-specific methods
+    Task<PaginatedResult<BlogPostDto>> GetUserDraftsAsync(HttpContext httpContext, int page = 1, int pageSize = 10);
+    Task<BlogPostDto> ConvertToDraftAsync(Guid id, HttpContext httpContext);
+    Task<BlogPostDto> PublishDraftAsync(Guid id, HttpContext httpContext);
 }
