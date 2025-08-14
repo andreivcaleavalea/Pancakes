@@ -1,25 +1,38 @@
 import React, { useState } from "react";
-import { Typography, Spin, Alert, Button, Space, message, App } from "antd";
+import {
+  Typography,
+  Spin,
+  Alert,
+  Button,
+  Space,
+  message,
+  App,
+  Tag,
+} from "antd";
 import {
   ArrowLeftOutlined,
   HeartOutlined,
   HeartFilled,
   EditOutlined,
   DeleteOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "@/router/RouterProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBlogPost, useFavorite } from "@/hooks/useBlog";
 import { usePostRating } from "@/hooks/useRating";
+import { PostStatus } from "@/types/blog";
 import {
   CommentSection,
   GlazeMeter,
   CachedAvatar,
   BlogTags,
+  ReportButton,
 } from "@/components/common";
 import { blogPostsApi } from "@/services/blogApi";
 import { DEFAULTS } from "@/utils/constants";
 import { getProfilePictureUrl } from "@/utils/imageUtils";
+import { ReportContentType } from "@/types/report";
 import "./BlogViewPage.scss";
 
 const { Title, Text } = Typography;
@@ -33,6 +46,9 @@ const BlogViewPage: React.FC = () => {
   // Use the real data hooks
   const { data: blog, loading, error } = useBlogPost(blogId);
 
+  // Check if this is a draft post
+  const isDraft = blog?.status === PostStatus.Draft;
+
   const {
     isFavorite,
     loading: favoriteLoading,
@@ -41,7 +57,11 @@ const BlogViewPage: React.FC = () => {
   const { stats: ratingStats, submitRating } = usePostRating(blogId || "");
 
   const handleBack = () => {
-    navigate("home");
+    if (isDraft) {
+      navigate("drafts");
+    } else {
+      navigate("home");
+    }
   };
 
   const handleEdit = () => {
@@ -140,14 +160,26 @@ const BlogViewPage: React.FC = () => {
   return (
     <div className="blog-view">
       <div className="blog-view__header">
-        <Button
-          type="text"
-          icon={<ArrowLeftOutlined />}
-          onClick={handleBack}
-          className="blog-view__back-button"
-        >
-          Back to Home
-        </Button>
+        <div className="blog-view__header-content">
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={handleBack}
+            className="blog-view__back-button"
+          >
+            {isDraft ? "Back to Drafts" : "Back to Home"}
+          </Button>
+
+          {isDraft && (
+            <Tag
+              icon={<FileTextOutlined />}
+              color="orange"
+              className="blog-view__draft-indicator"
+            >
+              Draft Preview
+            </Tag>
+          )}
+        </div>
       </div>
 
       <article className="blog-view__article">
@@ -206,19 +238,29 @@ const BlogViewPage: React.FC = () => {
                   Delete
                 </Button>
               </Space>
-            ) : (
-              <Button
-                type="text"
-                icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
-                onClick={handleFavoriteToggle}
-                loading={favoriteLoading}
-                className={`blog-view__favorite ${
-                  isFavorite ? "blog-view__favorite--active" : ""
-                }`}
-              >
-                {isFavorite ? "Favorited" : "Add to Favorites"}
-              </Button>
-            )}
+            ) : !isDraft ? (
+              <Space size="middle">
+                <Button
+                  type="text"
+                  icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
+                  onClick={handleFavoriteToggle}
+                  loading={favoriteLoading}
+                  className={`blog-view__favorite ${
+                    isFavorite ? "blog-view__favorite--active" : ""
+                  }`}
+                >
+                  {isFavorite ? "Favorited" : "Add to Favorites"}
+                </Button>
+                <ReportButton
+                  contentType={ReportContentType.BlogPost}
+                  contentId={blog.id}
+                  contentTitle={blog.title}
+                  authorId={blog.authorId}
+                  size="middle"
+                  type="text"
+                />
+              </Space>
+            ) : null}
           </div>
         </div>
 
@@ -226,17 +268,19 @@ const BlogViewPage: React.FC = () => {
           <div dangerouslySetInnerHTML={{ __html: blog.content }} />
         </div>
 
-        {/* Glaze Meter Rating System */}
-        <div className="blog-view__rating">
-          <GlazeMeter
-            blogPostId={blogId || ""}
-            averageRating={ratingStats?.averageRating || 0}
-            totalRatings={ratingStats?.totalRatings || 0}
-            userRating={ratingStats?.userRating}
-            onRate={submitRating}
-            readonly={!isAuthenticated}
-          />
-        </div>
+        {/* Glaze Meter Rating System - Hidden for drafts */}
+        {!isDraft && (
+          <div className="blog-view__rating">
+            <GlazeMeter
+              blogPostId={blogId || ""}
+              averageRating={ratingStats?.averageRating || 0}
+              totalRatings={ratingStats?.totalRatings || 0}
+              userRating={ratingStats?.userRating}
+              onRate={submitRating}
+              readonly={!isAuthenticated}
+            />
+          </div>
+        )}
 
         {/* Blog Tags */}
         {blog.tags && blog.tags.length > 0 && (
@@ -250,16 +294,21 @@ const BlogViewPage: React.FC = () => {
           </div>
         )}
 
-        <div className="blog-view__stats">
-          <Text className="blog-view__view-count">
-            {(blog as any).viewCount || 0} views
-          </Text>
-        </div>
+        {/* Stats and Comments - Hidden for drafts */}
+        {!isDraft && (
+          <>
+            <div className="blog-view__stats">
+              <Text className="blog-view__view-count">
+                {(blog as any).viewCount || 0} views
+              </Text>
+            </div>
 
-        {/* Comment Section */}
-        <div className="blog-view__comments">
-          <CommentSection blogPostId={blog.id} />
-        </div>
+            {/* Comment Section */}
+            <div className="blog-view__comments">
+              <CommentSection blogPostId={blog.id} />
+            </div>
+          </>
+        )}
       </article>
     </div>
   );

@@ -56,6 +56,12 @@ public class BlogPostService : IBlogPostService
         var blogPost = await _blogPostRepository.GetByIdAsync(id);
         if (blogPost == null) return null;
         
+        // Filter out deleted posts for regular users (only show published posts)
+        if (blogPost.Status == PostStatus.Deleted)
+        {
+            return null;
+        }
+        
         var blogPostDto = _mapper.Map<BlogPostDto>(blogPost);
         await PopulateAuthorInfoAsync(blogPostDto);
         
@@ -84,8 +90,11 @@ public class BlogPostService : IBlogPostService
         
         if (_cache.TryGetValue(cacheKey, out PaginatedResult<BlogPostDto>? cachedResult))
         {
+            _logger.LogDebug("💾 [GetAllAsync] Cache HIT for key: {CacheKey}", cacheKey);
             return cachedResult;
         }
+        
+        _logger.LogDebug("🔍 [GetAllAsync] Cache MISS for key: {CacheKey}", cacheKey);
 
         var (posts, totalCount) = await _blogPostRepository.GetAllAsync(parameters);
         var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
@@ -97,6 +106,7 @@ public class BlogPostService : IBlogPostService
         
         // 🚀 CACHE: Store paginated results with short duration (content changes frequently)
         _cache.Set(cacheKey, result, CacheConfig.Duration.Short);
+        _logger.LogDebug("💾 [GetAllAsync] Cache SET for key: {CacheKey} with {ItemCount} items", cacheKey, result.Data.Count());
         
         return result;
     }
@@ -227,9 +237,27 @@ public class BlogPostService : IBlogPostService
         }
 
         var blogPostToUpdate = existingBlogPost ?? await GetBlogPostByIdOrThrowAsync(id);
+        
+        // Store original status to check if it changed (for cache invalidation)
+        var originalStatus = blogPostToUpdate.Status;
+        
         _mapper.Map(updateDto, blogPostToUpdate);
         blogPostToUpdate.UpdatedAt = DateTime.UtcNow;
         var updatedBlogPost = await _blogPostRepository.UpdateAsync(blogPostToUpdate);
+        
+        // Clear cache - comprehensive clearing for admin operations or when status changes
+        var statusChanged = originalStatus != updatedBlogPost.Status;
+        ClearBlogPostCaches(id, updatedBlogPost);
+        
+        // Additional: Clear user-specific draft cache if this involves drafts
+        if (originalStatus == PostStatus.Draft || updatedBlogPost.Status == PostStatus.Draft)
+        {
+            ClearUserSpecificDraftCache(updatedBlogPost.AuthorId);
+        }
+        
+        _logger.LogInformation("Blog post {BlogPostId} updated and caches cleared. Status changed from {OldStatus} to {NewStatus}", 
+            id, originalStatus, updatedBlogPost.Status);
+        
         var blogPostDto = _mapper.Map<BlogPostDto>(updatedBlogPost);
         await PopulateAuthorInfoAsync(blogPostDto);
         return blogPostDto;
@@ -272,6 +300,165 @@ public class BlogPostService : IBlogPostService
         blogPost.Status = PostStatus.Deleted;
         blogPost.UpdatedAt = DateTime.UtcNow;
         await _blogPostRepository.UpdateAsync(blogPost);
+        
+        // Comprehensive cache clearing for blog deletion
+        ClearBlogPostCaches(id, blogPost);
+        
+        _logger.LogInformation("Blog post {BlogPostId} deleted and all related caches cleared", id);
+    }
+
+    private void ClearUserSpecificDraftCache(string authorId)
+    {
+        try
+        {
+            _logger.LogInformation("Clearing user-specific draft cache for author {AuthorId}", authorId);
+            
+            // Clear user's draft caches for common page combinations
+            var commonPageSizes = new[] { 5, 10, 15, 20, 25 };
+            var commonPages = new[] { 1, 2, 3, 4, 5 };
+            
+            foreach (var pageSize in commonPageSizes)
+            {
+                foreach (var page in commonPages)
+                {
+                    // Create hash for user's draft query: Page, PageSize, Search, AuthorId, Status(Draft), SortBy(UpdatedAt), SortOrder(desc), DateFrom, DateTo, Tags
+                    // FIXED: Use "Draft" string representation instead of "0" to match GetUserDraftsAsync
+                    var draftHash = CacheConfig.CreateHash(page, pageSize, "", authorId, PostStatus.Draft.ToString(), "UpdatedAt", "desc", "", "", "");
+                    var draftKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, draftHash);
+                    _cache.Remove(draftKey);
+                    
+                    _logger.LogInformation("🗑️ [ClearUserSpecificDraftCache] Removed draft cache key: {CacheKey} for author {AuthorId}", draftKey, authorId);
+                }
+            }
+            
+            _logger.LogInformation("Cleared user-specific draft cache for author {AuthorId}", authorId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error clearing user-specific draft cache for author {AuthorId}", authorId);
+        }
+    }
+
+    private void ClearBlogPostCaches(Guid updatedPostId, BlogPost updatedPost)
+    {
+        try
+        {
+            // APPROACH 1: Clear specific known cache entries
+            
+            // Clear individual blog post cache
+            var individualPostKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostById, updatedPostId);
+            _cache.Remove(individualPostKey);
+            
+            // Clear featured posts cache (all common counts)
+            for (int count = 1; count <= 10; count++)
+            {
+                var featuredKey = CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, count);
+                _cache.Remove(featuredKey);
+            }
+            
+            // Clear popular posts cache (all common counts)
+            for (int count = 1; count <= 10; count++)
+            {
+                var popularKey = CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, count);
+                _cache.Remove(popularKey);
+            }
+            
+            // APPROACH 2: Clear paginated results by attempting common combinations
+            var commonPageSizes = new[] { 5, 10, 15, 20, 25 };
+            var commonPages = new[] { 1, 2, 3, 4, 5 };
+            
+            foreach (var pageSize in commonPageSizes)
+            {
+                foreach (var page in commonPages)
+                {
+                    // Clear general blog lists (no specific filters)
+                    var generalHash = CacheConfig.CreateHash(page, pageSize, "", "", "", "", "", "", "", "");
+                    var generalKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, generalHash);
+                    _cache.Remove(generalKey);
+                    
+                    // Clear published posts lists
+                    var publishedHash = CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Published.ToString(), "", "", "", "", "");
+                    var publishedKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, publishedHash);
+                    _cache.Remove(publishedKey);
+                    
+                    // Clear draft posts lists
+                    var draftHash = CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Draft.ToString(), "", "", "", "", "");
+                    var draftKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, draftHash);
+                    _cache.Remove(draftKey);
+                    
+                    // Clear deleted posts lists
+                    var deletedHash = CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Deleted.ToString(), "", "", "", "", "");
+                    var deletedKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, deletedHash);
+                    _cache.Remove(deletedKey);
+                }
+            }
+            
+            // APPROACH 3: For maximum reliability, clear ALL cache
+            // This is aggressive but ensures no stale data remains
+            ClearAllCache();
+            
+            _logger.LogInformation("Cleared caches for updated blog post {BlogPostId}", updatedPostId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error clearing caches for updated blog post {BlogPostId}", updatedPostId);
+            // If specific cache clearing fails, clear everything as fallback
+            ClearAllCache();
+        }
+    }
+    
+    private void ClearAllCache()
+    {
+        // Clear all blog-related cache entries aggressively
+        // Since we can't easily clear all entries, we'll clear the most comprehensive set
+        try
+        {
+            var keysToRemove = new List<string>();
+            
+            // Clear all possible blog post page combinations (more comprehensive)
+            var pageSizes = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50, 100 };
+            var pages = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            
+            foreach (var pageSize in pageSizes)
+            {
+                foreach (var page in pages)
+                {
+                    // Clear all possible filter combinations
+                    var combinations = new[]
+                    {
+                        CacheConfig.CreateHash(page, pageSize, "", "", "", "", "", "", "", ""),        // No filters
+                        CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Published.ToString(), "", "", "", "", ""),   // Published only
+                        CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Draft.ToString(), "", "", "", "", ""),       // Draft only
+                        CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Deleted.ToString(), "", "", "", "", ""),     // Deleted only
+                    };
+                    
+                    foreach (var hash in combinations)
+                    {
+                        var key = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, hash);
+                        keysToRemove.Add(key);
+                    }
+                }
+            }
+            
+            // Clear all featured/popular combinations
+            for (int count = 1; count <= 50; count++)
+            {
+                keysToRemove.Add(CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, count));
+                keysToRemove.Add(CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, count));
+            }
+            
+            // Remove all identified cache entries
+            foreach (var key in keysToRemove)
+            {
+                _cache.Remove(key);
+            }
+            
+            _logger.LogWarning("Aggressively cleared {CacheCount} blog-related cache entries due to blog post deletion", keysToRemove.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to clear blog-related cache entries - cache may contain stale data");
+        }
     }
 
     private async Task<BlogPost> GetBlogPostByIdOrThrowAsync(Guid id)
@@ -454,7 +641,7 @@ public class BlogPostService : IBlogPostService
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Log the actual error for debugging
             // If we can't get user info, use defaults
@@ -469,5 +656,132 @@ public class BlogPostService : IBlogPostService
                 blogPostDto.AuthorImage = string.Empty;
             }
         }
+    }
+
+    public async Task<PaginatedResult<BlogPostDto>> GetUserDraftsAsync(HttpContext httpContext, int page = 1, int pageSize = 10)
+    {
+        _logger.LogInformation("🔄 [GetUserDraftsAsync] Getting user drafts: Page={Page}, PageSize={PageSize}", page, pageSize);
+
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
+        {
+            throw new UnauthorizedAccessException("Authorization token is required or invalid");
+        }
+
+        _logger.LogInformation("👤 [GetUserDraftsAsync] Current user retrieved for drafts: Id={UserId}, Name={UserName}", 
+            currentUser.Id, currentUser.Name);
+
+        // Create query parameters to get user's draft posts
+        var queryParams = new BlogPostQueryParameters
+        {
+            AuthorId = currentUser.Id,
+            Status = PostStatus.Draft,
+            Page = page,
+            PageSize = pageSize,
+            SortBy = "UpdatedAt",
+            SortOrder = "desc"
+        };
+
+        // Log the exact cache key that will be generated for this request
+        var paramHash = CacheConfig.CreateHash(
+            queryParams.Page, 
+            queryParams.PageSize, 
+            queryParams.Search ?? "", 
+            queryParams.AuthorId ?? "", 
+            queryParams.Status?.ToString() ?? "",
+            queryParams.SortBy ?? "",
+            queryParams.SortOrder ?? "",
+            queryParams.DateFrom?.ToString() ?? "",
+            queryParams.DateTo?.ToString() ?? "",
+            string.Join(",", queryParams.Tags ?? new List<string>())
+        );
+        var expectedCacheKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, queryParams.Page, queryParams.PageSize, paramHash);
+        _logger.LogInformation("🔑 [GetUserDraftsAsync] Expected cache key: {CacheKey}", expectedCacheKey);
+
+        var result = await GetAllAsync(queryParams);
+
+        var firstDraft = result.Data.FirstOrDefault();
+        _logger.LogInformation("📊 [GetUserDraftsAsync] Retrieved {Count} drafts out of {TotalCount} total drafts for user {UserId}. First draft: Title={FirstTitle}, UpdatedAt={UpdatedAt}", 
+            result.Data.Count(), result.Pagination.TotalItems, currentUser.Id, 
+            firstDraft?.Title ?? "None", firstDraft?.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A");
+
+        return result;
+    }
+
+    public async Task<BlogPostDto> ConvertToDraftAsync(Guid id, HttpContext httpContext)
+    {
+        _logger.LogInformation("Converting blog post to draft: ID={BlogPostId}", id);
+
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
+        {
+            throw new UnauthorizedAccessException("Authorization token is required or invalid");
+        }
+
+        var blogPost = await GetBlogPostByIdOrThrowAsync(id);
+
+        // Check if user owns the post (or add admin check if needed)
+        if (blogPost.AuthorId != currentUser.Id)
+        {
+            // You can add admin role check here if admins should be able to convert any post to draft
+            throw new UnauthorizedAccessException("You don't have permission to modify this blog post");
+        }
+
+        blogPost.Status = PostStatus.Draft;
+        blogPost.UpdatedAt = DateTime.UtcNow;
+        blogPost.PublishedAt = null; // Clear published date when converting to draft
+
+        await _blogPostRepository.UpdateAsync(blogPost);
+
+        // Clear caches after converting to draft
+        ClearBlogPostCaches(id, blogPost);
+        ClearUserSpecificDraftCache(blogPost.AuthorId);
+
+        var blogPostDto = _mapper.Map<BlogPostDto>(blogPost);
+        await PopulateAuthorInfoAsync(blogPostDto);
+
+        _logger.LogInformation("Blog post converted to draft successfully: ID={BlogPostId}", id);
+        return blogPostDto;
+    }
+
+    public async Task<BlogPostDto> PublishDraftAsync(Guid id, HttpContext httpContext)
+    {
+        _logger.LogInformation("Publishing draft blog post: ID={BlogPostId}", id);
+
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
+        {
+            throw new UnauthorizedAccessException("Authorization token is required or invalid");
+        }
+
+        var blogPost = await GetBlogPostByIdOrThrowAsync(id);
+
+        // Check if user owns the post
+        if (blogPost.AuthorId != currentUser.Id)
+        {
+            throw new UnauthorizedAccessException("You don't have permission to modify this blog post");
+        }
+
+        // Check if it's actually a draft
+        if (blogPost.Status != PostStatus.Draft)
+        {
+            throw new ArgumentException("Blog post is not a draft");
+        }
+
+        blogPost.Status = PostStatus.Published;
+        blogPost.UpdatedAt = DateTime.UtcNow;
+        blogPost.PublishedAt = DateTime.UtcNow;
+
+        await _blogPostRepository.UpdateAsync(blogPost);
+
+        // Clear caches after publishing draft
+        ClearBlogPostCaches(id, blogPost);
+        ClearUserSpecificDraftCache(blogPost.AuthorId);
+
+        var blogPostDto = _mapper.Map<BlogPostDto>(blogPost);
+        await PopulateAuthorInfoAsync(blogPostDto);
+
+        _logger.LogInformation("Draft blog post published successfully: ID={BlogPostId}", id);
+        return blogPostDto;
     }
 }

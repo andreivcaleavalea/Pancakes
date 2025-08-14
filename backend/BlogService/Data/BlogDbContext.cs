@@ -13,6 +13,7 @@ public class BlogDbContext : DbContext
     public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<SavedBlog> SavedBlogs { get; set; }
     public DbSet<Friendship> Friendships { get; set; }
+    public DbSet<Report> Reports { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +73,14 @@ public class BlogDbContext : DbContext
         // Prevent self-friendship - use lowercase column names for PostgreSQL
         modelBuilder.Entity<Friendship>()
             .HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\"");
+
+        // Reports table - no foreign key constraints since ContentId can reference
+        // either BlogPost or Comment based on ContentType
+        // Content validation is handled in the service layer
+
+        // Add check constraint to prevent self-reporting
+        modelBuilder.Entity<Report>()
+            .HasCheckConstraint("CK_Report_NoSelfReport", "\"ReporterId\" != \"ReportedUserId\"");
 
         base.OnModelCreating(modelBuilder);
     }

@@ -17,6 +17,7 @@ public class UserDbContext : DbContext
     public DbSet<Hobby> Hobbies { get; set; }
     public DbSet<PersonalPageSettings> PersonalPageSettings { get; set; }
     public DbSet<Ban> Bans { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,7 +85,7 @@ public class UserDbContext : DbContext
                 .IsUnique();
 
             // Add constraint to prevent self-friendship
-            entity.HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\"");
+            entity.ToTable(t => t.HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\""));
         });
         
         // Configure Ban entity
@@ -133,6 +134,63 @@ public class UserDbContext : DbContext
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => new { e.UserId, e.IsActive });
             entity.HasIndex(e => e.ExpiresAt);
+        });
+        
+        // Configure Notification entity
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Id)
+                .HasMaxLength(450)
+                .IsRequired();
+                
+            entity.Property(e => e.UserId)
+                .HasMaxLength(255)
+                .IsRequired();
+                
+            entity.Property(e => e.Type)
+                .HasMaxLength(100)
+                .IsRequired();
+                
+            entity.Property(e => e.Title)
+                .HasMaxLength(200)
+                .IsRequired();
+                
+            entity.Property(e => e.Message)
+                .HasMaxLength(1000)
+                .IsRequired();
+                
+            entity.Property(e => e.BlogTitle)
+                .HasMaxLength(200);
+                
+            entity.Property(e => e.BlogId)
+                .HasMaxLength(50);
+                
+            entity.Property(e => e.Reason)
+                .HasMaxLength(1000)
+                .IsRequired();
+                
+            entity.Property(e => e.Source)
+                .HasMaxLength(50)
+                .IsRequired();
+                
+            entity.Property(e => e.AdditionalData)
+                .HasMaxLength(1000);
+                
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+            
+            // Configure relationship with User
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            // Add indexes for performance
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.UserId, e.IsRead });
+            entity.HasIndex(e => e.CreatedAt);
         });
     }
 }

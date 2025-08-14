@@ -125,17 +125,19 @@ namespace AdminService.Controllers
         {
             try
             {
-                var token = GetTokenFromHeader();
-                if (string.IsNullOrEmpty(token))
+                // Get admin ID from the authenticated user claims (set by JWT middleware)
+                var adminId = GetCurrentAdminId();
+                if (string.IsNullOrEmpty(adminId))
                 {
                     return Unauthorized(new ApiResponse<object>
                     {
                         Success = false,
-                        Message = "No token provided"
+                        Message = "Authentication required"
                     });
                 }
 
-                var admin = await _adminAuthService.GetCurrentAdminAsync(token);
+                // Get admin details directly by ID (no need to re-validate token)
+                var admin = await _adminAuthService.GetAdminByIdAsync(adminId);
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
@@ -210,12 +212,13 @@ namespace AdminService.Controllers
         {
             try
             {
-                // Clear the httpOnly cookie
+                // Clear the httpOnly cookie with environment-aware settings
+                var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    Secure = !isDevelopment, // Match login cookie settings
+                    SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict,
                     Expires = DateTime.UtcNow.AddDays(-1), // Set expiry to past date to delete
                     Path = "/"
                 };

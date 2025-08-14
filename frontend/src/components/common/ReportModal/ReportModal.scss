@@ -1,0 +1,94 @@
+.report-modal {
+  &__title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  &__content {
+    margin-top: 16px;
+  }
+
+  &__description {
+    margin-bottom: 24px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.65);
+  }
+
+  &__form {
+    .ant-form-item {
+      margin-bottom: 24px;
+    }
+
+    .ant-form-item-label {
+      padding-bottom: 4px;
+    }
+
+    .ant-form-item-explain {
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  &__textarea {
+    .ant-input {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    // Ensure proper spacing for character count
+    .ant-input-data-count {
+      margin-top: 8px;
+      text-align: right;
+      color: rgba(0, 0, 0, 0.45);
+      font-size: 12px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+
+    .ant-btn {
+      min-width: 80px;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 576px) {
+  .report-modal {
+    &__actions {
+      flex-direction: column;
+      gap: 8px;
+
+      .ant-btn {
+        width: 100%;
+        margin-right: 0 !important;
+      }
+    }
+  }
+}
+
+// Fix for help text positioning
+.ant-form-item-explain {
+  order: 1;
+  margin-bottom: 8px;
+}
+
+.ant-form-item-control-input {
+  order: 2;
+}
+
+// Ensure character count doesn't overlap with other content
+.ant-input-show-count-suffix {
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  pointer-events: none;
+}

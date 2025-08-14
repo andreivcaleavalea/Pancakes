@@ -1,0 +1,54 @@
+.report-button {
+  color: #8c8c8c;
+  border: none;
+  background: transparent;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.06);
+  }
+
+  &:focus {
+    color: #ff4d4f;
+    background-color: rgba(255, 77, 79, 0.06);
+  }
+
+  .anticon {
+    font-size: 14px;
+  }
+
+  // Small size adjustments
+  &.ant-btn-sm {
+    padding: 4px 8px;
+    height: auto;
+    font-size: 12px;
+
+    .anticon {
+      font-size: 12px;
+    }
+  }
+
+  // In comment actions
+  &.comment-item__action-btn {
+    padding: 2px 6px;
+    font-size: 11px;
+
+    .anticon {
+      font-size: 11px;
+    }
+  }
+}
+
+// Dark mode support
+[data-theme="dark"] {
+  .report-button {
+    color: #8c8c8c;
+
+    &:hover,
+    &:focus {
+      color: #ff4d4f;
+      background-color: rgba(255, 77, 79, 0.15);
+    }
+  }
+}

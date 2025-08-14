@@ -117,4 +117,53 @@ export const blogPostsApi = {
       }
     );
   },
+
+  // Get user's draft posts
+  getDrafts: async (
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<PaginatedResult<BlogPost>> => {
+    // Add cache busting parameter to ensure fresh data
+    const timestamp = Date.now();
+    const url = `${ENDPOINTS.BLOG_POSTS}/drafts?page=${page}&pageSize=${pageSize}&_t=${timestamp}`;
+    console.log("🌐 [blogAPI] getDrafts called:", {
+      page,
+      pageSize,
+      timestamp,
+      url,
+    });
+
+    const result = await authenticatedBlogRequest<PaginatedResult<BlogPost>>(
+      url
+    );
+
+    console.log("🌐 [blogAPI] getDrafts response:", {
+      dataLength: result.data?.length || 0,
+      totalItems: result.pagination?.totalItems || 0,
+      firstDraftId: result.data?.[0]?.id,
+      firstDraftUpdatedAt: result.data?.[0]?.updatedAt,
+    });
+
+    return result;
+  },
+
+  // Convert published post to draft (for admin or user)
+  convertToDraft: async (id: string): Promise<BlogPost> => {
+    return authenticatedBlogRequest<BlogPost>(
+      `${ENDPOINTS.BLOG_POSTS}/${id}/convert-to-draft`,
+      {
+        method: "PATCH",
+      }
+    );
+  },
+
+  // Publish a draft post
+  publishDraft: async (id: string): Promise<BlogPost> => {
+    return authenticatedBlogRequest<BlogPost>(
+      `${ENDPOINTS.BLOG_POSTS}/${id}/publish`,
+      {
+        method: "PATCH",
+      }
+    );
+  },
 };

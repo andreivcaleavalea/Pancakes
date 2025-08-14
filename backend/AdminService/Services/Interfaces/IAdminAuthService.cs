@@ -9,6 +9,7 @@ namespace AdminService.Services.Interfaces
     {
         Task<AdminLoginResponse> LoginAsync(HttpContext httpContext, AdminLoginRequest request);
         Task<AdminUserDto> GetCurrentAdminAsync(string token);
+        Task<AdminUserDto> GetAdminByIdAsync(string adminId);
         Task<bool> ValidateTokenAsync(string token);
         Task<bool> HasAdminUsersAsync();
         Task<AdminUserDto> CreateBootstrapAdminAsync(CreateAdminUserRequest request);

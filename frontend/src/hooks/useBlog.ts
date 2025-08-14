@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { BlogService } from "@/services/blogService";
 import { isAuthenticated } from "@/lib/api";
 import type { BlogPost, FeaturedPost } from "@/types/blog";
@@ -99,6 +99,93 @@ export const useResponsive = (breakpoint: number = 768) => {
   }, [breakpoint]);
 
   return isMobile;
+};
+
+/**
+ * Custom hook for fetching user's draft posts
+ */
+export const useDrafts = (page: number = 1, pageSize: number = 10) => {
+  const [data, setData] = useState<BlogPost[]>([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 10,
+    totalPages: 0,
+    totalItems: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Use ref to track if a call is in progress without causing re-renders
+  const isFetchingRef = useRef(false);
+
+  const fetchDrafts = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isFetchingRef.current) {
+      console.log("🚫 [useDrafts] fetchDrafts skipped - already fetching");
+      return;
+    }
+
+    console.log("🔄 [useDrafts] fetchDrafts called with:", { page, pageSize });
+
+    // Check authentication status
+    const authSession = localStorage.getItem("auth-session");
+    console.log("🔐 [useDrafts] Auth check:", {
+      hasAuthSession: !!authSession,
+      sessionLength: authSession?.length || 0,
+    });
+
+    try {
+      isFetchingRef.current = true;
+      setLoading(true);
+      setError(null);
+
+      // Import blogPostsApi dynamically to avoid circular dependencies
+      const { blogPostsApi } = await import("@/services/blogApi");
+      console.log("📡 [useDrafts] Making API call to getDrafts...");
+
+      const result = await blogPostsApi.getDrafts(page, pageSize);
+      console.log("📥 [useDrafts] API response received:", {
+        dataLength: result.data?.length || 0,
+        totalItems: result.pagination?.totalItems || 0,
+        firstDraftTitle: result.data?.[0]?.title,
+        firstDraftUpdatedAt: result.data?.[0]?.updatedAt,
+        allDraftTitles: result.data?.map((d) => d.title),
+      });
+
+      setData(result.data || []);
+      setPagination(
+        result.pagination || {
+          currentPage: 1,
+          pageSize: 10,
+          totalPages: 0,
+          totalItems: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        }
+      );
+      console.log("✅ [useDrafts] State updated successfully");
+    } catch (err) {
+      console.error("❌ [useDrafts] Error fetching drafts:", err);
+      setError(err instanceof Error ? err.message : "Failed to load drafts");
+    } finally {
+      setLoading(false);
+      isFetchingRef.current = false;
+    }
+  }, [page, pageSize]); // Only depend on page and pageSize
+
+  useEffect(() => {
+    fetchDrafts();
+  }, [fetchDrafts]);
+
+  return {
+    data,
+    pagination,
+    loading,
+    error,
+    refetch: fetchDrafts, // Expose refetch function for manual refresh
+  };
 };
 
 /**

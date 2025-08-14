@@ -37,6 +37,7 @@ namespace AdminService.Data.Seeders
                     "blogs:view", "blogs:details", "blogs:manage", "blogs:delete",
                     "admins:view", "admins:create", "admins:update", "admins:delete", "admins:roles",
                     "content:view", "content:moderate", "content:delete", "content:reports",
+                    "reports:view", "reports:manage",
                     "analytics:view", "analytics:dashboard", "analytics:export",
                     "system:view", "system:update", "system:logs", "system:backups",
                     "audit:view", "audit:export"
@@ -46,12 +47,14 @@ namespace AdminService.Data.Seeders
                     "users:view", "users:ban", "users:unban", "users:details", "users:update",
                     "blogs:view", "blogs:details", "blogs:manage",
                     "content:view", "content:moderate", "content:delete",
+                    "reports:view", "reports:manage",
                     "system:logs", "analytics:view"
                 },
                 ["ContentModerator"] = new[]
                 {
                     "users:view", "blogs:view", "blogs:details", "blogs:manage", 
-                    "content:view", "content:moderate", "content:delete", "content:reports"
+                    "content:view", "content:moderate", "content:delete", "content:reports",
+                    "reports:view", "reports:manage"
                 },
                 ["SupportAgent"] = new[]
                 {

@@ -5,6 +5,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "../../router/RouterProvider";
 import { getProfilePictureUrl } from "../../utils/imageUtils";
 import SearchDropdown from "../../components/common/SearchDropdown/SearchDropdown";
+import { NotificationBadge } from "../../components/common/NotificationBadge";
+import { useNotificationContext } from "../../contexts/NotificationContext";
 import "./Header.scss";
 
 const { Header: AntHeader } = Layout;
@@ -12,6 +14,7 @@ const { Header: AntHeader } = Layout;
 const Header: React.FC = () => {
   const { user, isAuthenticated, signOut } = useAuth();
   const { navigate, currentPage } = useRouter();
+  const { unreadCount: notificationCount } = useNotificationContext();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
@@ -24,6 +27,10 @@ const Header: React.FC = () => {
         return ["saved"];
       case "friends":
         return ["friends"];
+      case "drafts":
+        return ["drafts"];
+      case "notifications":
+        return ["notifications"];
       case "profile":
         return ["profile"];
       default:
@@ -42,6 +49,12 @@ const Header: React.FC = () => {
       case "friends":
         navigate("friends");
         break;
+      case "drafts":
+        navigate("drafts");
+        break;
+      case "notifications":
+        navigate("notifications");
+        break;
       case "profile":
         navigate("profile");
         break;
@@ -54,6 +67,18 @@ const Header: React.FC = () => {
     { key: "home", label: "Home" },
     { key: "saved", label: "Saved" },
     { key: "friends", label: "Friends" },
+    { key: "drafts", label: "Drafts" },
+    {
+      key: "notifications",
+      label: (
+        <span style={{ display: "flex", alignItems: "center" }}>
+          Notifications
+          {isAuthenticated && notificationCount > 0 && (
+            <NotificationBadge count={notificationCount} size="small" />
+          )}
+        </span>
+      ),
+    },
     { key: "profile", label: "Profile" },
   ];
 

@@ -7,6 +7,7 @@ import {
   FileTextOutlined,
   BarChartOutlined,
   SettingOutlined,
+  FlagOutlined,
 } from "@ant-design/icons";
 import "../styles/layouts/Sidebar.scss";
 
@@ -19,10 +20,10 @@ interface SidebarProps {
   onMenuClick?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ 
-  isMobile = false, 
-  mobileMenuOpen = false, 
-  onMenuClick 
+export const Sidebar: React.FC<SidebarProps> = ({
+  isMobile = false,
+  mobileMenuOpen = false,
+  onMenuClick,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -65,6 +66,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       },
     },
     {
+      key: "reports",
+      icon: <FlagOutlined />,
+      label: "Reports",
+      onClick: () => {
+        navigate("/reports");
+        onMenuClick?.();
+      },
+    },
+    {
       key: "settings",
       icon: <SettingOutlined />,
       label: "Settings",
@@ -78,8 +88,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const currentPath = location.pathname.split("/")[1] || "dashboard";
 
   return (
-    <Sider 
-      className={`sidebar ${isMobile && mobileMenuOpen ? 'mobile-open' : ''}`} 
+    <Sider
+      className={`sidebar ${isMobile && mobileMenuOpen ? "mobile-open" : ""}`}
       theme="dark"
     >
       <div className="sidebar__brand">
