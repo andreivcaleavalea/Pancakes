@@ -2,6 +2,12 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { message } from "antd";
 import { reportApi } from "@/services/reportApi";
 import { ReportDto, ReportStatus, ReportStats } from "@/types/report";
+import { useDebounce } from "./useDebounce";
+import { useApiCache } from "./useApiCache";
+
+// Constants for timing configurations
+const DEFAULT_DEBOUNCE_MS = 300; // Default debounce delay for filters
+const CACHE_DURATION = 60000; // 1 minute cache
 
 interface UseReportsOptions {
   initialPageSize?: number;
@@ -27,12 +33,11 @@ const reportsCache = new Map<
   { data: ReportDto[]; timestamp: number }
 >();
 const statsCache = { data: null as ReportStats | null, timestamp: 0 };
-const CACHE_DURATION = 60000; // 1 minute cache
 
 export const useReports = (options: UseReportsOptions = {}) => {
   const {
     initialPageSize = 20, // Reduced from 100 to 20
-    debounceMs = 300,
+    debounceMs = DEFAULT_DEBOUNCE_MS,
     enableCaching = true,
   } = options;
 
@@ -48,8 +53,15 @@ export const useReports = (options: UseReportsOptions = {}) => {
     selectedStatus: undefined,
   });
 
-  // Debounce timer ref
-  const debounceTimerRef = useRef<number>();
+  // Debounced filter status state
+  const [filterStatus, setFilterStatus] = useState<ReportStatus | undefined>(
+    undefined
+  );
+  const debouncedFilterStatus = useDebounce(filterStatus, debounceMs);
+
+  // Initialize cache hook
+  const { getCacheBustingParams } = useApiCache();
+
   // Request deduplication
   const requestInFlightRef = useRef<boolean>(false);
 
@@ -214,30 +226,25 @@ export const useReports = (options: UseReportsOptions = {}) => {
     ]
   );
 
-  // Debounced fetch for filter changes
-  const debouncedFetchReports = useCallback(
-    (page: number, pageSize: number, status?: ReportStatus) => {
-      if (debounceTimerRef.current) {
-        window.clearTimeout(debounceTimerRef.current);
-      }
-
-      debounceTimerRef.current = window.setTimeout(() => {
-        fetchReports(page, pageSize, status);
-      }, debounceMs);
-    },
-    [fetchReports, debounceMs]
-  );
+  // Effect to handle debounced filter changes
+  useEffect(() => {
+    if (
+      debouncedFilterStatus !== undefined ||
+      debouncedFilterStatus === undefined
+    ) {
+      setState((prev) => ({
+        ...prev,
+        selectedStatus: debouncedFilterStatus,
+        currentPage: 1,
+      }));
+      fetchReports(1, state.pageSize, debouncedFilterStatus);
+    }
+  }, [debouncedFilterStatus, state.pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Public API methods
-  const filterByStatus = useCallback(
-    (status?: ReportStatus) => {
-      // Immediate update for UI responsiveness
-      setState((prev) => ({ ...prev, selectedStatus: status, currentPage: 1 }));
-      // Debounced API call
-      debouncedFetchReports(1, state.pageSize, status);
-    },
-    [debouncedFetchReports, state.pageSize]
-  );
+  const filterByStatus = useCallback((status?: ReportStatus) => {
+    setFilterStatus(status);
+  }, []);
 
   const changePage = useCallback(
     (page: number, pageSize?: number) => {
@@ -319,15 +326,6 @@ export const useReports = (options: UseReportsOptions = {}) => {
   useEffect(() => {
     fetchReports();
   }, []); // Only run once on mount
-
-  // Cleanup debounce timer
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        window.clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
 
   return {
     // Data

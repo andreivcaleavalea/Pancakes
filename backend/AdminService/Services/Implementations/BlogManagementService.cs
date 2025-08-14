@@ -120,37 +120,8 @@ namespace AdminService.Services.Implementations
                             var previousStatusName = GetStatusName(blogPost.Status);
                             var newStatusName = GetStatusName(request.Status);
                             
-                            var (notificationTitle, notificationMessage, notificationType) = (blogPost.Status, request.Status) switch
-                            {
-                                // From Draft to Published
-                                (0, 1) => ("Your Blog Post Was Published", 
-                                          $"Your blog post \"{blogPost.Title}\" has been published by an administrator.", 
-                                          "BLOG_STATUS_CHANGED"),
-                                // From Draft to Deleted
-                                (0, 2) => ("Your Blog Post Was Deleted", 
-                                          $"Your blog post \"{blogPost.Title}\" has been deleted by an administrator.", 
-                                          "BLOG_REMOVED"),
-                                // From Published to Draft
-                                (1, 0) => ("Your Blog Post Was Changed to Draft", 
-                                          $"Your blog post \"{blogPost.Title}\" has been changed from Published to Draft by an administrator.", 
-                                          "BLOG_STATUS_CHANGED"),
-                                // From Published to Deleted
-                                (1, 2) => ("Your Blog Post Was Deleted", 
-                                          $"Your blog post \"{blogPost.Title}\" has been deleted by an administrator.", 
-                                          "BLOG_REMOVED"),
-                                // From Deleted to Draft
-                                (2, 0) => ("Your Blog Post Was Restored to Draft", 
-                                          $"Your blog post \"{blogPost.Title}\" has been restored from deleted status to draft by an administrator.", 
-                                          "BLOG_STATUS_CHANGED"),
-                                // From Deleted to Published
-                                (2, 1) => ("Your Blog Post Was Restored and Published", 
-                                          $"Your blog post \"{blogPost.Title}\" has been restored from deleted status and published by an administrator.", 
-                                          "BLOG_STATUS_CHANGED"),
-                                // Any other status change
-                                _ => ("Your Blog Post Status Was Changed", 
-                                      $"Your blog post \"{blogPost.Title}\" status has been changed from {previousStatusName} to {newStatusName} by an administrator.", 
-                                      "BLOG_STATUS_CHANGED")
-                            };
+                            var (notificationTitle, notificationMessage, notificationType) = GetStatusChangeNotificationDetails(
+                                blogPost.Status, request.Status, blogPost.Title, previousStatusName, newStatusName);
                             
                             await _userServiceClient.CreateNotificationAsync(
                                 userId: blogPost.AuthorId,
@@ -201,6 +172,42 @@ namespace AdminService.Services.Implementations
                 return ServiceResult<Dictionary<string, object>>.FailureResult(
                     "An error occurred while retrieving blog statistics", ex.Message);
             }
+        }
+
+        private static (string title, string message, string type) GetStatusChangeNotificationDetails(
+            int previousStatus, int newStatus, string blogTitle, string previousStatusName, string newStatusName)
+        {
+            return (previousStatus, newStatus) switch
+            {
+                // From Draft to Published
+                (0, 1) => ("Your Blog Post Was Published",
+                          $"Your blog post \"{blogTitle}\" has been published by an administrator.",
+                          "BLOG_STATUS_CHANGED"),
+                // From Draft to Deleted
+                (0, 2) => ("Your Blog Post Was Deleted",
+                          $"Your blog post \"{blogTitle}\" has been deleted by an administrator.",
+                          "BLOG_REMOVED"),
+                // From Published to Draft
+                (1, 0) => ("Your Blog Post Was Changed to Draft",
+                          $"Your blog post \"{blogTitle}\" has been changed from Published to Draft by an administrator.",
+                          "BLOG_STATUS_CHANGED"),
+                // From Published to Deleted
+                (1, 2) => ("Your Blog Post Was Deleted",
+                          $"Your blog post \"{blogTitle}\" has been deleted by an administrator.",
+                          "BLOG_REMOVED"),
+                // From Deleted to Draft
+                (2, 0) => ("Your Blog Post Was Restored to Draft",
+                          $"Your blog post \"{blogTitle}\" has been restored from deleted status to draft by an administrator.",
+                          "BLOG_STATUS_CHANGED"),
+                // From Deleted to Published
+                (2, 1) => ("Your Blog Post Was Restored and Published",
+                          $"Your blog post \"{blogTitle}\" has been restored from deleted status and published by an administrator.",
+                          "BLOG_STATUS_CHANGED"),
+                // Any other status change
+                _ => ("Your Blog Post Status Was Changed",
+                      $"Your blog post \"{blogTitle}\" status has been changed from {previousStatusName} to {newStatusName} by an administrator.",
+                      "BLOG_STATUS_CHANGED")
+            };
         }
 
         private static string GetStatusName(int status)

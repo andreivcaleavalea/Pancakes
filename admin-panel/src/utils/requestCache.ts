@@ -1,6 +1,14 @@
 // Simple request cache and deduplication utility for admin panel
 // Prevents duplicate API calls and provides caching for frequently accessed data
 
+// Cache timing constants (in milliseconds)
+const DEFAULT_CACHE_TTL = 60000; // 1 minute default cache TTL
+const PENDING_REQUEST_CLEANUP_THRESHOLD = 30000; // 30 seconds for cleaning up old pending requests
+const ADMIN_DATA_CACHE_TTL = 60000; // 1 minute for general admin data
+const USER_DATA_CACHE_TTL = 300000; // 5 minutes for user data
+const STATS_CACHE_TTL = 120000; // 2 minutes for statistics
+const AUTO_CLEANUP_INTERVAL = 300000; // 5 minutes for auto-cleanup interval
+
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
@@ -17,8 +25,7 @@ export class RequestCache {
   private pendingRequests = new Map<string, PendingRequest>();
   private defaultTTL: number;
 
-  constructor(defaultTTL: number = 60000) {
-    // 1 minute default
+  constructor(defaultTTL: number = DEFAULT_CACHE_TTL) {
     this.defaultTTL = defaultTTL;
   }
 
@@ -81,9 +88,9 @@ export class RequestCache {
       }
     }
 
-    // Clean up old pending requests (older than 30 seconds)
+    // Clean up old pending requests
     for (const [key, request] of this.pendingRequests.entries()) {
-      if (now - request.timestamp > 30000) {
+      if (now - request.timestamp > PENDING_REQUEST_CLEANUP_THRESHOLD) {
         this.pendingRequests.delete(key);
       }
     }
@@ -189,9 +196,9 @@ export class RequestCache {
 }
 
 // Create global cache instances for different types of data
-export const adminCache = new RequestCache(60000); // 1 minute for general admin data
-export const userCache = new RequestCache(300000); // 5 minutes for user data
-export const statsCache = new RequestCache(120000); // 2 minutes for statistics
+export const adminCache = new RequestCache(ADMIN_DATA_CACHE_TTL);
+export const userCache = new RequestCache(USER_DATA_CACHE_TTL);
+export const statsCache = new RequestCache(STATS_CACHE_TTL);
 
 // Utility functions for common cache operations
 export const cacheUtils = {
@@ -224,12 +231,11 @@ export const cacheUtils = {
   },
 };
 
-// Auto-cleanup expired entries every 5 minutes
+// Auto-cleanup expired entries
 setInterval(() => {
   adminCache.clearExpired();
   userCache.clearExpired();
   statsCache.clearExpired();
-}, 300000);
+}, AUTO_CLEANUP_INTERVAL);
 
 export default RequestCache;
-
