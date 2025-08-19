@@ -49,6 +49,14 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
     var password = Environment.GetEnvironmentVariable("BLOGS_DB_PASSWORD");
     
     var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};MaxPoolSize=10;MinPoolSize=0;ConnectionIdleLifetime=60;ConnectionPruningInterval=10;CommandTimeout=30;";
+
+    // Optional SSL configuration for Azure PostgreSQL
+    var dbSslMode = Environment.GetEnvironmentVariable("DB_SSL_MODE");
+    if (!string.IsNullOrEmpty(dbSslMode))
+    {
+        var trust = Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERTIFICATE") ?? "true";
+        connectionString += $"Ssl Mode={dbSslMode};Trust Server Certificate={trust};";
+    }
     
     options.UseNpgsql(connectionString, npgsqlOptions =>
     {
@@ -119,7 +127,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Configure CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
-    ?? new[] { "http://localhost:5173", "http://localhost:3000" };
+    ?? new[] { Environment.GetEnvironmentVariable("FRONTEND_BASE_URL") ?? "http://localhost:3000" };
 
 builder.Services.AddCors(options =>
 {
@@ -159,10 +167,12 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
     await context.Database.MigrateAsync();
-    
-    if (app.Environment.IsDevelopment())
+
+    var seedFlag = (Environment.GetEnvironmentVariable("SEED_DEMO_DATA") ?? "false").ToLower() == "true";
+    if (seedFlag || app.Environment.IsDevelopment())
     {
         await BlogDataSeeder.SeedAsync(context);
+        Console.WriteLine("Blog demo data seeding executed.");
     }
 }
 
@@ -172,13 +182,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-if (app.Environment.IsDevelopment())
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
-    await context.Database.MigrateAsync();
-    
-    await BlogDataSeeder.SeedAsync(context);
-}
+
 
 app.Run();

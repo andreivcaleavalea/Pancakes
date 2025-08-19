@@ -59,7 +59,8 @@ namespace UserService.Services.Implementations
 
         private Dictionary<string, string> GetTokenRequestParameters(string code, string provider)
         {
-            var redirectUri = $"http://localhost:5141/auth/{provider.ToLower()}/callback";
+            var apiBaseUrl = Environment.GetEnvironmentVariable("USER_API_BASE_URL") ?? "http://localhost:5141";
+            var redirectUri = $"{apiBaseUrl}/auth/{provider.ToLower()}/callback";
 
             if (provider.ToLower() == "google")
             {

@@ -38,14 +38,14 @@ export class BlogService {
     try {
       // Fetch featured posts
       const featuredPostsData = await blogPostsApi.getFeatured(3);
-      const featuredPosts = featuredPostsData.map((post) => ({
+      const featuredPosts = (Array.isArray(featuredPostsData) ? featuredPostsData : []).map((post) => ({
         ...this.transformBlogPost(post),
         isFeatured: true as const,
       })) as FeaturedPost[];
 
       // Fetch horizontal posts (popular posts)
       const horizontalPostsData = await blogPostsApi.getPopular(4);
-      const horizontalPosts = horizontalPostsData.map(this.transformBlogPost);
+      const horizontalPosts = (Array.isArray(horizontalPostsData) ? horizontalPostsData : []).map(this.transformBlogPost);
 
       // Fetch grid posts (recent posts excluding featured and popular)
       const gridPostsParams: BlogPostQueryParams = {
@@ -56,7 +56,9 @@ export class BlogService {
         sortOrder: "desc",
       };
       const gridPostsResult = await blogPostsApi.getAll(gridPostsParams);
-      const gridPosts = gridPostsResult.data.map(this.transformBlogPost);
+      const gridPosts = Array.isArray((gridPostsResult as any)?.data)
+        ? gridPostsResult.data.map(this.transformBlogPost)
+        : [];
 
       return {
         featuredPosts,
@@ -89,8 +91,10 @@ export class BlogService {
       const result = await blogPostsApi.getAll(params);
 
       return {
-        data: result.data.map(this.transformBlogPost),
-        pagination: result.pagination,
+        data: Array.isArray((result as any)?.data)
+          ? result.data.map(this.transformBlogPost)
+          : [],
+        pagination: (result as any)?.pagination ?? { currentPage: page, pageSize, totalPages: 0, totalItems: 0, hasNextPage: false, hasPreviousPage: false },
       };
     } catch (error) {
       console.error("Error fetching paginated posts:", error);
@@ -147,8 +151,10 @@ export class BlogService {
       const result = await blogPostsApi.getAll(params);
 
       return {
-        data: result.data.map(this.transformBlogPost),
-        pagination: result.pagination,
+        data: Array.isArray((result as any)?.data)
+          ? result.data.map(this.transformBlogPost)
+          : [],
+        pagination: (result as any)?.pagination ?? { currentPage: page, pageSize, totalPages: 0, totalItems: 0, hasNextPage: false, hasPreviousPage: false },
       };
     } catch (error) {
       console.error("Error searching posts:", error);

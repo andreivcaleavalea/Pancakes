@@ -16,6 +16,7 @@ import { useRouter } from "@/router/RouterProvider";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULTS } from "@/utils/constants";
 import { AverageRatingDisplay, BlogTags } from "@/components/common";
 import "./BlogCard.scss";
+import { formatDate } from "@/utils/helpers";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -61,6 +62,10 @@ const BlogCard: React.FC<BlogCardProps> = ({
   const handleCardClick = () => {
     navigate("blog-view", undefined, post.id);
   };
+
+  const displayDate = formatDate(
+    (post.date as unknown as string) || (post.publishedAt as unknown as string) || (post.createdAt as unknown as string) || ""
+  );
   if (variant === "horizontal") {
     return (
       <div
@@ -75,7 +80,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
         />
         <div className="blog-card__content">
           <div className="blog-card__meta">
-            <Text className="blog-card__date">{post.date}</Text>
+            <Text className="blog-card__date">{displayDate}</Text>
             <div className="blog-card__header">
               <Title level={4} className="blog-card__title">
                 {post.title}
@@ -146,7 +151,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
       <img src={post.image} alt={post.title} className="blog-card__image" />
       <div className="blog-card__content">
         <div className="blog-card__meta">
-          <Text className="blog-card__date">{post.date}</Text>
+          <Text className="blog-card__date">{displayDate}</Text>
           <div className="blog-card__header">
             <Title
               level={variant === "featured" ? 2 : 4}

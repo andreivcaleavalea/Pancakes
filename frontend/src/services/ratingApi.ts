@@ -64,7 +64,10 @@ export const postRatingApi = {
       throw new Error("No authentication token found");
     }
 
-    const response = await fetch(`http://localhost:5001/api/postratings`, {
+    const base = (window as any).location?.origin || "";
+    const apiBase = (await import("@/utils/constants")).API_CONFIG.BLOG_API_URL;
+    const url = `${apiBase}/api/postratings`;
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

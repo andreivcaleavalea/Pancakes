@@ -1,4 +1,4 @@
-import { authenticatedBlogRequest } from "@/utils/blogApi";
+import { publicBlogRequest } from "@/utils/blogApi";
 
 const ENDPOINTS = {
   TAGS_POPULAR: "/api/tags/popular",
@@ -8,9 +8,10 @@ const ENDPOINTS = {
 export const tagsApi = {
   // Get popular tags
   getPopular: async (limit: number = 20): Promise<string[]> => {
-    return authenticatedBlogRequest<string[]>(
+    const res = await publicBlogRequest<string[]>(
       `${ENDPOINTS.TAGS_POPULAR}?limit=${limit}`
     );
+    return Array.isArray(res) ? res : [];
   },
 
   // Search tags
@@ -19,10 +20,11 @@ export const tagsApi = {
       return [];
     }
 
-    return authenticatedBlogRequest<string[]>(
+    const res = await publicBlogRequest<string[]>(
       `${ENDPOINTS.TAGS_SEARCH}?query=${encodeURIComponent(
         query
       )}&limit=${limit}`
     );
+    return Array.isArray(res) ? res : [];
   },
 };

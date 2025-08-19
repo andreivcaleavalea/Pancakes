@@ -7,6 +7,55 @@
     margin: 0 auto;
   }
 
+  /* Hero */
+  &__hero {
+    position: relative;
+    padding: 56px 20px 32px;
+    background: linear-gradient(135deg, rgba(255, 165, 0, 0.15), rgba(255, 99, 71, 0.12));
+    border-radius: 16px;
+    margin: 16px 0 8px;
+    overflow: hidden;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -30% -10% auto auto;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(closest-side, rgba(255, 140, 0, 0.25), transparent 70%);
+      filter: blur(20px);
+      pointer-events: none;
+    }
+  }
+
+  &__hero-content {
+    max-width: 960px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  &__hero-title {
+    margin: 0 0 12px;
+    font-weight: 800 !important;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  &__hero-subtitle {
+    margin: 0 auto 20px;
+    max-width: 720px;
+    color: var(--color-text-secondary, #888);
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  &__hero-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
   &__section {
     margin-bottom: 32px;
 
