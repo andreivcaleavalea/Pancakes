@@ -125,8 +125,8 @@ namespace AdminService.Controllers
         {
             try
             {
-                var token = GetTokenFromRequest();
-                if (string.IsNullOrEmpty(token))
+                var adminId = GetCurrentAdminId();
+                if (string.IsNullOrEmpty(adminId))
                 {
                     return Unauthorized(new ApiResponse<object>
                     {
