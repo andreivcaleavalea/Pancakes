@@ -59,9 +59,7 @@ export async function authenticatedFetch<T = unknown>(
 
     // Handle authentication errors
     if (status === 401) {
-      // Token is invalid or expired, clear session
-      localStorage.removeItem("auth-session");
-      window.location.href = "/login";
+      // Do not clear session or hard-redirect here; allow caller/UI to decide
       return { status, error: "Authentication required" };
     }
 

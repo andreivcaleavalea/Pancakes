@@ -32,7 +32,16 @@ if (string.IsNullOrEmpty(connectionString))
 }
 
 builder.Services.AddDbContext<UserDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    {
+        // Optional SSL configuration for Azure PostgreSQL
+        var dbSslMode = Environment.GetEnvironmentVariable("DB_SSL_MODE");
+        if (!string.IsNullOrEmpty(dbSslMode))
+        {
+            var trust = Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERTIFICATE") ?? "true";
+            connectionString += $";Ssl Mode={dbSslMode};Trust Server Certificate={trust}";
+        }
+        options.UseNpgsql(connectionString);
+    });
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(UserService.Helpers.MappingProfile));
@@ -46,7 +55,7 @@ builder.Services.AddHttpClient<OAuthService>();
 
 // Add CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
-    ?? new[] { "http://localhost:5173", "http://localhost:3000" };
+    ?? new[] { Environment.GetEnvironmentVariable("FRONTEND_BASE_URL") ?? "http://localhost:3000" };
 
 builder.Services.AddCors(options =>
 {
@@ -106,11 +115,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Ensure static assets directory exists (required in container)
+var assetsRoot = Path.Combine(builder.Environment.ContentRootPath, "assets");
+var profilePicturesDir = Path.Combine(assetsRoot, "profile-pictures");
+Directory.CreateDirectory(profilePicturesDir);
+
 // Configure static file serving for profile pictures
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "assets")),
+    FileProvider = new PhysicalFileProvider(assetsRoot),
     RequestPath = "/assets"
 });
 
@@ -141,5 +154,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-Console.WriteLine($"Starting UserService on port 5141");
+var userUrls = string.Join(", ", app.Urls);
+Console.WriteLine($"Starting UserService. Listening on: {userUrls}");
 app.Run();

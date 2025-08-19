@@ -5,8 +5,8 @@
 
 // API Configuration
 export const API_CONFIG = {
-  BLOG_API_URL: import.meta.env.VITE_BLOG_API_URL || "http://localhost:5001",
-  USER_API_URL: import.meta.env.VITE_USER_API_URL || "http://localhost:5141",
+  BLOG_API_URL: import.meta.env.VITE_BLOG_API_URL || (typeof window !== 'undefined' ? `${window.location.origin.replace(/\/$/, '')}/blog-api` : ""),
+  USER_API_URL: import.meta.env.VITE_USER_API_URL || (typeof window !== 'undefined' ? `${window.location.origin.replace(/\/$/, '')}/user-api` : ""),
   TIMEOUT: 10000, // 10 seconds
 } as const;
 

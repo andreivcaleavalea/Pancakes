@@ -62,9 +62,9 @@ namespace AdminService.Services.Implementations
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = !isDevelopment, // Only require HTTPS in production
-                SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict, // More permissive in dev
-                Expires = DateTime.UtcNow.AddHours(4), 
+                Secure = true, // Requires HTTPS
+                SameSite = SameSiteMode.None, // Cross-site cookie for admin panel
+                Expires = DateTime.UtcNow.AddHours(4), // Reduced from 24 to 4 hours
                 Path = "/"
             };
             httpContext.Response.Cookies.Append("adminToken", token, cookieOptions);
@@ -104,7 +104,12 @@ namespace AdminService.Services.Implementations
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var adminId = jwtToken.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
+                var idClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)
+                              ?? jwtToken.Claims.FirstOrDefault(x => x.Type == "sub")
+                              ?? jwtToken.Claims.FirstOrDefault(x => x.Type.EndsWith("/nameidentifier", StringComparison.OrdinalIgnoreCase));
+                if (idClaim == null || string.IsNullOrEmpty(idClaim.Value))
+                    throw new UnauthorizedAccessException("Token missing subject/identifier claim");
+                var adminId = idClaim.Value;
 
                 return await GetAdminByIdAsync(adminId);
             }

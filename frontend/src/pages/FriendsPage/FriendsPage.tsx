@@ -23,7 +23,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "@/router/RouterProvider";
+// import { useRouter } from "@/router/RouterProvider";
 import {
   useFriends,
   useFriendRequests,
@@ -54,8 +54,9 @@ const transformBlogPost = (post: BlogPost): BlogPost => {
 };
 
 const FriendsPage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
-  const { navigate } = useRouter();
+  const { isAuthenticated, loading } = useAuth();
+  // Router is available if needed, but we avoid redirects until session is known
+  // const { navigate } = useRouter();
   const [isAddFriendsModalOpen, setIsAddFriendsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sendingRequests, setSendingRequests] = useState<Set<string>>(
@@ -67,23 +68,23 @@ const FriendsPage: React.FC = () => {
     friends,
     loading: friendsLoading,
     refetch: refetchFriends,
-  } = useFriends();
+  } = useFriends(isAuthenticated && !loading);
   const {
     requests,
     loading: requestsLoading,
     refetch: refetchRequests,
-  } = useFriendRequests();
+  } = useFriendRequests(isAuthenticated && !loading);
   const {
     users,
     loading: usersLoading,
     refetch: refetchUsers,
-  } = useAvailableUsers();
+  } = useAvailableUsers(isAuthenticated && !loading);
   const {
     data: friendsPosts,
     pagination,
     loading: postsLoading,
     refetch: refetchPosts,
-  } = usePaginatedFriendsPosts(currentPage, 6);
+  } = usePaginatedFriendsPosts(currentPage, 6, isAuthenticated && !loading);
 
   // Transform friends' posts to include legacy fields
   const transformedFriendsPosts = useMemo(() => {
@@ -96,9 +97,10 @@ const FriendsPage: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("login");
+      // stay on page and let hooks show empty state; avoid redirect loops during async session restore
+      return;
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
 
   const handleAddFriends = () => {
     setIsAddFriendsModalOpen(true);

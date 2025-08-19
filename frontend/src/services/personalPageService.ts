@@ -109,7 +109,8 @@ export class PersonalPageService {
   // Get public personal page
   static async getPublicPage(pageSlug: string): Promise<PublicPersonalPage> {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/PersonalPage/public/${pageSlug}`, {
+      const apiBase = import.meta.env.VITE_USER_API_URL || import.meta.env.VITE_API_BASE_URL;
+      const response = await fetch(`${apiBase}/api/PersonalPage/public/${pageSlug}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

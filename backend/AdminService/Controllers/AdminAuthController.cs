@@ -125,9 +125,8 @@ namespace AdminService.Controllers
         {
             try
             {
-                // Get admin ID from the authenticated user claims (set by JWT middleware)
-                var adminId = GetCurrentAdminId();
-                if (string.IsNullOrEmpty(adminId))
+                var token = GetTokenFromRequest();
+                if (string.IsNullOrEmpty(token))
                 {
                     return Unauthorized(new ApiResponse<object>
                     {
@@ -170,7 +169,7 @@ namespace AdminService.Controllers
         {
             try
             {
-                var token = GetTokenFromHeader();
+                var token = GetTokenFromRequest();
                 var isValid = await _adminAuthService.ValidateTokenAsync(token);
                 
                 return Ok(new ApiResponse<object>
@@ -191,12 +190,16 @@ namespace AdminService.Controllers
             }
         }
 
-        private string GetTokenFromHeader()
+        private string GetTokenFromRequest()
         {
             var authHeader = HttpContext.Request.Headers.Authorization.FirstOrDefault();
             if (authHeader != null && authHeader.StartsWith("Bearer "))
             {
                 return authHeader.Substring("Bearer ".Length);
+            }
+            if (HttpContext.Request.Cookies.TryGetValue("adminToken", out var cookieToken) && !string.IsNullOrEmpty(cookieToken))
+            {
+                return cookieToken;
             }
             return string.Empty;
         }

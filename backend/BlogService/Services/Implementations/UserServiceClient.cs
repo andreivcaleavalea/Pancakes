@@ -21,7 +21,7 @@ public class UserServiceClient : IUserServiceClient
         _cache = cache;
 
         // Set base address for UserService
-        var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
+        var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? Environment.GetEnvironmentVariable("USER_API_BASE_URL") ?? "http://localhost:5141";
         _httpClient.BaseAddress = new Uri(userServiceUrl);
     }
 

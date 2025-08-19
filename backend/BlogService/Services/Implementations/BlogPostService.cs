@@ -324,7 +324,7 @@ public class BlogPostService : IBlogPostService
         if (string.IsNullOrEmpty(authorImage))
             return string.Empty;
 
-        var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
+        var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? Environment.GetEnvironmentVariable("USER_API_BASE_URL") ?? "http://localhost:5141";
         
         if (authorImage.StartsWith("assets/profile-pictures/"))
         {
@@ -386,7 +386,7 @@ public class BlogPostService : IBlogPostService
                 // Convert relative image path to full URL pointing to UserService
                 if (!string.IsNullOrEmpty(user.Image))
                 {
-                    var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
+                    var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? Environment.GetEnvironmentVariable("USER_API_BASE_URL") ?? "http://localhost:5141";
                     if (user.Image.StartsWith("assets/profile-pictures/"))
                     {
                         // Convert relative path to full URL
