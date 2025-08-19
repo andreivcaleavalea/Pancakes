@@ -1,0 +1,86 @@
+name: .NET CI
+
+on:
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install bc (for coverage math)
+        run: sudo apt-get update && sudo apt-get install -y bc
+
+      # BlogService
+      - name: Restore - BlogService.Tests
+        run: dotnet restore backend/BlogService.Tests/BlogService.Tests.csproj
+
+      - name: Build - BlogService.Tests
+        run: dotnet build backend/BlogService.Tests/BlogService.Tests.csproj --configuration Debug --no-restore
+
+      - name: Test - BlogService with Coverage
+        run: |
+          dotnet test backend/BlogService.Tests/BlogService.Tests.csproj --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory:"./backend/TestResults/BlogService" \
+            --settings:"./backend/BlogService.Tests/coverage.runsettings"
+
+      # UserService
+      - name: Restore - UserService.Tests
+        run: dotnet restore backend/UserService.Tests/UserService.Tests.csproj
+
+      - name: Build - UserService.Tests
+        run: dotnet build backend/UserService.Tests/UserService.Tests.csproj --configuration Debug --no-restore
+
+      - name: Test - UserService with Coverage
+        run: |
+          dotnet test backend/UserService.Tests/UserService.Tests.csproj --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory:"./backend/TestResults/UserService" \
+            --settings:"./backend/UserService.Tests/coverage.runsettings"
+
+      - name: Install ReportGenerator
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Generate Coverage Reports
+        run: |
+          mkdir -p ./coverage-reports
+          reportgenerator -reports:"./backend/TestResults/BlogService/**/coverage.cobertura.xml" -targetdir:"./coverage-reports/blogservice" -reporttypes:"Cobertura;HtmlInline_AzurePipelines"
+          reportgenerator -reports:"./backend/TestResults/UserService/**/coverage.cobertura.xml" -targetdir:"./coverage-reports/userservice" -reporttypes:"Cobertura;HtmlInline_AzurePipelines"
+          reportgenerator -reports:"./backend/TestResults/BlogService/**/coverage.cobertura.xml;./backend/TestResults/UserService/**/coverage.cobertura.xml" -targetdir:"./coverage-reports/combined" -reporttypes:"Cobertura;HtmlInline_AzurePipelines"
+
+      - name: Check Coverage Thresholds (85% min)
+        shell: bash
+        run: |
+          check_coverage() {
+            local name="$1"
+            local file="$2"
+            local min=80
+            if [ ! -f "$file" ]; then echo "Missing coverage file for $name: $file"; exit 1; fi
+            local rate=$(grep -o 'line-rate="[^"]*"' "$file" | head -1 | sed 's/line-rate="//;s/"//')
+            if [ -z "$rate" ]; then echo "No line-rate in $name coverage"; exit 1; fi
+            local pct=$(echo "($rate * 100)/1" | bc)
+            echo "$name coverage: ${pct}%"
+            if [ "$pct" -lt "$min" ]; then echo "$name < ${min}%"; exit 1; fi
+          }
+          check_coverage "BlogService" "./coverage-reports/blogservice/Cobertura.xml"
+          check_coverage "UserService" "./coverage-reports/userservice/Cobertura.xml"
+          check_coverage "Combined" "./coverage-reports/combined/Cobertura.xml"
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage-reports/
+
+
