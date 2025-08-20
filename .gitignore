@@ -70,4 +70,5 @@ Thumbs.db
 
 # Assets from db
 backend/UserService/assets/
+backend/BlogService/assets/
 
