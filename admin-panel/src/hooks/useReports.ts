@@ -8,6 +8,7 @@ import { useApiCache } from "./useApiCache";
 // Constants for timing configurations
 const DEFAULT_DEBOUNCE_MS = 300; // Default debounce delay for filters
 const CACHE_DURATION = 60000; // 1 minute cache
+const API_COMMIT_DELAY_MS = 500; // Delay to ensure backend has committed changes
 
 interface UseReportsOptions {
   initialPageSize?: number;
@@ -147,13 +148,24 @@ export const useReports = (options: UseReportsOptions = {}) => {
 
         // Fetch data concurrently but only if not cached
         const promises: Promise<any>[] = [];
+        const cacheBustingParams = force
+          ? getCacheBustingParams(true)
+          : undefined;
 
         if (!force && !getCachedReports(cacheKey)) {
-          promises.push(reportApi.getAll(page, pageSize, status));
+          promises.push(
+            reportApi.getAll(page, pageSize, status, cacheBustingParams)
+          );
+        } else if (force) {
+          promises.push(
+            reportApi.getAll(page, pageSize, status, cacheBustingParams)
+          );
         }
 
         if (!force && !getCachedStats()) {
-          promises.push(reportApi.getStats());
+          promises.push(reportApi.getStats(cacheBustingParams));
+        } else if (force) {
+          promises.push(reportApi.getStats(cacheBustingParams));
         }
 
         // If everything is cached, just use cache
@@ -260,11 +272,24 @@ export const useReports = (options: UseReportsOptions = {}) => {
   );
 
   const refresh = useCallback(() => {
-    // Clear cache and force refresh
+    // Clear cache and force refresh with cache busting
     reportsCache.clear();
     statsCache.data = null;
+
+    // Use cache busting parameters like useBlogManagement does
+    const refreshParams = {
+      ...getCacheBustingParams(true),
+    };
+
+    // Force refresh by calling fetchReports with cache busting
     fetchReports(state.currentPage, state.pageSize, state.selectedStatus, true);
-  }, [fetchReports, state.currentPage, state.pageSize, state.selectedStatus]);
+  }, [
+    fetchReports,
+    state.currentPage,
+    state.pageSize,
+    state.selectedStatus,
+    getCacheBustingParams,
+  ]);
 
   // Update report action
   const updateReport = useCallback(
@@ -273,7 +298,14 @@ export const useReports = (options: UseReportsOptions = {}) => {
         setState((prev) => ({ ...prev, actionLoading: true }));
         await reportApi.update(reportId, updateData);
 
-        // Clear cache and refresh
+        message.success("Report updated successfully");
+
+        // Add a small delay to ensure backend has committed the changes
+        await new Promise((resolve) =>
+          setTimeout(resolve, API_COMMIT_DELAY_MS)
+        );
+
+        // Clear cache and force refresh with cache busting
         reportsCache.clear();
         statsCache.data = null;
         await fetchReports(
@@ -282,8 +314,6 @@ export const useReports = (options: UseReportsOptions = {}) => {
           state.selectedStatus,
           true
         );
-
-        message.success("Report updated successfully");
       } catch (error: any) {
         console.error("Error updating report:", error);
         message.error(error?.message || "Failed to update report");
@@ -301,7 +331,14 @@ export const useReports = (options: UseReportsOptions = {}) => {
         setState((prev) => ({ ...prev, actionLoading: true }));
         await reportApi.delete(reportId);
 
-        // Clear cache and refresh
+        message.success("Report deleted successfully");
+
+        // Add a small delay to ensure backend has committed the changes
+        await new Promise((resolve) =>
+          setTimeout(resolve, API_COMMIT_DELAY_MS)
+        );
+
+        // Clear cache and force refresh with cache busting
         reportsCache.clear();
         statsCache.data = null;
         await fetchReports(
@@ -310,8 +347,6 @@ export const useReports = (options: UseReportsOptions = {}) => {
           state.selectedStatus,
           true
         );
-
-        message.success("Report deleted successfully");
       } catch (error: any) {
         console.error("Error deleting report:", error);
         message.error(error?.message || "Failed to delete report");
