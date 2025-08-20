@@ -17,6 +17,8 @@ public class ReportService : IReportService
     private readonly IMapper _mapper;
     private readonly ILogger<ReportService> _logger;
     private readonly IMemoryCache _cache;
+    private readonly IUserServiceClient _userServiceClient;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ReportService(
         IReportRepository reportRepository,
@@ -24,7 +26,9 @@ public class ReportService : IReportService
         ICommentRepository commentRepository,
         IMapper mapper,
         ILogger<ReportService> logger,
-        IMemoryCache cache)
+        IMemoryCache cache,
+        IUserServiceClient userServiceClient,
+        IHttpContextAccessor httpContextAccessor)
     {
         _reportRepository = reportRepository;
         _blogPostRepository = blogPostRepository;
@@ -32,6 +36,8 @@ public class ReportService : IReportService
         _mapper = mapper;
         _logger = logger;
         _cache = cache;
+        _userServiceClient = userServiceClient;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ReportDto?> GetByIdAsync(Guid id)
@@ -163,6 +169,29 @@ public class ReportService : IReportService
             if (reportedUserId == reporterId)
             {
                 throw new InvalidOperationException("You cannot report your own content.");
+            }
+            
+            // Fetch the reported user's name from UserService
+            try
+            {
+                // Get auth token from HTTP context (same logic as BlogPostService)
+                var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+                string? token = null;
+                
+                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                {
+                    token = authHeader.Substring("Bearer ".Length);
+                }
+                
+                var reportedUser = await _userServiceClient.GetUserByIdAsync(reportedUserId, token ?? string.Empty);
+                reportedUserName = reportedUser?.Name;
+                
+                _logger.LogInformation("Successfully fetched reported user name: {UserName} for user {UserId}", reportedUserName, reportedUserId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to fetch reported user name for user {UserId}", reportedUserId);
+                // Continue without the name - it's not critical for the report functionality
             }
         }
         else // Comment
