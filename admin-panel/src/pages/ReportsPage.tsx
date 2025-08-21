@@ -21,7 +21,6 @@ import {
 import {
   EyeOutlined,
   CheckOutlined,
-  CloseOutlined,
   DeleteOutlined,
   UserDeleteOutlined,
   FileTextOutlined,
@@ -49,20 +48,25 @@ const { TextArea } = Input;
 // Memoized status tag component for better performance
 const StatusTag = memo<{ status: ReportStatus }>(({ status }) => {
   const config = useMemo(() => {
-    const statusConfig = {
-      [ReportStatus.Pending]: {
-        color: "orange",
-        label: REPORT_STATUS_LABELS[ReportStatus.Pending],
-      },
-      [ReportStatus.Resolved]: {
-        color: "green",
-        label: REPORT_STATUS_LABELS[ReportStatus.Resolved],
-      },
-      [ReportStatus.Dismissed]: {
-        color: "red",
-        label: REPORT_STATUS_LABELS[ReportStatus.Dismissed],
-      },
-    };
+    const statusConfig: Record<ReportStatus, { color: string; label: string }> =
+      {
+        [ReportStatus.Pending]: {
+          color: "orange",
+          label: REPORT_STATUS_LABELS[ReportStatus.Pending],
+        },
+        [ReportStatus.UnderReview]: {
+          color: "blue",
+          label: REPORT_STATUS_LABELS[ReportStatus.UnderReview],
+        },
+        [ReportStatus.Resolved]: {
+          color: "green",
+          label: REPORT_STATUS_LABELS[ReportStatus.Resolved],
+        },
+        [ReportStatus.Dismissed]: {
+          color: "red",
+          label: REPORT_STATUS_LABELS[ReportStatus.Dismissed],
+        },
+      };
     return statusConfig[status];
   }, [status]);
 
@@ -336,8 +340,8 @@ const ReportsPage: React.FC = () => {
       },
       {
         title: "Reporter",
-        dataIndex: "reporterUserName",
-        key: "reporterUserName",
+        dataIndex: "reporterName",
+        key: "reporterName",
         width: 120,
         render: (name: string) => <Text>{name}</Text>,
       },
@@ -517,7 +521,7 @@ const ReportsPage: React.FC = () => {
                   </div>
                   <div>
                     <Text strong>Reporter: </Text>
-                    <Text>{selectedReport.reporterUserName}</Text>
+                    <Text>{selectedReport.reporterName}</Text>
                   </div>
                   <div>
                     <Text strong>Reported User: </Text>
@@ -631,7 +635,7 @@ const ReportsPage: React.FC = () => {
                     </div>
                     <div>
                       <Text strong>Reporter: </Text>
-                      <Text>{selectedReport.reporterUserName}</Text>
+                      <Text>{selectedReport.reporterName}</Text>
                     </div>
                   </Space>
                 </Col>

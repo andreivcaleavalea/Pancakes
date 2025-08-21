@@ -2,6 +2,7 @@ using UserService.Models.Authentication;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using UserService.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace UserService.Services.Implementations
 {
@@ -9,11 +10,13 @@ namespace UserService.Services.Implementations
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<OAuthService> _logger;
 
-        public OAuthService(HttpClient httpClient, IConfiguration configuration)
+        public OAuthService(HttpClient httpClient, IConfiguration configuration, ILogger<OAuthService> logger)
         {
             _httpClient = httpClient;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<OAuthUserInfo?> ExchangeCodeForUserInfo(string code, string provider)
@@ -28,7 +31,7 @@ namespace UserService.Services.Implementations
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"OAuth error for {provider}: {ex.Message}");
+                _logger.LogError(ex, "OAuth error for provider {Provider}", provider);
                 return null;
             }
         }
@@ -50,7 +53,7 @@ namespace UserService.Services.Implementations
 
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Token exchange failed for {provider}: {responseContent}");
+                _logger.LogWarning("Token exchange failed for provider {Provider}: {ResponseContent}", provider, responseContent);
                 return null;
             }
 
@@ -116,7 +119,7 @@ namespace UserService.Services.Implementations
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to extract access token for {provider}: {ex.Message}");
+                _logger.LogError(ex, "Failed to extract access token for provider {Provider}", provider);
             }
             
             return null;
@@ -139,7 +142,7 @@ namespace UserService.Services.Implementations
             }
             else
             {
-                Console.WriteLine($"Unsupported provider: {provider}");
+                _logger.LogWarning("Unsupported OAuth provider: {Provider}", provider);
                 return null;
             }
 
@@ -151,7 +154,7 @@ namespace UserService.Services.Implementations
 
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"Failed to get user info for {provider}: {content}");
+                _logger.LogWarning("Failed to get user info for provider {Provider}: {Content}", provider, content);
                 return null;
             }
 
@@ -189,8 +192,8 @@ namespace UserService.Services.Implementations
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to parse user info for {provider}: {ex.Message}");
-                Console.WriteLine($"JSON content: {jsonContent}");
+                _logger.LogError(ex, "Failed to parse user info for provider {Provider}", provider);
+                _logger.LogDebug("JSON content for provider {Provider}: {JsonContent}", provider, jsonContent);
             }
             
             return null;
@@ -260,14 +263,14 @@ namespace UserService.Services.Implementations
                 
                 if (!emailResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"Failed to get GitHub user emails: {emailResponse.StatusCode}");
+                    _logger.LogWarning("Failed to get GitHub user emails: {StatusCode}", emailResponse.StatusCode);
                     var errorContent = await emailResponse.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Error details: {errorContent}");
+                    _logger.LogDebug("GitHub email error details: {ErrorContent}", errorContent);
                     return "";
                 }
 
                 var emailContent = await emailResponse.Content.ReadAsStringAsync();
-                Console.WriteLine($"GitHub emails response: {emailContent}");
+                _logger.LogDebug("GitHub emails response: {EmailContent}", emailContent);
                 
                 var emailJson = JsonDocument.Parse(emailContent);
 
@@ -281,7 +284,7 @@ namespace UserService.Services.Implementations
                     // Return primary email if found and verified
                     if (primary && verified)
                     {
-                        Console.WriteLine($"Found primary verified email: {email}");
+                        _logger.LogDebug("Found primary verified email: {Email}", email);
                         return email;
                     }
                 }
@@ -294,17 +297,17 @@ namespace UserService.Services.Implementations
 
                     if (verified && !string.IsNullOrEmpty(email))
                     {
-                        Console.WriteLine($"Found verified email: {email}");
+                        _logger.LogDebug("Found verified email: {Email}", email);
                         return email;
                     }
                 }
 
-                Console.WriteLine("No verified email found for GitHub user");
+                _logger.LogWarning("No verified email found for GitHub user");
                 return "";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error retrieving GitHub user email: {ex.Message}");
+                _logger.LogError(ex, "Error retrieving GitHub user email");
                 return "";
             }
         }

@@ -198,7 +198,16 @@ public class BlogPostService : IBlogPostService
         var blogPostDto = _mapper.Map<BlogPostDto>(createdBlogPost);
         await PopulateAuthorInfoAsync(blogPostDto);
         
-        _logger.LogInformation("Blog post created successfully with ID: {BlogPostId}", blogPostDto.Id);
+        // 🗑️ CACHE: Clear caches after creating new blog post
+        ClearBlogPostCaches(createdBlogPost.Id, createdBlogPost);
+        
+        // Clear user-specific draft cache if this is a draft
+        if (createdBlogPost.Status == PostStatus.Draft)
+        {
+            ClearUserSpecificDraftCache(createdBlogPost.AuthorId);
+        }
+        
+        _logger.LogInformation("Blog post created successfully with ID: {BlogPostId} and caches cleared", blogPostDto.Id);
         return blogPostDto;
     }
 
@@ -409,55 +418,38 @@ public class BlogPostService : IBlogPostService
     
     private void ClearAllCache()
     {
-        // Clear all blog-related cache entries aggressively
-        // Since we can't easily clear all entries, we'll clear the most comprehensive set
+        // 🚀 OPTIMIZED: Smart cache clearing instead of brute force (was clearing 640+ keys!)
         try
         {
-            var keysToRemove = new List<string>();
-            
-            // Clear all possible blog post page combinations (more comprehensive)
-            var pageSizes = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50, 100 };
-            var pages = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-            
-            foreach (var pageSize in pageSizes)
+            // Clear only the most commonly used cache keys instead of thousands
+            var commonCacheKeys = new[]
             {
-                foreach (var page in pages)
-                {
-                    // Clear all possible filter combinations
-                    var combinations = new[]
-                    {
-                        CacheConfig.CreateHash(page, pageSize, "", "", "", "", "", "", "", ""),        // No filters
-                        CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Published.ToString(), "", "", "", "", ""),   // Published only
-                        CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Draft.ToString(), "", "", "", "", ""),       // Draft only
-                        CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Deleted.ToString(), "", "", "", "", ""),     // Deleted only
-                    };
-                    
-                    foreach (var hash in combinations)
-                    {
-                        var key = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, hash);
-                        keysToRemove.Add(key);
-                    }
-                }
-            }
+                // Most common pagination patterns (first pages with common sizes)
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 6, CacheConfig.CreateHash(1, 6, "", "", "", "", "", "", "", "")),
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 10, CacheConfig.CreateHash(1, 10, "", "", "", "", "", "", "", "")),
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 20, CacheConfig.CreateHash(1, 20, "", "", "", "", "", "", "", "")),
+                
+                // Common status filters
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 10, CacheConfig.CreateHash(1, 10, "", "", PostStatus.Published.ToString(), "", "", "", "", "")),
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 10, CacheConfig.CreateHash(1, 10, "", "", PostStatus.Draft.ToString(), "", "", "", "", "")),
+                
+                // Featured and popular posts (most common counts)
+                CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, 5),
+                CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, 10),
+                CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, 5),
+                CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, 10),
+            };
             
-            // Clear all featured/popular combinations
-            for (int count = 1; count <= 50; count++)
-            {
-                keysToRemove.Add(CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, count));
-                keysToRemove.Add(CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, count));
-            }
-            
-            // Remove all identified cache entries
-            foreach (var key in keysToRemove)
+            foreach (var key in commonCacheKeys)
             {
                 _cache.Remove(key);
             }
             
-            _logger.LogWarning("Aggressively cleared {CacheCount} blog-related cache entries due to blog post deletion", keysToRemove.Count);
+            _logger.LogInformation("🗑️ Smart cache clearing: removed {KeyCount} common cache keys (was 640+)", commonCacheKeys.Length);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to clear blog-related cache entries - cache may contain stale data");
+            _logger.LogError(ex, "Error during smart cache clearing");
         }
     }
 
@@ -641,9 +633,9 @@ public class BlogPostService : IBlogPostService
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Log the actual error for debugging
+            _logger.LogError(ex, "Error calling UserService for AuthorId: {AuthorId}", blogPostDto.AuthorId);
             // If we can't get user info, use defaults
             if (blogPostDto.AuthorId == "DEMO-AUTHOR-0000-0000-000000000000")
             {
