@@ -42,8 +42,18 @@ const CachedAvatar: React.FC<CachedAvatarProps> = ({
       return;
     }
 
-    // For local files, construct the full URL
-    const fullSrc = `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${src}`;
+    // For uploaded assets, construct full URL with API base
+    let fullSrc = src;
+    if (src.startsWith("assets/")) {
+      const USER_API_BASE = import.meta.env.VITE_USER_API_URL;
+      if (!USER_API_BASE) {
+        console.error("VITE_USER_API_URL environment variable is required for uploaded assets");
+        setImageSrc(fallbackSrc);
+        setHasError(true);
+        return;
+      }
+      fullSrc = `${USER_API_BASE}/${src}`;
+    }
 
     // Check if image is already cached
     if (imageCache.has(fullSrc)) {

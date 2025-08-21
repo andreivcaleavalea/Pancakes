@@ -36,10 +36,17 @@ export const getProfilePictureUrl = (
     return imagePath;
   }
 
-  // For profile pictures, use UserService URL
-  const USER_SERVICE_URL =
-    import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:5141";
-  return `${USER_SERVICE_URL}/${imagePath}`;
+  // For uploaded assets, construct full URL with API base
+  if (imagePath.startsWith("assets/")) {
+    const USER_API_BASE = import.meta.env.VITE_USER_API_URL;
+    if (!USER_API_BASE) {
+      throw new Error("VITE_USER_API_URL environment variable is required for uploaded assets");
+    }
+    return `${USER_API_BASE}/${imagePath}`;
+  }
+
+  // For frontend-served assets (like default avatar), return as relative path
+  return imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
 };
 
 /**
@@ -49,8 +56,8 @@ export const getProfilePictureUrl = (
  */
 export const isUploadedImage = (imagePath: string): boolean => {
   return (
-    imagePath.includes("/assets/blog-images/") ||
-    imagePath.includes("/assets/profile-pictures/")
+    imagePath.includes("assets/blog-images/") ||
+    imagePath.includes("assets/profile-pictures/")
   );
 };
 

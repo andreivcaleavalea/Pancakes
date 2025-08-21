@@ -5,6 +5,7 @@ using BlogService.Repositories.Interfaces;
 using BlogService.Services.Interfaces;
 using BlogService.Configuration;
 using Microsoft.Extensions.Caching.Memory;
+using System.Collections;
 
 namespace BlogService.Services.Implementations;
 
@@ -62,8 +63,8 @@ public class CommentService : ICommentService
 
     public async Task<IEnumerable<CommentDto>> GetByBlogPostIdAsync(Guid blogPostId)
     {
-        // 🚀 CACHE: Comments by blog post are frequently accessed
-        var cacheKey = CacheConfig.FormatKey(CacheConfig.Keys.CommentsByPost, blogPostId, 1, 1000); // Using pagination params for consistency
+        // 🚀 CACHE: Simple cache key for all comments by blog post (no pagination for this endpoint)
+        var cacheKey = $"comments_all_by_post_{blogPostId}";
         if (_cache.TryGetValue(cacheKey, out IEnumerable<CommentDto>? cachedComments))
         {
             return cachedComments;
@@ -83,11 +84,8 @@ public class CommentService : ICommentService
                 dto.Id, dto.AuthorId, dto.AuthorName);
         }
         
-        // Populate author information for all comments and replies
-        foreach (var commentDto in commentDtos)
-        {
-            await PopulateAuthorInfoRecursivelyAsync(commentDto);
-        }
+        // 🚀 OPTIMIZED: Batch populate author info to avoid N+1 queries
+        await PopulateAuthorInfoBatchAsync(commentDtos);
         
         // Log AuthorIds after population
         foreach (var dto in commentDtos)
@@ -102,8 +100,24 @@ public class CommentService : ICommentService
         return commentDtos;
     }
 
-    public async Task<CommentDto> CreateAsync(CreateCommentDto createDto)
+    public async Task<CommentDto> CreateAsync(CreateCommentDto createDto, HttpContext httpContext)
     {
+        _logger.LogInformation("Creating comment for blog post: {BlogPostId}", createDto.BlogPostId);
+
+        // Get current user from authentication context
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
+        {
+            throw new UnauthorizedAccessException("Authorization token is required or invalid");
+        }
+
+        _logger.LogInformation("Current user retrieved: Id={UserId}, Name={UserName}", 
+            currentUser.Id, currentUser.Name);
+
+        // Set author information from authenticated user
+        createDto.AuthorId = currentUser.Id;
+        createDto.AuthorName = currentUser.Name;
+
         // Verify blog post exists
         var blogPostExists = await _blogPostRepository.ExistsAsync(createDto.BlogPostId);
         if (!blogPostExists)
@@ -138,12 +152,30 @@ public class CommentService : ICommentService
         
         // Populate author info including image
         await PopulateAuthorInfoAsync(commentDto);
+        
+        // 🗑️ CACHE: Clear comment caches after creating new comment
+        _logger.LogInformation("🔄 [CreateAsync] About to clear comment cache for blog post {BlogPostId}", createDto.BlogPostId);
+        ClearCommentCaches(createDto.BlogPostId);
+        
         return commentDto;
     }
 
-    public async Task<CommentDto> UpdateAsync(Guid id, CreateCommentDto updateDto)
+    public async Task<CommentDto> UpdateAsync(Guid id, CreateCommentDto updateDto, HttpContext httpContext)
     {
+        // Get current user from authentication context
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
+        {
+            throw new UnauthorizedAccessException("Authorization token is required or invalid");
+        }
+
         var existingComment = await GetCommentByIdOrThrowAsync(id);
+        
+        // Check if the current user is the author of the comment
+        if (existingComment.AuthorId != currentUser.Id)
+        {
+            throw new UnauthorizedAccessException("You can only edit your own comments.");
+        }
         
         // Only allow updating content - preserve author information
         existingComment.Content = updateDto.Content;
@@ -151,13 +183,36 @@ public class CommentService : ICommentService
         var updatedComment = await _commentRepository.UpdateAsync(existingComment);
         var commentDto = _mapper.Map<CommentDto>(updatedComment);
         await PopulateAuthorInfoAsync(commentDto);
+        
+        // 🗑️ CACHE: Clear comment caches after updating comment
+        _logger.LogInformation("🔄 [UpdateAsync] About to clear comment cache for blog post {BlogPostId}", existingComment.BlogPostId);
+        ClearCommentCaches(existingComment.BlogPostId);
+        
         return commentDto;
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id, HttpContext httpContext)
     {
-        await GetCommentByIdOrThrowAsync(id);
+        // Get current user from authentication context
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
+        {
+            throw new UnauthorizedAccessException("Authorization token is required or invalid");
+        }
+
+        var comment = await GetCommentByIdOrThrowAsync(id);
+        
+        // Check if the current user is the author of the comment
+        if (comment.AuthorId != currentUser.Id)
+        {
+            throw new UnauthorizedAccessException("You can only delete your own comments.");
+        }
+
         await _commentRepository.DeleteAsync(id);
+        
+        // 🗑️ CACHE: Clear comment caches after deleting comment
+        _logger.LogInformation("🔄 [DeleteAsync] About to clear comment cache for blog post {BlogPostId}", comment.BlogPostId);
+        ClearCommentCaches(comment.BlogPostId);
     }
 
     private async Task<Comment> GetCommentByIdOrThrowAsync(Guid id)
@@ -168,6 +223,25 @@ public class CommentService : ICommentService
             throw new ArgumentException($"Comment with ID {id} not found.");
         }
         return comment;
+    }
+
+    /// <summary>
+    /// 🗑️ Clear comment-related caches when comments are modified
+    /// </summary>
+    private void ClearCommentCaches(Guid blogPostId)
+    {
+        try
+        {
+            // Clear the simple comment cache key
+            var cacheKey = $"comments_all_by_post_{blogPostId}";
+            _cache.Remove(cacheKey);
+            
+            _logger.LogInformation("🗑️ [ClearCommentCaches] Removed cache key: {CacheKey} for blog post {BlogPostId}", cacheKey, blogPostId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to clear comment caches for blog post {BlogPostId}", blogPostId);
+        }
     }
     
     private async Task PopulateAuthorInfoAsync(CommentDto commentDto)
@@ -228,6 +302,88 @@ public class CommentService : ICommentService
             commentDto.Id, commentDto.AuthorId, commentDto.AuthorName);
     }
     
+    /// <summary>
+    /// 🚀 OPTIMIZED: Batch populate author info for all comments and replies to avoid N+1 queries
+    /// </summary>
+    private async Task PopulateAuthorInfoBatchAsync(IEnumerable<CommentDto> commentDtos)
+    {
+        var allComments = new List<CommentDto>();
+        
+        // Collect all comments and their replies recursively
+        foreach (var comment in commentDtos)
+        {
+            CollectCommentsRecursively(comment, allComments);
+        }
+        
+        if (!allComments.Any()) return;
+        
+        // Extract unique author IDs
+        var authorIds = allComments
+            .Select(c => c.AuthorId)
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct()
+            .ToList();
+            
+        if (!authorIds.Any()) return;
+        
+        try
+        {
+            // 🚀 SINGLE batch API call instead of N individual calls
+            var authors = await _userServiceClient.GetUsersByIdsAsync(authorIds, null);
+            var authorLookup = authors.ToDictionary(a => a.Id, a => a);
+            
+            // Populate all comments with author info
+            foreach (var comment in allComments)
+            {
+                if (string.IsNullOrEmpty(comment.AuthorId))
+                {
+                    comment.AuthorName = "Anonymous";
+                    comment.AuthorImage = string.Empty;
+                }
+                else if (authorLookup.TryGetValue(comment.AuthorId, out var author))
+                {
+                    comment.AuthorName = author.Name;
+                    comment.AuthorImage = author.Image ?? string.Empty;
+                }
+                else
+                {
+                    comment.AuthorName = "Unknown User";
+                    comment.AuthorImage = string.Empty;
+                }
+            }
+            
+            _logger.LogInformation("✅ Batch populated author info for {CommentCount} comments using {AuthorCount} unique authors",
+                allComments.Count, authorLookup.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error batch populating author info for comments");
+            
+            // Fallback: Set all to unknown
+            foreach (var comment in allComments)
+            {
+                if (string.IsNullOrEmpty(comment.AuthorName))
+                {
+                    comment.AuthorName = "Unknown User";
+                    comment.AuthorImage = string.Empty;
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Recursively collect all comments and their replies into a flat list
+    /// </summary>
+    private void CollectCommentsRecursively(CommentDto comment, List<CommentDto> allComments)
+    {
+        allComments.Add(comment);
+        
+        foreach (var reply in comment.Replies)
+        {
+            CollectCommentsRecursively(reply, allComments);
+        }
+    }
+
     private async Task PopulateAuthorInfoRecursivelyAsync(CommentDto commentDto)
     {
         // Populate author info for this comment
@@ -240,138 +396,4 @@ public class CommentService : ICommentService
         }
     }
 
-    // New HttpContext-aware methods that handle all business logic
-    public async Task<CommentDto> CreateAsync(CreateCommentDto createDto, HttpContext httpContext, Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary modelState)
-    {
-        _logger.LogInformation("Creating comment for blog post: {BlogPostId}", createDto?.BlogPostId);
-
-        // Validate model state
-        var validationResult = _modelValidationService.ValidateModel(modelState);
-        if (!validationResult.IsValid)
-        {
-            _logger.LogWarning("Model state invalid: {Errors}", validationResult.ErrorMessage);
-            throw new ArgumentException(validationResult.ErrorMessage);
-        }
-
-        // Get current user using authorization service
-        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
-        if (currentUser == null)
-        {
-            throw new UnauthorizedAccessException("Authorization token is required");
-        }
-
-        _logger.LogInformation("Current user retrieved: Id={UserId}, Name={UserName}", 
-            currentUser.Id, currentUser.Name);
-
-        // Override AuthorId with current user's ID to ensure security
-        createDto.AuthorId = currentUser.Id;
-        createDto.AuthorName = currentUser.Name;
-        _logger.LogInformation("Updated createDto.AuthorId to: {AuthorId}, AuthorName to: {AuthorName}", 
-            createDto.AuthorId, createDto.AuthorName);
-
-        var result = await CreateAsync(createDto);
-        _logger.LogInformation("Comment created with final AuthorId: {AuthorId}, AuthorName: {AuthorName}", 
-            result.AuthorId, result.AuthorName);
-        
-        return result;
-    }
-
-    public async Task<CommentDto> UpdateAsync(Guid id, CreateCommentDto updateDto, HttpContext httpContext, Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary modelState)
-    {
-        _logger.LogInformation("Updating comment with ID: {CommentId}", id);
-
-        // Validate model state
-        var validationResult = _modelValidationService.ValidateModel(modelState);
-        if (!validationResult.IsValid)
-        {
-            throw new ArgumentException(validationResult.ErrorMessage);
-        }
-
-        // Get current user using authorization service
-        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
-        if (currentUser == null)
-        {
-            throw new UnauthorizedAccessException("Authorization token is required");
-        }
-
-        _logger.LogInformation("Current user retrieved for comment update: Id={UserId}, Name={UserName}", 
-            currentUser.Id, currentUser.Name);
-
-        // Get the comment to check ownership
-        var existingComment = await GetCommentByIdOrThrowAsync(id);
-        
-        // Check if the current user is the author of the comment
-        if (existingComment.AuthorId != currentUser.Id)
-        {
-            throw new UnauthorizedAccessException("You can only update your own comments.");
-        }
-        
-        return await UpdateAsync(id, updateDto);
-    }
-
-    public async Task<CommentDto?> DeleteAsync(Guid id, HttpContext httpContext)
-    {
-        _logger.LogInformation("Deleting comment with ID: {CommentId}", id);
-
-        // Get current user using authorization service
-        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
-        if (currentUser == null)
-        {
-            throw new UnauthorizedAccessException("Authorization token is required");
-        }
-
-        _logger.LogInformation("Current user retrieved for comment delete: Id={UserId}, Name={UserName}", 
-            currentUser.Id, currentUser.Name);
-
-        // Get the comment to check ownership
-        var existingComment = await GetCommentByIdOrThrowAsync(id);
-        
-        // Check if the current user is the author of the comment
-        if (existingComment.AuthorId != currentUser.Id)
-        {
-            throw new UnauthorizedAccessException("You can only delete your own comments.");
-        }
-        
-        return await SoftDeleteAsync(id);
-    }
-
-    private async Task<CommentDto?> SoftDeleteAsync(Guid id)
-    {
-        var comment = await GetCommentByIdOrThrowAsync(id);
-        
-        // Check if comment has replies
-        var hasReplies = await _commentRepository.HasRepliesAsync(id);
-        
-        if (hasReplies)
-        {
-            // Soft delete: mark as deleted and change content
-            comment.IsDeleted = true;
-            comment.DeletedAt = DateTime.UtcNow;
-            comment.Content = "[deleted]"; // Special marker for frontend
-            comment.UpdatedAt = DateTime.UtcNow;
-            
-            await _commentRepository.UpdateAsync(comment);
-            
-            // Get the updated comment with all its replies
-            var commentWithReplies = await _commentRepository.GetByIdWithRepliesAsync(id);
-            if (commentWithReplies == null)
-            {
-                throw new InvalidOperationException($"Comment {id} not found after update");
-            }
-            
-            var commentDto = _mapper.Map<CommentDto>(commentWithReplies);
-            // Populate author info for the deleted comment and all its replies
-            await PopulateAuthorInfoRecursivelyAsync(commentDto);
-            
-            _logger.LogInformation("Comment {CommentId} soft deleted due to existing replies", id);
-            return commentDto;
-        }
-        else
-        {
-            // Hard delete if no replies
-            await _commentRepository.DeleteAsync(id);
-            _logger.LogInformation("Comment {CommentId} hard deleted (no replies)", id);
-            return null; // Indicates complete deletion
-        }
-    }
 } 

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BlogService.Services.Interfaces;
 using AuthorizationService = BlogService.Services.Interfaces.IAuthorizationService;
@@ -24,7 +23,6 @@ public class BlogImagesController : ControllerBase
     }
 
     [HttpPost("upload")]
-    [Authorize]
     public async Task<IActionResult> UploadBlogImage(IFormFile image)
     {
         try
@@ -69,7 +67,6 @@ public class BlogImagesController : ControllerBase
     }
 
     [HttpDelete("{filename}")]
-    [Authorize]
     public async Task<IActionResult> DeleteBlogImage(string filename)
     {
         try

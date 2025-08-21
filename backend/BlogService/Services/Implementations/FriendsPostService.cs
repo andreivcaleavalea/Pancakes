@@ -8,18 +8,18 @@ public class FriendsPostService : IFriendsPostService
 {
     private readonly IUserServiceClient _userServiceClient;
     private readonly IBlogPostService _blogPostService;
-    private readonly IJwtUserService _jwtUserService;
+    private readonly IAuthorizationService _authorizationService;
     private readonly ILogger<FriendsPostService> _logger;
 
     public FriendsPostService(
         IUserServiceClient userServiceClient, 
         IBlogPostService blogPostService,
-        IJwtUserService jwtUserService,
+        IAuthorizationService authorizationService,
         ILogger<FriendsPostService> logger)
     {
         _userServiceClient = userServiceClient;
         _blogPostService = blogPostService;
-        _jwtUserService = jwtUserService;
+        _authorizationService = authorizationService;
         _logger = logger;
     }
 
@@ -27,10 +27,11 @@ public class FriendsPostService : IFriendsPostService
 
     public async Task<object> GetFriendsPostsAsync(HttpContext httpContext, int page, int pageSize)
     {
-        var currentUserId = _jwtUserService.GetCurrentUserId();
-        if (currentUserId == null)
+        // Use the same authentication pattern as working endpoints (comments, drafts, etc.)
+        var currentUser = await _authorizationService.GetCurrentUserAsync(httpContext);
+        if (currentUser == null)
         {
-            throw new UnauthorizedAccessException("User not authenticated");
+            throw new UnauthorizedAccessException("Authorization token is required or invalid");
         }
 
         // Get the auth token from the request
@@ -40,8 +41,8 @@ public class FriendsPostService : IFriendsPostService
             throw new UnauthorizedAccessException("No authentication token provided");
         }
 
-        _logger.LogInformation("Getting friends' posts for user {UserId}, page {Page}, pageSize {PageSize}", 
-            currentUserId, page, pageSize);
+        _logger.LogInformation("Getting friends' posts for user {UserId} ({UserName}), page {Page}, pageSize {PageSize}", 
+            currentUser.Id, currentUser.Name, page, pageSize);
 
         // Get friends list from UserService
         var friends = await _userServiceClient.GetUserFriendsAsync(authToken);
@@ -49,17 +50,17 @@ public class FriendsPostService : IFriendsPostService
 
         if (!friendUserIds.Any())
         {
-            _logger.LogWarning("User {UserId} has no friends, returning empty result", currentUserId);
+            _logger.LogWarning("User {UserId} ({UserName}) has no friends, returning empty result", currentUser.Id, currentUser.Name);
             // Return empty result if user has no friends
             return new { data = new List<BlogPostDto>(), pagination = new { currentPage = page, totalPages = 0, totalItems = 0, pageSize = pageSize } };
         }
 
-        _logger.LogInformation("Found {FriendCount} friends for user {UserId}: [{FriendIds}]", 
-            friendUserIds.Count, currentUserId, string.Join(", ", friendUserIds));
+        _logger.LogInformation("Found {FriendCount} friends for user {UserId} ({UserName}): [{FriendIds}]", 
+            friendUserIds.Count, currentUser.Id, currentUser.Name, string.Join(", ", friendUserIds));
         
         var result = await _blogPostService.GetFriendsPostsAsync(friendUserIds, page, pageSize);
-        _logger.LogInformation("Retrieved {PostCount} posts from friends for user {UserId}", 
-            (result as PaginatedResult<BlogPostDto>)?.Data?.Count() ?? 0, currentUserId);
+        _logger.LogInformation("Retrieved {PostCount} posts from friends for user {UserId} ({UserName})", 
+            (result as PaginatedResult<BlogPostDto>)?.Data?.Count() ?? 0, currentUser.Id, currentUser.Name);
         
         return result;
     }
