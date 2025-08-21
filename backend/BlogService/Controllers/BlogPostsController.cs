@@ -82,7 +82,8 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            var posts = await _blogPostService.GetPopularAsync(count);
+            // Use personalized recommendations for authenticated users
+            var posts = await _blogPostService.GetPersonalizedPopularAsync(count, HttpContext);
             return Ok(posts);
         }
         catch (Exception ex)
@@ -94,12 +95,11 @@ public class BlogPostsController : ControllerBase
 
     [HttpPost("{id}/view")]
     [AllowAnonymous]
-    public IActionResult IncrementViewCount(Guid id)
+    public async Task<IActionResult> IncrementViewCount(Guid id)
     {
         try
         {
-            // Optional endpoint - just return success for now
-            // You can implement actual view counting logic later if needed
+            await _blogPostService.IncrementViewCountAsync(id);
             return Ok(new { success = true, message = "View count incremented" });
         }
         catch (Exception ex)

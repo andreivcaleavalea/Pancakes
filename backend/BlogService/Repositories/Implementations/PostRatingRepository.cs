@@ -91,4 +91,20 @@ public class PostRatingRepository : IPostRatingRepository
 
         return ratings.ToDictionary(r => r.Rating, r => r.Count);
     }
+
+    public async Task<IEnumerable<PostRating>> GetUserRatingsAsync(string userId)
+    {
+        return await _context.PostRatings
+            .Include(pr => pr.BlogPost)
+            .Where(pr => pr.UserId == userId)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<PostRating>> GetPostRatingsByUsersAsync(Guid postId, IEnumerable<string> userIds)
+    {
+        return await _context.PostRatings
+            .Include(pr => pr.BlogPost)
+            .Where(pr => pr.BlogPostId == postId && userIds.Contains(pr.UserId))
+            .ToListAsync();
+    }
 } 

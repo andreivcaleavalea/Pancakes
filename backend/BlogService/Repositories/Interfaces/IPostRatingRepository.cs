@@ -14,4 +14,6 @@ public interface IPostRatingRepository
     Task<decimal> GetAverageRatingAsync(Guid blogPostId);
     Task<int> GetTotalRatingsAsync(Guid blogPostId);
     Task<Dictionary<decimal, int>> GetRatingDistributionAsync(Guid blogPostId);
+    Task<IEnumerable<PostRating>> GetUserRatingsAsync(string userId);
+    Task<IEnumerable<PostRating>> GetPostRatingsByUsersAsync(Guid postId, IEnumerable<string> userIds);
 } 

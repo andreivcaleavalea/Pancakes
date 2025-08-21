@@ -14,4 +14,6 @@ public interface IBlogPostRepository
     Task<BlogPost> UpdateAsync(BlogPost blogPost);
     Task DeleteAsync(Guid id);
     Task<bool> ExistsAsync(Guid id);
+    Task IncrementViewCountAsync(Guid id);
+    Task<int> GetTotalPublishedCountAsync();
 }

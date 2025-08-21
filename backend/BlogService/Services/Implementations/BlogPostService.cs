@@ -12,6 +12,7 @@ public class BlogPostService : IBlogPostService
 {
     private readonly IBlogPostRepository _blogPostRepository;
     private readonly IUserServiceClient _userServiceClient;
+    private readonly IRecommendationService _recommendationService;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAuthorizationService _authorizationService;
@@ -22,6 +23,7 @@ public class BlogPostService : IBlogPostService
     public BlogPostService(
         IBlogPostRepository blogPostRepository,
         IUserServiceClient userServiceClient,
+        IRecommendationService recommendationService,
         IMapper mapper,
         IHttpContextAccessor httpContextAccessor,
         IAuthorizationService authorizationService,
@@ -31,6 +33,7 @@ public class BlogPostService : IBlogPostService
     {
         _blogPostRepository = blogPostRepository;
         _userServiceClient = userServiceClient;
+        _recommendationService = recommendationService;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
         _authorizationService = authorizationService;
@@ -615,5 +618,65 @@ public class BlogPostService : IBlogPostService
             _logger.LogError(ex, "Error notifying friends about new blog post {BlogPostId}", blogPost.Id);
             // Don't fail the whole operation if friend notifications fail
         }
+    }
+
+    public async Task<IEnumerable<BlogPostDto>> GetPersonalizedPopularAsync(int count = 3, HttpContext? httpContext = null)
+    {
+        try
+        {
+            // If no context provided or user not authenticated, fallback to regular popular
+            if (httpContext == null)
+            {
+                return await GetPopularAsync(count);
+            }
+
+            var userId = _jwtUserService.GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return await GetPopularAsync(count);
+            }
+
+            // Use recommendation service for authenticated users
+            var recommendedPosts = await _recommendationService.GetPersonalizedRecommendationsAsync(
+                userId, count, userId);
+
+            // Convert to DTOs
+            var recommendedDtos = new List<BlogPostDto>();
+            foreach (var post in recommendedPosts)
+            {
+                var dto = _mapper.Map<BlogPostDto>(post);
+                
+                // Get user details for the author
+                try
+                {
+                    var userDto = await _userServiceClient.GetUserByIdAsync(post.AuthorId);
+                    if (userDto != null)
+                    {
+                        dto.AuthorName = userDto.Name;
+                        dto.AuthorImage = userDto.Image;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to get user details for author {AuthorId}", post.AuthorId);
+                    dto.AuthorName = "Unknown Author";
+                    dto.AuthorImage = string.Empty;
+                }
+                
+                recommendedDtos.Add(dto);
+            }
+
+            return recommendedDtos;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting personalized popular posts");
+            return await GetPopularAsync(count);
+        }
+    }
+
+    public async Task IncrementViewCountAsync(Guid id)
+    {
+        await _blogPostRepository.IncrementViewCountAsync(id);
     }
 }

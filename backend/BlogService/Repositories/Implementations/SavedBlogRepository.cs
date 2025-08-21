@@ -58,4 +58,20 @@ public class SavedBlogRepository : ISavedBlogRepository
         return await _context.SavedBlogs
             .AnyAsync(sb => sb.UserId == userId && sb.BlogPostId == blogPostId);
     }
+
+    public async Task<IEnumerable<SavedBlog>> GetUserSavedPostsAsync(string userId)
+    {
+        return await _context.SavedBlogs
+            .Include(sb => sb.BlogPost)
+            .Where(sb => sb.UserId == userId)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<SavedBlog>> GetPostSavesByUsersAsync(Guid postId, IEnumerable<string> userIds)
+    {
+        return await _context.SavedBlogs
+            .Include(sb => sb.BlogPost)
+            .Where(sb => sb.BlogPostId == postId && userIds.Contains(sb.UserId))
+            .ToListAsync();
+    }
 }
