@@ -317,14 +317,21 @@ public class CommentService : ICommentService
         
         if (!allComments.Any()) return;
         
-        // Extract unique author IDs
+        // First, set "Anonymous" for all comments with empty AuthorIds
+        foreach (var comment in allComments.Where(c => string.IsNullOrEmpty(c.AuthorId)))
+        {
+            comment.AuthorName = "Anonymous";
+            comment.AuthorImage = string.Empty;
+        }
+        
+        // Extract unique author IDs (only non-empty ones)
         var authorIds = allComments
             .Select(c => c.AuthorId)
             .Where(id => !string.IsNullOrEmpty(id))
             .Distinct()
             .ToList();
             
-        if (!authorIds.Any()) return;
+        if (!authorIds.Any()) return; // No non-empty AuthorIds to fetch
         
         try
         {
@@ -332,15 +339,10 @@ public class CommentService : ICommentService
             var authors = await _userServiceClient.GetUsersByIdsAsync(authorIds, null);
             var authorLookup = authors.ToDictionary(a => a.Id, a => a);
             
-            // Populate all comments with author info
-            foreach (var comment in allComments)
+            // Populate comments with non-empty AuthorIds
+            foreach (var comment in allComments.Where(c => !string.IsNullOrEmpty(c.AuthorId)))
             {
-                if (string.IsNullOrEmpty(comment.AuthorId))
-                {
-                    comment.AuthorName = "Anonymous";
-                    comment.AuthorImage = string.Empty;
-                }
-                else if (authorLookup.TryGetValue(comment.AuthorId, out var author))
+                if (authorLookup.TryGetValue(comment.AuthorId, out var author))
                 {
                     comment.AuthorName = author.Name;
                     comment.AuthorImage = author.Image ?? string.Empty;

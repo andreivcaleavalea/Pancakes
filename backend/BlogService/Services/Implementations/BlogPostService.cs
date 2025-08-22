@@ -5,6 +5,8 @@ using BlogService.Models.Requests;
 using BlogService.Repositories.Interfaces;
 using BlogService.Services.Interfaces;
 using BlogService.Helpers;
+using BlogService.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BlogService.Services.Implementations;
 
@@ -18,6 +20,7 @@ public class BlogPostService : IBlogPostService
     private readonly IModelValidationService _modelValidationService;
     private readonly IJwtUserService _jwtUserService;
     private readonly ILogger<BlogPostService> _logger;
+    private readonly IMemoryCache _cache;
 
     public BlogPostService(
         IBlogPostRepository blogPostRepository,
@@ -27,7 +30,8 @@ public class BlogPostService : IBlogPostService
         IAuthorizationService authorizationService,
         IModelValidationService modelValidationService,
         IJwtUserService jwtUserService,
-        ILogger<BlogPostService> logger)
+        ILogger<BlogPostService> logger,
+        IMemoryCache cache)
     {
         _blogPostRepository = blogPostRepository;
         _userServiceClient = userServiceClient;
@@ -37,6 +41,7 @@ public class BlogPostService : IBlogPostService
         _modelValidationService = modelValidationService;
         _jwtUserService = jwtUserService;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<BlogPostDto?> GetByIdAsync(Guid id)
@@ -350,6 +355,35 @@ public class BlogPostService : IBlogPostService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during smart cache clearing");
+        }
+    }
+
+    /// <summary>
+    /// Clear user-specific draft cache when drafts are created or modified
+    /// </summary>
+    private void ClearUserSpecificDraftCache(string userId)
+    {
+        try
+        {
+            // Clear commonly cached draft pages for this user
+            var commonPageSizes = new[] { 5, 10, 15, 20 };
+            var commonPages = new[] { 1, 2, 3 };
+            
+            foreach (var pageSize in commonPageSizes)
+            {
+                foreach (var page in commonPages)
+                {
+                    var draftHash = CacheConfig.CreateHash(page, pageSize, userId, "", PostStatus.Draft.ToString(), "", "", "", "", "");
+                    var draftKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, draftHash);
+                    _cache.Remove(draftKey);
+                }
+            }
+            
+            _logger.LogInformation("Cleared user-specific draft cache for user {UserId}", userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error clearing user-specific draft cache for user {UserId}", userId);
         }
     }
 

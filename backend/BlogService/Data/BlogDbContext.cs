@@ -72,7 +72,7 @@ public class BlogDbContext : DbContext
 
         // Prevent self-friendship - use lowercase column names for PostgreSQL
         modelBuilder.Entity<Friendship>()
-            .HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\"");
+            .ToTable(t => t.HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\""));
 
         // Reports table - no foreign key constraints since ContentId can reference
         // either BlogPost or Comment based on ContentType
@@ -80,7 +80,7 @@ public class BlogDbContext : DbContext
 
         // Add check constraint to prevent self-reporting
         modelBuilder.Entity<Report>()
-            .HasCheckConstraint("CK_Report_NoSelfReport", "\"ReporterId\" != \"ReportedUserId\"");
+            .ToTable(t => t.HasCheckConstraint("CK_Report_NoSelfReport", "\"ReporterId\" != \"ReportedUserId\""));
 
         base.OnModelCreating(modelBuilder);
     }
