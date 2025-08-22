@@ -23,7 +23,8 @@ public class OAuthServiceAdditionalTests
 		var config = new ConfigurationBuilder().Build();
 		Environment.SetEnvironmentVariable("OAUTH_GITHUB_CLIENT_ID", "x");
 		Environment.SetEnvironmentVariable("OAUTH_GITHUB_CLIENT_SECRET", "y");
-		var svc = new OAuthService(http, config);
+		var logger = new Mock<Microsoft.Extensions.Logging.ILogger<OAuthService>>().Object;
+		var svc = new OAuthService(http, config, logger);
 		var res = await svc.ExchangeCodeForUserInfo("code", "github");
 		res.Should().BeNull();
 	}
@@ -54,7 +55,8 @@ public class OAuthServiceAdditionalTests
 		var config = new ConfigurationBuilder().Build();
 		Environment.SetEnvironmentVariable("OAUTH_GITHUB_CLIENT_ID", "x");
 		Environment.SetEnvironmentVariable("OAUTH_GITHUB_CLIENT_SECRET", "y");
-		var svc = new OAuthService(http, config);
+		var logger = new Mock<Microsoft.Extensions.Logging.ILogger<OAuthService>>().Object;
+		var svc = new OAuthService(http, config, logger);
 		var info = await svc.GetUserInfo("abc", "github");
 		info.Should().NotBeNull();
 		info!.Id.Should().Be("1");

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UserService.Controllers;
 using UserService.Models.Requests;
 using UserService.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace UserService.Tests.Controllers;
 
@@ -11,7 +12,8 @@ public class AuthControllerTests
     private static AuthController Create(out Mock<IAuthService> svc)
     {
         svc = new Mock<IAuthService>(MockBehavior.Strict);
-        var ctrl = new AuthController(svc.Object)
+        var logger = new Mock<ILogger<AuthController>>();
+        var ctrl = new AuthController(svc.Object, logger.Object)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };

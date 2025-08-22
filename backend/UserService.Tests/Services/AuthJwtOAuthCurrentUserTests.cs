@@ -100,7 +100,8 @@ public class AuthJwtOAuthCurrentUserTests
         var config = new ConfigurationBuilder().Build();
         Environment.SetEnvironmentVariable("OAUTH_GITHUB_CLIENT_ID", "x");
         Environment.SetEnvironmentVariable("OAUTH_GITHUB_CLIENT_SECRET", "y");
-        var oauth = new OAuthService(http, config);
+        var logger = new Mock<Microsoft.Extensions.Logging.ILogger<OAuthService>>().Object;
+        var oauth = new OAuthService(http, config, logger);
         var token = await oauth.ExchangeCodeForToken("code", "github");
         token.Should().Be("abc");
         var info = await oauth.GetUserInfo("abc", "github");
