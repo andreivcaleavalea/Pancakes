@@ -21,6 +21,14 @@ namespace AdminService.Configuration
 
             var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
 
+            // Optional SSL configuration for Azure PostgreSQL
+            var dbSslMode = Environment.GetEnvironmentVariable("DB_SSL_MODE");
+            if (!string.IsNullOrEmpty(dbSslMode))
+            {
+                var trustServerCertificate = Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERTIFICATE") ?? "true";
+                connectionString += $";Ssl Mode={dbSslMode};Trust Server Certificate={trustServerCertificate}";
+            }
+
             services.AddDbContext<AdminDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
@@ -53,7 +61,7 @@ namespace AdminService.Configuration
             services.AddHttpClient<AdminService.Clients.UserClient.UserServiceClient>();
             services.AddScoped<AdminService.Clients.UserClient.IUserServiceClient, AdminService.Clients.UserClient.UserServiceClient>();
 
-            // Register BlogServiceClient with interface
+            // Register typed HttpClient and interface mapping for BlogService client
             services.AddHttpClient<AdminService.Clients.BlogClient.Services.BlogServiceClient>();
             services.AddScoped<AdminService.Clients.BlogClient.Services.IBlogServiceClient, AdminService.Clients.BlogClient.Services.BlogServiceClient>();
 
@@ -149,8 +157,8 @@ namespace AdminService.Configuration
             {
                 options.AddPolicy("AllowAdminPanel", policy =>
                     policy.WithOrigins(allowedOrigins)
-                          .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") 
-                          .WithHeaders("Content-Type", "Authorization", "Accept", "X-Requested-With", "Cache-Control", "Pragma", "Expires") 
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
                           .AllowCredentials()); // Required for httpOnly cookies
             });
 

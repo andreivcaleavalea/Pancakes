@@ -3,6 +3,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BlogService.Services.Interfaces;
+using Microsoft.Extensions.Options;
+using BlogService.Configuration;
 
 namespace BlogService.Services.Implementations
 {
@@ -12,10 +14,12 @@ namespace BlogService.Services.Implementations
     public class JwtUserService : IJwtUserService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly JwtSettings _jwt;
 
-        public JwtUserService(IHttpContextAccessor httpContextAccessor)
+        public JwtUserService(IHttpContextAccessor httpContextAccessor, IOptions<JwtSettings> jwtOptions)
         {
             _httpContextAccessor = httpContextAccessor;
+            _jwt = jwtOptions.Value;
         }
 
         /// <summary>
@@ -67,12 +71,9 @@ namespace BlogService.Services.Implementations
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
-                    ?? throw new InvalidOperationException("JWT_SECRET_KEY must be set");
-                var key = Encoding.UTF8.GetBytes(secretKey);
-                
-                var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog";
-                var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers";
+                if (string.IsNullOrWhiteSpace(_jwt.SecretKey))
+                    throw new InvalidOperationException("JWT secret key not configured");
+                var key = Encoding.UTF8.GetBytes(_jwt.SecretKey);
 
                 var validationParameters = new TokenValidationParameters
                 {
@@ -80,8 +81,8 @@ namespace BlogService.Services.Implementations
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = issuer,
-                    ValidAudience = audience,
+                    ValidIssuer = _jwt.Issuer,
+                    ValidAudience = _jwt.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ClockSkew = TimeSpan.Zero
                 };

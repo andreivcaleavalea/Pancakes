@@ -47,15 +47,17 @@ export const adminActionsApi = {
     // TODO: This endpoint might need to be implemented in AdminService
     // For now, we'll throw an error to indicate it's not available
     throw new Error(
-      "Comment deletion not yet implemented through AdminService"
+      `Comment deletion not yet implemented through AdminService (commentId: ${commentId})`
     );
   },
 
   // Get user ban status - Note: This might need to be implemented in AdminService
   getUserBanStatus: async (
-    userId: string
+    _userId: string
   ): Promise<{ isBanned: boolean; activeBan?: BanResponse }> => {
     try {
+      // Mark parameter as used to satisfy strict TS checks
+      void _userId;
       // TODO: This endpoint might need to be implemented in AdminService
       // For now, we'll return false to indicate user is not banned
       return { isBanned: false };

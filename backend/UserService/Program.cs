@@ -32,7 +32,16 @@ if (string.IsNullOrEmpty(connectionString))
 }
 
 builder.Services.AddDbContext<UserDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    {
+        // Optional SSL configuration for Azure PostgreSQL
+        var dbSslMode = Environment.GetEnvironmentVariable("DB_SSL_MODE");
+        if (!string.IsNullOrEmpty(dbSslMode))
+        {
+            var trust = Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERTIFICATE") ?? "true";
+            connectionString += $";Ssl Mode={dbSslMode};Trust Server Certificate={trust}";
+        }
+        options.UseNpgsql(connectionString);
+    });
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(UserService.Helpers.MappingProfile));
@@ -44,87 +53,59 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<OAuthService>();
 
 
-
-// Add repositories
-// Add Memory Caching for performance optimization  
-builder.Services.AddMemoryCache();
-
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IBanRepository, BanRepository>();
-builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
-builder.Services.AddScoped<IEducationRepository, EducationRepository>();
-builder.Services.AddScoped<IJobRepository, JobRepository>();
-builder.Services.AddScoped<IHobbyRepository, HobbyRepository>();
-builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-builder.Services.AddScoped<IPersonalPageSettingsRepository, PersonalPageSettingsRepository>();
-builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-
-// Add custom services
-builder.Services.AddScoped<IOAuthService, OAuthService>();
-builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IBanService, BanService>();
-builder.Services.AddScoped<IUserService, UserService.Services.Implementations.UserService>();
-builder.Services.AddScoped<IFriendshipService, FriendshipService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserMappingService, UserMappingService>();
-builder.Services.AddScoped<IProfileService, ProfileService>();
-builder.Services.AddScoped<IEducationService, EducationService>();
-builder.Services.AddScoped<IJobService, JobService>();
-builder.Services.AddScoped<IHobbyService, HobbyService>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<IFileService, FileService>();
-builder.Services.AddScoped<IPersonalPageService, PersonalPageService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
-
-// Add profile picture strategy services
-builder.Services.AddScoped<IProfilePictureStrategy, UserService.Services.Implementations.ProfilePictureStrategies.OAuthProfilePictureStrategy>();
-builder.Services.AddScoped<IProfilePictureStrategy, UserService.Services.Implementations.ProfilePictureStrategies.SelfProvidedProfilePictureStrategy>();
-builder.Services.AddScoped<IProfilePictureStrategyFactory, UserService.Services.Implementations.ProfilePictureStrategies.ProfilePictureStrategyFactory>();
-
 // Add CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
-    ?? new[] { "http://localhost:5173", "http://localhost:3000" };
+    ?? new[] { Environment.GetEnvironmentVariable("FRONTEND_BASE_URL") ?? "http://localhost:3000" };
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", builder =>
     {
         builder.WithOrigins(allowedOrigins)
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
-// Add JWT Authentication
-var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
-    ?? throw new InvalidOperationException("JWT_SECRET must be set in environment variables");
+// Add JWT Authentication from environment variables
+var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") 
+    ?? throw new InvalidOperationException("JWT_SECRET_KEY must be set in environment variables");
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers";
 
-var key = Encoding.ASCII.GetBytes(jwtKey);
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSecretKey))
+        };
+    });
 
 var app = builder.Build();
+
+// Configure port based on environment variable
+var port = Environment.GetEnvironmentVariable("USER_SERVICE_PORT") ?? "5141";
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+{
+    // Running in container, listen on all interfaces
+    app.Urls.Clear();
+    app.Urls.Add("http://0.0.0.0:80");
+}
+else if (app.Environment.IsDevelopment())
+{
+    // Running locally for development
+    app.Urls.Clear();
+    app.Urls.Add($"http://localhost:{port}");
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -134,11 +115,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Ensure static assets directory exists (required in container)
+var assetsRoot = Path.Combine(builder.Environment.ContentRootPath, "assets");
+var profilePicturesDir = Path.Combine(assetsRoot, "profile-pictures");
+Directory.CreateDirectory(profilePicturesDir);
+
 // Configure static file serving for profile pictures
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "assets")),
+    FileProvider = new PhysicalFileProvider(assetsRoot),
     RequestPath = "/assets"
 });
 
@@ -169,5 +154,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-Console.WriteLine($"Starting UserService on port 5141");
+var userUrls = string.Join(", ", app.Urls);
+Console.WriteLine($"Starting UserService. Listening on: {userUrls}");
 app.Run();

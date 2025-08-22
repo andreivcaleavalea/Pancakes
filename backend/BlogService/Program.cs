@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Npgsql;
+using BlogService.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +50,14 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
     var password = Environment.GetEnvironmentVariable("BLOGS_DB_PASSWORD");
     
     var connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};MaxPoolSize=10;MinPoolSize=0;ConnectionIdleLifetime=60;ConnectionPruningInterval=10;CommandTimeout=30;";
+
+    // Optional SSL configuration for Azure PostgreSQL
+    var dbSslMode = Environment.GetEnvironmentVariable("DB_SSL_MODE");
+    if (!string.IsNullOrEmpty(dbSslMode))
+    {
+        var trust = Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERTIFICATE") ?? "true";
+        connectionString += $"Ssl Mode={dbSslMode};Trust Server Certificate={trust};";
+    }
     
     options.UseNpgsql(connectionString, npgsqlOptions =>
     {
@@ -96,10 +105,17 @@ builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Configure JWT Authentication
-var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
+// Configure JWT settings (prefer environment variables, fallback to appsettings if later added)
+var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? string.Empty;
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers";
+
+builder.Services.Configure<JwtSettings>(options =>
+{
+    options.SecretKey = jwtSecretKey;
+    options.Issuer = jwtIssuer;
+    options.Audience = jwtAudience;
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -119,7 +135,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Configure CORS from environment variables
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') 
-    ?? new[] { "http://localhost:5173", "http://localhost:3000" };
+    ?? new[] { Environment.GetEnvironmentVariable("FRONTEND_BASE_URL") ?? "http://localhost:3000" };
 
 builder.Services.AddCors(options =>
 {
@@ -134,13 +150,12 @@ var app = builder.Build();
 
 // Configure port based on environment variable
 var port = Environment.GetEnvironmentVariable("BLOG_SERVICE_PORT") ?? "5001";
-System.Console.WriteLine($"Blog Service running on port: {port}");
 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
 {
     app.Urls.Clear();
     app.Urls.Add("http://0.0.0.0:80");
 }
-else
+else if (app.Environment.IsDevelopment())
 {
     app.Urls.Clear();
     app.Urls.Add($"http://localhost:{port}");
@@ -159,10 +174,12 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
     await context.Database.MigrateAsync();
-    
-    if (app.Environment.IsDevelopment())
+
+    var seedFlag = (Environment.GetEnvironmentVariable("SEED_DEMO_DATA") ?? "false").ToLower() == "true";
+    if (seedFlag || app.Environment.IsDevelopment())
     {
         await BlogDataSeeder.SeedAsync(context);
+        Console.WriteLine("Blog demo data seeding executed.");
     }
 }
 
@@ -172,13 +189,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-if (app.Environment.IsDevelopment())
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<BlogDbContext>();
-    await context.Database.MigrateAsync();
-    
-    await BlogDataSeeder.SeedAsync(context);
-}
+
 
 app.Run();

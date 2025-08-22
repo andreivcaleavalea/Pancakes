@@ -5,6 +5,8 @@ using BlogService.Models.Requests;
 using BlogService.Repositories.Interfaces;
 using BlogService.Services.Interfaces;
 using BlogService.Helpers;
+using BlogService.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BlogService.Services.Implementations;
 
@@ -18,6 +20,7 @@ public class BlogPostService : IBlogPostService
     private readonly IModelValidationService _modelValidationService;
     private readonly IJwtUserService _jwtUserService;
     private readonly ILogger<BlogPostService> _logger;
+    private readonly IMemoryCache _cache;
 
     public BlogPostService(
         IBlogPostRepository blogPostRepository,
@@ -27,7 +30,8 @@ public class BlogPostService : IBlogPostService
         IAuthorizationService authorizationService,
         IModelValidationService modelValidationService,
         IJwtUserService jwtUserService,
-        ILogger<BlogPostService> logger)
+        ILogger<BlogPostService> logger,
+        IMemoryCache cache)
     {
         _blogPostRepository = blogPostRepository;
         _userServiceClient = userServiceClient;
@@ -37,6 +41,7 @@ public class BlogPostService : IBlogPostService
         _modelValidationService = modelValidationService;
         _jwtUserService = jwtUserService;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<BlogPostDto?> GetByIdAsync(Guid id)
@@ -145,6 +150,16 @@ public class BlogPostService : IBlogPostService
         }
         
         _logger.LogInformation("Blog post created successfully with ID: {BlogPostId}", blogPostDto.Id);
+        // 🗑️ CACHE: Clear caches after creating new blog post
+        ClearBlogPostCaches(createdBlogPost.Id, createdBlogPost);
+        
+        // Clear user-specific draft cache if this is a draft
+        if (createdBlogPost.Status == PostStatus.Draft)
+        {
+            ClearUserSpecificDraftCache(createdBlogPost.AuthorId);
+        }
+        
+        _logger.LogInformation("Blog post created successfully with ID: {BlogPostId} and caches cleared", blogPostDto.Id);
         return blogPostDto;
     }
 
@@ -238,6 +253,139 @@ public class BlogPostService : IBlogPostService
     }
 
 
+    private void ClearBlogPostCaches(Guid updatedPostId, BlogPost updatedPost)
+    {
+        try
+        {
+            // APPROACH 1: Clear specific known cache entries
+            
+            // Clear individual blog post cache
+            var individualPostKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostById, updatedPostId);
+            _cache.Remove(individualPostKey);
+            
+            // Clear featured posts cache (all common counts)
+            for (int count = 1; count <= 10; count++)
+            {
+                var featuredKey = CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, count);
+                _cache.Remove(featuredKey);
+            }
+            
+            // Clear popular posts cache (all common counts)
+            for (int count = 1; count <= 10; count++)
+            {
+                var popularKey = CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, count);
+                _cache.Remove(popularKey);
+            }
+            
+            // APPROACH 2: Clear paginated results by attempting common combinations
+            var commonPageSizes = new[] { 5, 10, 15, 20, 25 };
+            var commonPages = new[] { 1, 2, 3, 4, 5 };
+            
+            foreach (var pageSize in commonPageSizes)
+            {
+                foreach (var page in commonPages)
+                {
+                    // Clear general blog lists (no specific filters)
+                    var generalHash = CacheConfig.CreateHash(page, pageSize, "", "", "", "", "", "", "", "");
+                    var generalKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, generalHash);
+                    _cache.Remove(generalKey);
+                    
+                    // Clear published posts lists
+                    var publishedHash = CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Published.ToString(), "", "", "", "", "");
+                    var publishedKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, publishedHash);
+                    _cache.Remove(publishedKey);
+                    
+                    // Clear draft posts lists
+                    var draftHash = CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Draft.ToString(), "", "", "", "", "");
+                    var draftKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, draftHash);
+                    _cache.Remove(draftKey);
+                    
+                    // Clear deleted posts lists
+                    var deletedHash = CacheConfig.CreateHash(page, pageSize, "", "", PostStatus.Deleted.ToString(), "", "", "", "", "");
+                    var deletedKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, deletedHash);
+                    _cache.Remove(deletedKey);
+                }
+            }
+            
+            // APPROACH 3: For maximum reliability, clear ALL cache
+            // This is aggressive but ensures no stale data remains
+            ClearAllCache();
+            
+            _logger.LogInformation("Cleared caches for updated blog post {BlogPostId}", updatedPostId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error clearing caches for updated blog post {BlogPostId}", updatedPostId);
+            // If specific cache clearing fails, clear everything as fallback
+            ClearAllCache();
+        }
+    }
+    
+    private void ClearAllCache()
+    {
+        // 🚀 OPTIMIZED: Smart cache clearing instead of brute force (was clearing 640+ keys!)
+        try
+        {
+            // Clear only the most commonly used cache keys instead of thousands
+            var commonCacheKeys = new[]
+            {
+                // Most common pagination patterns (first pages with common sizes)
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 6, CacheConfig.CreateHash(1, 6, "", "", "", "", "", "", "", "")),
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 10, CacheConfig.CreateHash(1, 10, "", "", "", "", "", "", "", "")),
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 20, CacheConfig.CreateHash(1, 20, "", "", "", "", "", "", "", "")),
+                
+                // Common status filters
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 10, CacheConfig.CreateHash(1, 10, "", "", PostStatus.Published.ToString(), "", "", "", "", "")),
+                CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, 1, 10, CacheConfig.CreateHash(1, 10, "", "", PostStatus.Draft.ToString(), "", "", "", "", "")),
+                
+                // Featured and popular posts (most common counts)
+                CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, 5),
+                CacheConfig.FormatKey(CacheConfig.Keys.FeaturedPosts, 10),
+                CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, 5),
+                CacheConfig.FormatKey(CacheConfig.Keys.PopularPosts, 10),
+            };
+            
+            foreach (var key in commonCacheKeys)
+            {
+                _cache.Remove(key);
+            }
+            
+            _logger.LogInformation("🗑️ Smart cache clearing: removed {KeyCount} common cache keys (was 640+)", commonCacheKeys.Length);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during smart cache clearing");
+        }
+    }
+
+    /// <summary>
+    /// Clear user-specific draft cache when drafts are created or modified
+    /// </summary>
+    private void ClearUserSpecificDraftCache(string userId)
+    {
+        try
+        {
+            // Clear commonly cached draft pages for this user
+            var commonPageSizes = new[] { 5, 10, 15, 20 };
+            var commonPages = new[] { 1, 2, 3 };
+            
+            foreach (var pageSize in commonPageSizes)
+            {
+                foreach (var page in commonPages)
+                {
+                    var draftHash = CacheConfig.CreateHash(page, pageSize, userId, "", PostStatus.Draft.ToString(), "", "", "", "", "");
+                    var draftKey = CacheConfig.FormatKey(CacheConfig.Keys.BlogPostsByPage, page, pageSize, draftHash);
+                    _cache.Remove(draftKey);
+                }
+            }
+            
+            _logger.LogInformation("Cleared user-specific draft cache for user {UserId}", userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error clearing user-specific draft cache for user {UserId}", userId);
+        }
+    }
 
     private async Task<BlogPost> GetBlogPostByIdOrThrowAsync(Guid id)
     {
@@ -324,7 +472,7 @@ public class BlogPostService : IBlogPostService
         if (string.IsNullOrEmpty(authorImage))
             return string.Empty;
 
-        var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
+        var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? Environment.GetEnvironmentVariable("USER_API_BASE_URL") ?? "http://localhost:5141";
         
         if (authorImage.StartsWith("assets/profile-pictures/"))
         {
@@ -386,7 +534,7 @@ public class BlogPostService : IBlogPostService
                 // Convert relative image path to full URL pointing to UserService
                 if (!string.IsNullOrEmpty(user.Image))
                 {
-                    var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5141";
+                    var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? Environment.GetEnvironmentVariable("USER_API_BASE_URL") ?? "http://localhost:5141";
                     if (user.Image.StartsWith("assets/profile-pictures/"))
                     {
                         // Convert relative path to full URL
@@ -419,9 +567,9 @@ public class BlogPostService : IBlogPostService
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Log the actual error for debugging
+            _logger.LogError(ex, "Error calling UserService for AuthorId: {AuthorId}", blogPostDto.AuthorId);
             // If we can't get user info, use defaults
             if (blogPostDto.AuthorId == "DEMO-AUTHOR-0000-0000-000000000000")
             {

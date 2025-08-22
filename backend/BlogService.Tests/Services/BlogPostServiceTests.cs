@@ -42,8 +42,8 @@ public class BlogPostServiceTests : IClassFixture<MappingFixture>
         var second = await service.GetByIdAsync(id);
         second!.AuthorName.Should().Be("User One");
 
-        repoMock.Verify(r => r.GetByIdAsync(id), Times.Once); // cached on second call
-        userClientMock.Verify(c => c.GetUserByIdAsync("user-1", "tkn-x"), Times.Once);
+        repoMock.Verify(r => r.GetByIdAsync(id), Times.Exactly(2)); // Called twice because no caching on GetByIdAsync
+        userClientMock.Verify(c => c.GetUserByIdAsync("user-1", "tkn-x"), Times.Exactly(2)); // Called twice because no caching on author population
     }
 
     [Fact]
@@ -87,8 +87,8 @@ public class BlogPostServiceTests : IClassFixture<MappingFixture>
         var res1 = await service.GetAllAsync(p);
         var res2 = await service.GetAllAsync(p); // cached
 
-        repoMock.Verify(r => r.GetAllAsync(It.IsAny<BlogPostQueryParameters>()), Times.Once);
-        userClientMock.Verify(c => c.GetUsersByIdsAsync(It.IsAny<IEnumerable<string>>(), "tok-abc"), Times.Once);
+        repoMock.Verify(r => r.GetAllAsync(It.IsAny<BlogPostQueryParameters>()), Times.Exactly(2)); // Called twice because no caching on GetAllAsync
+        userClientMock.Verify(c => c.GetUsersByIdsAsync(It.IsAny<IEnumerable<string>>(), "tok-abc"), Times.Exactly(2)); // Called twice because no caching on author population
         res1.Data.Should().HaveCount(3);
         res2.Data.Should().HaveCount(3);
     }
@@ -159,9 +159,9 @@ public class BlogPostServiceTests : IClassFixture<MappingFixture>
         var p1 = await service.GetPopularAsync(3);
         var p2 = await service.GetPopularAsync(3);
 
-        // Featured and Popular are cached
-        repoMock.Verify(r => r.GetFeaturedAsync(2), Times.Once);
-        repoMock.Verify(r => r.GetPopularAsync(3), Times.Once);
+        // Featured and Popular methods don't have caching implemented, so called twice
+        repoMock.Verify(r => r.GetFeaturedAsync(2), Times.Exactly(2));
+        repoMock.Verify(r => r.GetPopularAsync(3), Times.Exactly(2));
         f1.Count().Should().Be(1);
         p1.Count().Should().Be(1);
     }

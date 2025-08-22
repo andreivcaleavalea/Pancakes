@@ -25,7 +25,8 @@ interface UsePaginatedFriendsPostsResult {
 
 export function usePaginatedFriendsPosts(
   page: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
+  enabled: boolean = true
 ): UsePaginatedFriendsPostsResult {
   const [data, setData] = useState<BlogPost[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
@@ -70,8 +71,11 @@ export function usePaginatedFriendsPosts(
   }, [page, pageSize]);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     fetchPosts();
-  }, [fetchPosts]);
+  }, [fetchPosts, enabled]);
 
   return {
     data,
@@ -82,7 +86,7 @@ export function usePaginatedFriendsPosts(
   };
 }
 
-export function useFriends() {
+export function useFriends(enabled: boolean = true) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,8 +108,11 @@ export function useFriends() {
   }, []);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     fetchFriends();
-  }, [fetchFriends]);
+  }, [fetchFriends, enabled]);
 
   return {
     friends,
@@ -115,7 +122,7 @@ export function useFriends() {
   };
 }
 
-export function useFriendRequests() {
+export function useFriendRequests(enabled: boolean = true) {
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -137,8 +144,11 @@ export function useFriendRequests() {
   }, []);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     fetchRequests();
-  }, [fetchRequests]);
+  }, [fetchRequests, enabled]);
 
   return {
     requests,
@@ -148,7 +158,7 @@ export function useFriendRequests() {
   };
 }
 
-export function useAvailableUsers() {
+export function useAvailableUsers(enabled: boolean = true) {
   const [users, setUsers] = useState<AvailableUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -170,8 +180,11 @@ export function useAvailableUsers() {
   }, []);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     fetchUsers();
-  }, [fetchUsers]);
+  }, [fetchUsers, enabled]);
 
   return {
     users,

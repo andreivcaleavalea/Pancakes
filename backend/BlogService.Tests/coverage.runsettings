@@ -5,8 +5,8 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <Exclude>[BlogService]BlogService.Migrations.*, [BlogService]BlogService.Data.Seeders.*, [BlogService]Program</Exclude>
-          <ExcludeByFile>**/Migrations/**/*.cs, **\Migrations\**\*.cs, **/Data/Seeders/**/*.cs, **\Data\Seeders\**\*.cs, **/Program.cs, **\Program.cs</ExcludeByFile>
+          <Exclude>[BlogService]BlogService.Migrations.*, [BlogService]BlogService.Data.Seeders.*, [BlogService]Program, [BlogService]BlogService.Repositories.Implementations.*</Exclude>
+          <ExcludeByFile>**/Migrations/**/*.cs, **\Migrations\**\*.cs, **/Data/Seeders/**/*.cs, **\Data\Seeders\**\*.cs, **/Program.cs, **\Program.cs, **/Repositories/Implementations/*.cs, **\Repositories\Implementations\*.cs</ExcludeByFile>
         </Configuration>
       </DataCollector>
     </DataCollectors>

@@ -3,7 +3,6 @@ import { message } from "antd";
 import { reportApi } from "@/services/reportApi";
 import { ReportDto, ReportStatus, ReportStats } from "@/types/report";
 import { useDebounce } from "./useDebounce";
-import { useApiCache } from "./useApiCache";
 
 // Constants for timing configurations
 const DEFAULT_DEBOUNCE_MS = 300; // Default debounce delay for filters
@@ -60,8 +59,7 @@ export const useReports = (options: UseReportsOptions = {}) => {
   );
   const debouncedFilterStatus = useDebounce(filterStatus, debounceMs);
 
-  // Initialize cache hook
-  const { getCacheBustingParams } = useApiCache();
+  // Cache busting utilities are not currently needed here
 
   // Request deduplication
   const requestInFlightRef = useRef<boolean>(false);

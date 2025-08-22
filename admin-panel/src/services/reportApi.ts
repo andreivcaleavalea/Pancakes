@@ -5,7 +5,6 @@ import {
   ReportStats,
   ReportStatus,
 } from "@/types/report";
-import type { ApiResponse } from "@/types";
 
 export const reportApi = {
   // Get all reports with pagination and filtering

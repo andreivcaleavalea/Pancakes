@@ -6,6 +6,8 @@ using BlogService.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using BlogService.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace BlogService.Tests.Security;
 
@@ -32,19 +34,21 @@ public class UserContextTests
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private static JwtUserService CreateJwtUserService(HttpContext ctx)
+    private static JwtUserService CreateJwtUserService(HttpContext ctx, string? secretOverride = null)
     {
         var accessor = new HttpContextAccessor { HttpContext = ctx };
-        return new JwtUserService(accessor);
+        var settings = new JwtSettings
+        {
+            SecretKey = secretOverride ?? (Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "0123456789abcdef0123456789abcdef"),
+            Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog",
+            Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers"
+        };
+        return new JwtUserService(accessor, Options.Create(settings));
     }
 
     [Fact]
     public void JwtUserService_No_Header_Returns_Null()
     {
-        Environment.SetEnvironmentVariable("JWT_SECRET_KEY", "0123456789abcdef0123456789abcdef");
-        Environment.SetEnvironmentVariable("JWT_ISSUER", "PancakesBlog");
-        Environment.SetEnvironmentVariable("JWT_AUDIENCE", "PancakesBlogUsers");
-
         var ctx = new DefaultHttpContext();
         var jwt = CreateJwtUserService(ctx);
         jwt.GetCurrentUserId().Should().BeNull();
@@ -53,10 +57,6 @@ public class UserContextTests
     [Fact]
     public void JwtUserService_Valid_Header_Returns_UserId()
     {
-        Environment.SetEnvironmentVariable("JWT_SECRET_KEY", "0123456789abcdef0123456789abcdef");
-        Environment.SetEnvironmentVariable("JWT_ISSUER", "PancakesBlog");
-        Environment.SetEnvironmentVariable("JWT_AUDIENCE", "PancakesBlogUsers");
-
         var ctx = new DefaultHttpContext();
         var userId = "user-123";
         var token = CreateJwt(userId);

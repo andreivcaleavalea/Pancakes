@@ -49,7 +49,7 @@ namespace AdminService.Configuration
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.MapControllers();
+            app.MapControllers().RequireCors("AllowAdminPanel");
 
             return app;
         }
@@ -59,7 +59,8 @@ namespace AdminService.Configuration
             var servicePort = Environment.GetEnvironmentVariable("ADMIN_SERVICE_PORT") ?? "5002";
             
             Console.WriteLine("=== ADMIN SERVICE STARTED ===");
-            Console.WriteLine($"Admin Panel URL: http://localhost:3001");
+            var adminPanelUrl = Environment.GetEnvironmentVariable("ADMIN_PANEL_BASE_URL") ?? "http://localhost:3001";
+            Console.WriteLine($"Admin Panel URL: {adminPanelUrl}");
             Console.WriteLine($"Admin API URL: http://localhost:{servicePort}");
             Console.WriteLine("===============================");
         }

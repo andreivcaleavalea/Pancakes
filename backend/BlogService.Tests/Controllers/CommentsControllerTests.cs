@@ -72,7 +72,7 @@ public class CommentsControllerTests
         var controller = CreateController(out var svc);
         var create = new CreateCommentDto { BlogPostId = Guid.NewGuid(), Content = "c" };
         var created = new CommentDto { Id = Guid.NewGuid(), Content = "c" };
-        svc.Setup(s => s.CreateAsync(create, controller.HttpContext, controller.ModelState)).ReturnsAsync(created);
+        svc.Setup(s => s.CreateAsync(create, controller.HttpContext)).ReturnsAsync(created);
 
         var action = await controller.CreateComment(create) as CreatedAtActionResult;
         action.Should().NotBeNull();
@@ -85,7 +85,7 @@ public class CommentsControllerTests
     {
         var controller = CreateController(out var svc);
         var create = new CreateCommentDto { BlogPostId = Guid.NewGuid(), Content = "c" };
-        svc.Setup(s => s.CreateAsync(create, controller.HttpContext, controller.ModelState)).ThrowsAsync(new ArgumentException("x"));
+        svc.Setup(s => s.CreateAsync(create, controller.HttpContext)).ThrowsAsync(new ArgumentException("x"));
 
         var action = await controller.CreateComment(create);
         action.Should().BeOfType<BadRequestObjectResult>();
@@ -96,7 +96,7 @@ public class CommentsControllerTests
     {
         var controller = CreateController(out var svc);
         var create = new CreateCommentDto { BlogPostId = Guid.NewGuid(), Content = "c" };
-        svc.Setup(s => s.CreateAsync(create, controller.HttpContext, controller.ModelState)).ThrowsAsync(new UnauthorizedAccessException());
+        svc.Setup(s => s.CreateAsync(create, controller.HttpContext)).ThrowsAsync(new UnauthorizedAccessException());
 
         var action = await controller.CreateComment(create);
         action.Should().BeOfType<UnauthorizedObjectResult>();
@@ -109,7 +109,7 @@ public class CommentsControllerTests
         var id = Guid.NewGuid();
         var update = new CreateCommentDto { Content = "new" };
         var updated = new CommentDto { Id = id, Content = "new" };
-        svc.Setup(s => s.UpdateAsync(id, update, controller.HttpContext, controller.ModelState)).ReturnsAsync(updated);
+        svc.Setup(s => s.UpdateAsync(id, update, controller.HttpContext)).ReturnsAsync(updated);
 
         var action = await controller.UpdateComment(id, update) as OkObjectResult;
         action.Should().NotBeNull();
@@ -122,7 +122,7 @@ public class CommentsControllerTests
         var controller = CreateController(out var svc);
         var id = Guid.NewGuid();
         var update = new CreateCommentDto { Content = "new" };
-        svc.Setup(s => s.UpdateAsync(id, update, controller.HttpContext, controller.ModelState)).ThrowsAsync(new ArgumentException("x"));
+        svc.Setup(s => s.UpdateAsync(id, update, controller.HttpContext)).ThrowsAsync(new ArgumentException("x"));
 
         var action = await controller.UpdateComment(id, update);
         action.Should().BeOfType<NotFoundObjectResult>();
@@ -134,7 +134,7 @@ public class CommentsControllerTests
         var controller = CreateController(out var svc);
         var id = Guid.NewGuid();
         var update = new CreateCommentDto { Content = "new" };
-        svc.Setup(s => s.UpdateAsync(id, update, controller.HttpContext, controller.ModelState)).ThrowsAsync(new UnauthorizedAccessException());
+        svc.Setup(s => s.UpdateAsync(id, update, controller.HttpContext)).ThrowsAsync(new UnauthorizedAccessException());
 
         var action = await controller.UpdateComment(id, update);
         action.Should().BeOfType<UnauthorizedObjectResult>();
@@ -145,7 +145,7 @@ public class CommentsControllerTests
     {
         var controller = CreateController(out var svc);
         var id = Guid.NewGuid();
-        svc.Setup(s => s.DeleteAsync(id, controller.HttpContext)).ReturnsAsync((CommentDto?)null);
+        svc.Setup(s => s.DeleteAsync(id, controller.HttpContext)).Returns(Task.CompletedTask);
 
         var action = await controller.DeleteComment(id);
         action.Should().BeOfType<NoContentResult>();

@@ -17,8 +17,9 @@ public class FriendshipServiceTests
         users = new Mock<IUserRepository>(MockBehavior.Strict);
         current = new Mock<ICurrentUserService>(MockBehavior.Strict);
         var mapper = new Mapper(new MapperConfiguration(c => c.AddProfile<MappingProfile>()));
+        var notificationService = new Mock<INotificationService>(MockBehavior.Loose);
         var logger = new Mock<Microsoft.Extensions.Logging.ILogger<FriendshipService>>().Object;
-        return new FriendshipService(repo.Object, users.Object, mapper, current.Object, logger);
+        return new FriendshipService(repo.Object, users.Object, mapper, current.Object, notificationService.Object, logger);
     }
 
     [Fact]

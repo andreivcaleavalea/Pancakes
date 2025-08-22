@@ -145,9 +145,7 @@ export const authenticatedBlogRequest = async <T>(
           break;
         case 401:
           errorMessage = "Authentication required. Please log in.";
-          // Clear invalid session
-          localStorage.removeItem("auth-session");
-          window.location.href = "/login";
+          // Do not clear session or hard-redirect here; let UI handle it
           break;
         case 403:
           errorMessage =

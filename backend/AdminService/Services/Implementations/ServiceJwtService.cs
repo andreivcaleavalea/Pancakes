@@ -29,13 +29,13 @@ namespace AdminService.Services.Implementations
                 new Claim("last_login_at", DateTime.UtcNow.ToString("O"))
             };
 
-            // Use UserService JWT settings for compatibility
+            // Use BlogService JWT settings for compatibility (must match blog's validator)
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddHours(1), // Short-lived token
-                Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog",
-                Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers",
+                Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesAdmin",
+                Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesAdminUsers",
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 

@@ -58,7 +58,7 @@ public class CommentsController : ControllerBase
     {
         try
         {
-            var comment = await _commentService.CreateAsync(createDto, HttpContext, ModelState);
+            var comment = await _commentService.CreateAsync(createDto, HttpContext);
             return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, comment);
         }
         catch (ArgumentException ex)
@@ -81,7 +81,7 @@ public class CommentsController : ControllerBase
     {
         try
         {
-            var comment = await _commentService.UpdateAsync(id, updateDto, HttpContext, ModelState);
+            var comment = await _commentService.UpdateAsync(id, updateDto, HttpContext);
             return Ok(comment);
         }
         catch (ArgumentException ex)
@@ -104,17 +104,8 @@ public class CommentsController : ControllerBase
     {
         try
         {
-            var result = await _commentService.DeleteAsync(id, HttpContext);
-            if (result == null)
-            {
-                // Hard delete occurred
-                return NoContent();
-            }
-            else
-            {
-                // Soft delete occurred, return updated comment
-                return Ok(result);
-            }
+            await _commentService.DeleteAsync(id, HttpContext);
+            return NoContent();
         }
         catch (ArgumentException ex)
         {

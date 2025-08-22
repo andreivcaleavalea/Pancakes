@@ -7,13 +7,19 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy source code
 COPY . .
 
+# Build-time environment for Vite
+ARG VITE_ADMIN_API_URL
+ARG VITE_FRONTEND_URL
+ENV VITE_ADMIN_API_URL=$VITE_ADMIN_API_URL \
+    VITE_FRONTEND_URL=$VITE_FRONTEND_URL
+
 # Build the app
-RUN npx --yes vite build
+RUN npm run build
 
 # Production stage
 FROM nginx:alpine
@@ -25,7 +31,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port
-EXPOSE 3000
+EXPOSE 80
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]

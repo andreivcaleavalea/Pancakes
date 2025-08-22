@@ -12,13 +12,13 @@ public class FriendsPostServiceTests
     private static FriendsPostService CreateService(
         out Mock<IUserServiceClient> userClient,
         out Mock<IBlogPostService> blogPostService,
-        out Mock<IJwtUserService> jwtUserService)
+        out Mock<IAuthorizationService> authorizationService)
     {
         userClient = new Mock<IUserServiceClient>(MockBehavior.Strict);
         blogPostService = new Mock<IBlogPostService>(MockBehavior.Strict);
-        jwtUserService = new Mock<IJwtUserService>(MockBehavior.Strict);
+        authorizationService = new Mock<IAuthorizationService>(MockBehavior.Strict);
         var logger = new Mock<ILogger<FriendsPostService>>();
-        return new FriendsPostService(userClient.Object, blogPostService.Object, jwtUserService.Object, logger.Object);
+        return new FriendsPostService(userClient.Object, blogPostService.Object, authorizationService.Object, logger.Object);
     }
 
     private static HttpContext CreateHttpContext(string? bearer = null)
@@ -34,8 +34,8 @@ public class FriendsPostServiceTests
     [Fact]
     public async Task Unauthorized_When_No_Current_User()
     {
-        var service = CreateService(out var userClient, out var blogPostService, out var jwt);
-        jwt.Setup(j => j.GetCurrentUserId()).Returns((string?)null);
+        var service = CreateService(out var userClient, out var blogPostService, out var authorizationService);
+        authorizationService.Setup(a => a.GetCurrentUserAsync(It.IsAny<HttpContext>())).ReturnsAsync((UserInfoDto?)null);
 
         var ctx = CreateHttpContext("token");
         Func<Task> act = async () => await service.GetFriendsPostsAsync(ctx, 1, 10);
@@ -45,8 +45,8 @@ public class FriendsPostServiceTests
     [Fact]
     public async Task No_Friends_Returns_Empty_Result()
     {
-        var service = CreateService(out var userClient, out var blogPostService, out var jwt);
-        jwt.Setup(j => j.GetCurrentUserId()).Returns("me");
+        var service = CreateService(out var userClient, out var blogPostService, out var authorizationService);
+        authorizationService.Setup(a => a.GetCurrentUserAsync(It.IsAny<HttpContext>())).ReturnsAsync(new UserInfoDto { Id = "me", Name = "Test User" });
         userClient.Setup(u => u.GetUserFriendsAsync("token")).ReturnsAsync(Array.Empty<FriendDto>());
 
         var ctx = CreateHttpContext("token");
@@ -80,8 +80,8 @@ public class FriendsPostServiceTests
     [Fact]
     public async Task Has_Friends_Calls_BlogPostService_With_Ids_And_Pagination()
     {
-        var service = CreateService(out var userClient, out var blogPostService, out var jwt);
-        jwt.Setup(j => j.GetCurrentUserId()).Returns("me");
+        var service = CreateService(out var userClient, out var blogPostService, out var authorizationService);
+        authorizationService.Setup(a => a.GetCurrentUserAsync(It.IsAny<HttpContext>())).ReturnsAsync(new UserInfoDto { Id = "me", Name = "Test User" });
         userClient.Setup(u => u.GetUserFriendsAsync("tok")).ReturnsAsync(new[]
         {
             new FriendDto { UserId = "u1", Name = "A" },

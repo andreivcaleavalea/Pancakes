@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { Typography, Row, Col, Spin, Alert } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { Typography, Row, Col, Spin, Alert, Button } from "antd";
+import { PlusOutlined, CompassOutlined } from "@ant-design/icons";
 import { BlogCard } from "@common/BlogCard";
 import { FloatingActionButton } from "@common/FloatingActionButton";
 import { TagFilter } from "@components/common";
@@ -66,6 +66,10 @@ const HomePage: React.FC = () => {
     navigate("create-blog");
   };
 
+  const scrollToAllPosts = () => {
+    document.getElementById("all-posts")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   // Show loading spinner while initial blog data is loading
   if (blogLoading) {
     return (
@@ -93,15 +97,39 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="home-page">
+      {/* Hero Slogan */}
+      <section className="home-page__hero">
+        <div className="home-page__hero-content">
+          <Title level={1} className="home-page__hero-title">
+            Write. Share. Connect.
+          </Title>
+          <p className="home-page__hero-subtitle">
+            Flip ideas into posts, stack your thoughts high, and drizzle your voice on top.
+          </p>
+          <div className="home-page__hero-actions">
+            <Button
+              type="primary"
+              size="large"
+              icon={<CompassOutlined />}
+              onClick={scrollToAllPosts}
+            >
+              Explore posts
+            </Button>
+            <Button size="large" icon={<PlusOutlined />} onClick={handleCreateBlog}>
+              Create post
+            </Button>
+          </div>
+        </div>
+      </section>
       {/* Hero Section */}
-      <section className="home-page__section">
+  <section className="home-page__section">
         <Title
-          level={1}
+          level={2}
           className={`home-page__title ${
             isMobile ? "home-page__title--mobile" : ""
           }`}
         >
-          Today's Special
+          Featured Today
         </Title>
 
         {featuredPosts.length > 0 && (
@@ -124,7 +152,7 @@ const HomePage: React.FC = () => {
               isMobile ? "home-page__title--mobile" : ""
             }`}
           >
-            Popular Recipes
+            Trending Now
           </Title>
 
           <div className="home-page__horizontal-list">
@@ -141,14 +169,14 @@ const HomePage: React.FC = () => {
       )}
 
       {/* All Recipes Section */}
-      <section className="home-page__section">
+  <section id="all-posts" className="home-page__section">
         <Title
           level={2}
           className={`home-page__title ${
             isMobile ? "home-page__title--mobile" : ""
           }`}
         >
-          All Recipes
+          All Posts
         </Title>
 
         {/* Tag Filter Component */}

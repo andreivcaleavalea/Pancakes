@@ -72,3 +72,4 @@ Thumbs.db
 backend/UserService/assets/
 backend/BlogService/assets/
 
+frontend/.env.production
