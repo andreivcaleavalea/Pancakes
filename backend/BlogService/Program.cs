@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Npgsql;
+using BlogService.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,10 +105,17 @@ builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Configure JWT Authentication
-var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
+// Configure JWT settings (prefer environment variables, fallback to appsettings if later added)
+var jwtSecretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? string.Empty;
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "PancakesBlog";
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "PancakesBlogUsers";
+
+builder.Services.Configure<JwtSettings>(options =>
+{
+    options.SecretKey = jwtSecretKey;
+    options.Issuer = jwtIssuer;
+    options.Audience = jwtAudience;
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

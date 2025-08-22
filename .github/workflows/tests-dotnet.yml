@@ -7,6 +7,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Stable JWT configuration for tests (individual tests may temporarily override)
+      JWT_SECRET_KEY: test-secret-key-with-min-length-32chars-xyz123
+      JWT_ISSUER: PancakesBlog
+      JWT_AUDIENCE: PancakesBlogUsers
     steps:
       - uses: actions/checkout@v4
 

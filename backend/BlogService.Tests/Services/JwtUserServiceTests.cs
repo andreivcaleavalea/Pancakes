@@ -4,43 +4,33 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BlogService.Services.Implementations;
+using BlogService.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace BlogService.Tests.Services;
 
 public class JwtUserServiceTests : IDisposable
 {
-    private readonly string _originalJwtSecret;
-    private readonly string _originalJwtIssuer;
-    private readonly string _originalJwtAudience;
     private const string TestSecretKey = "this-is-a-test-secret-key-with-at-least-32-characters-for-jwt-signing";
     private const string TestIssuer = "TestIssuer";
     private const string TestAudience = "TestAudience";
 
     public JwtUserServiceTests()
     {
-        // Store original environment variables
-        _originalJwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "";
-        _originalJwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "";
-        _originalJwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "";
-
-        // Set test environment variables
-        Environment.SetEnvironmentVariable("JWT_SECRET_KEY", TestSecretKey);
-        Environment.SetEnvironmentVariable("JWT_ISSUER", TestIssuer);
-        Environment.SetEnvironmentVariable("JWT_AUDIENCE", TestAudience);
+        // no-op; environment variables no longer required
     }
 
     public void Dispose()
     {
-        // Restore original environment variables
-        Environment.SetEnvironmentVariable("JWT_SECRET_KEY", _originalJwtSecret);
-        Environment.SetEnvironmentVariable("JWT_ISSUER", _originalJwtIssuer);
-        Environment.SetEnvironmentVariable("JWT_AUDIENCE", _originalJwtAudience);
+        // nothing to dispose currently
     }
 
-    private static JwtUserService CreateService(out Mock<IHttpContextAccessor> httpContextAccessorMock)
+    private JwtUserService CreateService(out Mock<IHttpContextAccessor> httpContextAccessorMock, JwtSettings? overrideSettings = null)
     {
         httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        return new JwtUserService(httpContextAccessorMock.Object);
+        var settings = overrideSettings ?? new JwtSettings { SecretKey = TestSecretKey, Issuer = TestIssuer, Audience = TestAudience };
+        var options = Options.Create(settings);
+        return new JwtUserService(httpContextAccessorMock.Object, options);
     }
 
     private static string GenerateValidJwtToken(string userId)
@@ -253,8 +243,7 @@ public class JwtUserServiceTests : IDisposable
     public void GetCurrentUserId_WithMissingSecretKey_ThrowsInvalidOperationException()
     {
         // Arrange
-        Environment.SetEnvironmentVariable("JWT_SECRET_KEY", null);
-        var service = CreateService(out var httpContextAccessorMock);
+    var service = CreateService(out var httpContextAccessorMock, new JwtSettings { SecretKey = "", Issuer = TestIssuer, Audience = TestAudience });
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Headers.Authorization = "Bearer some.token.here";
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
@@ -263,8 +252,7 @@ public class JwtUserServiceTests : IDisposable
         var result = service.GetCurrentUserId();
         result.Should().BeNull(); // Should handle the exception gracefully and return null
         
-        // Restore for cleanup
-        Environment.SetEnvironmentVariable("JWT_SECRET_KEY", TestSecretKey);
+    // no cleanup needed
     }
 
     [Fact]
