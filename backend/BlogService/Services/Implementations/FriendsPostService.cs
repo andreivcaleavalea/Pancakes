@@ -55,13 +55,7 @@ public class FriendsPostService : IFriendsPostService
             return new { data = new List<BlogPostDto>(), pagination = new { currentPage = page, totalPages = 0, totalItems = 0, pageSize = pageSize } };
         }
 
-        _logger.LogInformation("Found {FriendCount} friends for user {UserId} ({UserName}): [{FriendIds}]", 
-            friendUserIds.Count, currentUser.Id, currentUser.Name, string.Join(", ", friendUserIds));
-        
-        var result = await _blogPostService.GetFriendsPostsAsync(friendUserIds, page, pageSize);
-        _logger.LogInformation("Retrieved {PostCount} posts from friends for user {UserId} ({UserName})", 
-            (result as PaginatedResult<BlogPostDto>)?.Data?.Count() ?? 0, currentUser.Id, currentUser.Name);
-        
+        var result = await _blogPostService.GetFriendsPostsAsync(friendUserIds, page, pageSize);        
         return result;
     }
 }

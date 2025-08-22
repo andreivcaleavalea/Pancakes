@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using UserService.Services.Interfaces;
 using UserService.Models.Requests;
 using UserService.Models.Responses;
+using Microsoft.Extensions.Logging;
 
 namespace UserService.Controllers
 {
@@ -11,10 +12,12 @@ namespace UserService.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _logger = logger;
         }
 
         [HttpPost("login")]
