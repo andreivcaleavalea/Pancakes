@@ -17,7 +17,7 @@ public class RecommendationService : IRecommendationService
     private readonly ILogger<RecommendationService> _logger;
     
     // Algorithm parameters
-    private const int MinimumPostsForAlgorithm = 20;
+    private const int MinimumPostsForAlgorithm = 5;
     private const double FriendLikeWeight = 0.25;
     private const double UserSavedTagWeight = 0.20;
     private const double ViewCountWeight = 0.15;
@@ -202,7 +202,7 @@ public class RecommendationService : IRecommendationService
 
         foreach (var post in posts)
         {
-            // Skip posts user has already interacted with
+            // Skip posts user has already interacted with (they've already seen them)
             if (savedPostIds.Contains(post.Id) || ratedPostIds.Contains(post.Id))
                 continue;
 

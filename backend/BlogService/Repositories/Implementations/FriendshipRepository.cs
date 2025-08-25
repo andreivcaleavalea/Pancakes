@@ -1,20 +1,33 @@
+using BlogService.Data;
+using BlogService.Models.Entities;
 using BlogService.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlogService.Repositories.Implementations;
 
 public class FriendshipRepository : IFriendshipRepository
 {
-    // TODO: This is a placeholder implementation
-    // In a real scenario, this should either:
-    // 1. Call the UserService API to get friendship data
-    // 2. Have direct access to the UserService database
-    // 3. Use a shared friendship data store
+    private readonly BlogDbContext _context;
+
+    public FriendshipRepository(BlogDbContext context)
+    {
+        _context = context;
+    }
 
     public async Task<IEnumerable<string>> GetUserFriendsAsync(string userId)
     {
-        // Placeholder - return empty for now
-        // In production, this would call UserService or access shared data
-        await Task.CompletedTask;
-        return Enumerable.Empty<string>();
+        // Get accepted friendships where user is either sender or receiver
+        var friendships = await _context.Friendships
+            .Where(f => (f.SenderId == userId || f.ReceiverId == userId) 
+                       && f.Status == FriendshipStatus.Accepted)
+            .ToListAsync();
+
+        // Extract friend IDs (the other person in each friendship)
+        var friendIds = friendships.Select(f => 
+            f.SenderId == userId ? f.ReceiverId : f.SenderId)
+            .Distinct()
+            .ToList();
+
+        return friendIds;
     }
 }
