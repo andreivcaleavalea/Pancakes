@@ -83,7 +83,7 @@ export function useFeaturedPosts(count: number = 5) {
   return useApi(apiCall);
 }
 
-// Hook for popular posts
+// Hook for popular posts (PUBLIC - no personalization)
 export function usePopularPosts(count: number = 5) {
   const [blogPostsApi, setBlogPostsApi] = useState<typeof import('@/services/blogApi').blogPostsApi | null>(null);
   
@@ -94,10 +94,32 @@ export function usePopularPosts(count: number = 5) {
   }, []);
 
   const apiCall = useCallback(() => {
+    console.log("🔧 [usePopularPosts] Getting public popular posts (no personalization):", { count });
     if (!blogPostsApi) {
       return Promise.resolve([]);
     }
     return blogPostsApi.getPopular(count);
+  }, [blogPostsApi, count]);
+
+  return useApi(apiCall);
+}
+
+// Hook for personalized popular posts (AUTHENTICATED - with personalization)
+export function usePersonalizedPopularPosts(count: number = 5) {
+  const [blogPostsApi, setBlogPostsApi] = useState<typeof import('@/services/blogApi').blogPostsApi | null>(null);
+  
+  useEffect(() => {
+    import('@/services/blogApi').then(module => {
+      setBlogPostsApi(module.blogPostsApi);
+    });
+  }, []);
+
+  const apiCall = useCallback(() => {
+    console.log("🎯 [usePersonalizedPopularPosts] Getting personalized popular posts:", { count });
+    if (!blogPostsApi) {
+      return Promise.resolve([]);
+    }
+    return blogPostsApi.getPersonalizedPopular(count);
   }, [blogPostsApi, count]);
 
   return useApi(apiCall);

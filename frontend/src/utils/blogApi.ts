@@ -101,13 +101,15 @@ export const authenticatedBlogRequest = async <T>(
   // Get token from localStorage
   const authSession = localStorage.getItem("auth-session");
   let token = "";
+  let userId = null;
 
   if (authSession) {
     try {
       const session = JSON.parse(authSession);
       token = session.token || "";
+      userId = session.user?.id || session.userId || "unknown";
     } catch (error) {
-      console.error("Error parsing auth session:", error);
+      console.error("❌ [AuthBlogAPI] Error parsing auth session:", error);
     }
   }
 
@@ -160,6 +162,11 @@ export const authenticatedBlogRequest = async <T>(
           errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       }
 
+      console.error("❌ [AuthBlogAPI] Request failed:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorMessage,
+      });
       throw new ApiError(errorMessage, response.status, response.statusText);
     }
 

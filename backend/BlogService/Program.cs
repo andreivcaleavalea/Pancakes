@@ -5,6 +5,7 @@ using BlogService.Repositories.Implementations;
 using BlogService.Services.Interfaces;
 using BlogService.Services.Implementations;
 using BlogService.Helpers;
+using BlogService.Configuration;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using AutoMapper;
@@ -71,6 +72,8 @@ builder.Services.AddScoped<IPostRatingRepository, PostRatingRepository>();
 builder.Services.AddScoped<ICommentLikeRepository, CommentLikeRepository>();
 builder.Services.AddScoped<ISavedBlogRepository, SavedBlogRepository>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IUserInterestRepository, UserInterestRepository>();
+builder.Services.AddScoped<IPersonalizedFeedRepository, PersonalizedFeedRepository>();
 
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
@@ -79,6 +82,20 @@ builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
 builder.Services.AddScoped<ISavedBlogService, SavedBlogService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+
+// Enhanced recommendation services
+builder.Services.AddSingleton<RecommendationConfig>();
+builder.Services.AddScoped<IUserInterestService, UserInterestService>();
+builder.Services.AddScoped<RecommendationService>();
+builder.Services.AddScoped<PersonalizedRecommendationService>();
+builder.Services.AddScoped<IFeedPreComputationService, FeedPreComputationServiceWrapper>();
+builder.Services.AddScoped<InteractionTrackingService>();
+
+// Use enhanced recommendation service by default
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+
+// Background service for pre-computing feeds
+builder.Services.AddHostedService<FeedPreComputationService>();
 
 // Add JWT User Service for extracting user info from tokens
 builder.Services.AddScoped<IJwtUserService, JwtUserService>();

@@ -87,11 +87,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signOut = async () => {
-    console.log("🔐 AuthContext: Signing out user...", {
-      userId: session?.user?.id,
-      userName: session?.user?.name,
-    });
-
     try {
       // Optionally call backend logout endpoint for logging/analytics
       // In a stateless system, the backend doesn't need to clear any state

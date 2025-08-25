@@ -9,4 +9,6 @@ public interface ISavedBlogRepository
     Task<SavedBlog> SaveBlogAsync(SavedBlog savedBlog);
     Task DeleteSavedBlogAsync(string userId, Guid blogPostId);
     Task<bool> IsBookmarkedAsync(string userId, Guid blogPostId);
+    Task<IEnumerable<SavedBlog>> GetUserSavedPostsAsync(string userId);
+    Task<IEnumerable<SavedBlog>> GetPostSavesByUsersAsync(Guid postId, IEnumerable<string> userIds);
 }

@@ -26,6 +26,9 @@ public class BlogPost
     [Column(TypeName = "jsonb")]
     public List<string> Tags { get; set; } = new List<string>();
     
+    // View count for tracking popularity
+    public int ViewCount { get; set; } = 0;
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? PublishedAt { get; set; }

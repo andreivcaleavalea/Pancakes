@@ -91,4 +91,76 @@ public class PostRatingRepository : IPostRatingRepository
 
         return ratings.ToDictionary(r => r.Rating, r => r.Count);
     }
+
+    public async Task<IEnumerable<PostRating>> GetUserRatingsAsync(string userId)
+    {
+        return await _context.PostRatings
+            .Include(pr => pr.BlogPost)
+            .Where(pr => pr.UserId == userId)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<PostRating>> GetPostRatingsByUsersAsync(Guid postId, IEnumerable<string> userIds)
+    {
+        return await _context.PostRatings
+            .Include(pr => pr.BlogPost)
+            .Where(pr => pr.BlogPostId == postId && userIds.Contains(pr.UserId))
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get average ratings for multiple blog posts in a single query for performance optimization
+    /// </summary>
+    public async Task<Dictionary<Guid, decimal>> GetAverageRatingsBatchAsync(IEnumerable<Guid> blogPostIds)
+    {
+        var blogPostIdsList = blogPostIds.ToList();
+        if (!blogPostIdsList.Any()) return new Dictionary<Guid, decimal>();
+
+        var averageRatings = await _context.PostRatings
+            .Where(pr => blogPostIdsList.Contains(pr.BlogPostId))
+            .GroupBy(pr => pr.BlogPostId)
+            .Select(g => new { BlogPostId = g.Key, Average = g.Average(pr => pr.Rating) })
+            .ToListAsync();
+
+        return averageRatings.ToDictionary(ar => ar.BlogPostId, ar => ar.Average);
+    }
+
+    /// <summary>
+    /// Get total rating counts for multiple blog posts in a single query for performance optimization
+    /// </summary>
+    public async Task<Dictionary<Guid, int>> GetTotalRatingsBatchAsync(IEnumerable<Guid> blogPostIds)
+    {
+        var blogPostIdsList = blogPostIds.ToList();
+        if (!blogPostIdsList.Any()) return new Dictionary<Guid, int>();
+
+        var totalRatings = await _context.PostRatings
+            .Where(pr => blogPostIdsList.Contains(pr.BlogPostId))
+            .GroupBy(pr => pr.BlogPostId)
+            .Select(g => new { BlogPostId = g.Key, Total = g.Count() })
+            .ToListAsync();
+
+        return totalRatings.ToDictionary(tr => tr.BlogPostId, tr => tr.Total);
+    }
+
+    /// <summary>
+    /// Get both average and total ratings for multiple blog posts in a single optimized query
+    /// This is the most efficient method when both values are needed
+    /// </summary>
+    public async Task<Dictionary<Guid, (decimal Average, int Total)>> GetRatingStatsBatchAsync(IEnumerable<Guid> blogPostIds)
+    {
+        var blogPostIdsList = blogPostIds.ToList();
+        if (!blogPostIdsList.Any()) return new Dictionary<Guid, (decimal, int)>();
+
+        var ratingStats = await _context.PostRatings
+            .Where(pr => blogPostIdsList.Contains(pr.BlogPostId))
+            .GroupBy(pr => pr.BlogPostId)
+            .Select(g => new { 
+                BlogPostId = g.Key, 
+                Average = g.Average(pr => pr.Rating),
+                Total = g.Count()
+            })
+            .ToListAsync();
+
+        return ratingStats.ToDictionary(rs => rs.BlogPostId, rs => (rs.Average, rs.Total));
+    }
 } 

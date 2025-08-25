@@ -3,7 +3,7 @@ import { Typography, Spin, Alert, Empty, Row, Col } from "antd";
 import { BookOutlined } from "@ant-design/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "@/router/RouterProvider";
-import { useSavedBlogs } from "@/hooks/useSavedBlogs";
+import { useSavedBlogsContext } from "@/contexts/SavedBlogsContext";
 import { useAverageRatings } from "@/hooks/useAverageRatings";
 import { BlogCard } from "@/components/common";
 import type { BlogPost } from "@/types/blog";
@@ -27,7 +27,11 @@ const transformBlogPost = (post: BlogPost): BlogPost => {
 const SavedBlogsPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { navigate } = useRouter();
-  const { savedBlogs, loading, error, refetch } = useSavedBlogs();
+  const {
+    savedBlogs,
+    isLoading: loading,
+    refreshSavedBlogs,
+  } = useSavedBlogsContext();
 
   // Transform saved blog posts to include legacy fields
   const transformedSavedBlogs = useMemo(() => {
@@ -68,29 +72,6 @@ const SavedBlogsPage: React.FC = () => {
           <Spin size="large" />
           <Text>Loading your saved blogs...</Text>
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="saved-blogs-page">
-        <div className="saved-blogs-page__header">
-          <Title level={2} className="saved-blogs-page__title">
-            <BookOutlined /> My Saved Blogs
-          </Title>
-        </div>
-        <Alert
-          message="Error Loading Saved Blogs"
-          description={error}
-          type="error"
-          showIcon
-          action={
-            <button onClick={refetch} className="ant-btn ant-btn-primary">
-              Retry
-            </button>
-          }
-        />
       </div>
     );
   }

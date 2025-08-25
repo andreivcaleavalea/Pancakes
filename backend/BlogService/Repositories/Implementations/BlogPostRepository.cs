@@ -31,6 +31,10 @@ public class BlogPostRepository : IBlogPostRepository
         {
             query = query.Where(bp => bp.AuthorId == parameters.AuthorId);
         }
+        if (!string.IsNullOrEmpty(parameters.ExcludeAuthorId))
+        {
+            query = query.Where(bp => bp.AuthorId != parameters.ExcludeAuthorId);
+        }
         if (parameters.Status.HasValue)
         {
             query = query.Where(bp => bp.Status == parameters.Status);
@@ -175,5 +179,21 @@ public class BlogPostRepository : IBlogPostRepository
             .ToListAsync();
 
         return (posts, totalCount);
+    }
+
+    public async Task IncrementViewCountAsync(Guid id)
+    {
+        var blogPost = await _context.BlogPosts.FindAsync(id);
+        if (blogPost != null)
+        {
+            blogPost.ViewCount++;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<int> GetTotalPublishedCountAsync()
+    {
+        return await _context.BlogPosts
+            .CountAsync(bp => bp.Status == PostStatus.Published);
     }
 }

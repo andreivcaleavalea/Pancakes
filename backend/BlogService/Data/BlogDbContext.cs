@@ -12,8 +12,9 @@ public class BlogDbContext : DbContext
     public DbSet<PostRating> PostRatings { get; set; }
     public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<SavedBlog> SavedBlogs { get; set; }
-    public DbSet<Friendship> Friendships { get; set; }
     public DbSet<Report> Reports { get; set; }
+    public DbSet<UserInterest> UserInterests { get; set; }
+    public DbSet<PersonalizedFeed> PersonalizedFeeds { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,15 +66,6 @@ public class BlogDbContext : DbContext
             .HasForeignKey(sb => sb.BlogPostId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Configure Friendship relationships
-        modelBuilder.Entity<Friendship>()
-            .HasIndex(f => new { f.SenderId, f.ReceiverId })
-            .IsUnique(); // Prevent duplicate friend requests
-
-        // Prevent self-friendship - use lowercase column names for PostgreSQL
-        modelBuilder.Entity<Friendship>()
-            .HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\"");
-
         // Reports table - no foreign key constraints since ContentId can reference
         // either BlogPost or Comment based on ContentType
         // Content validation is handled in the service layer
@@ -81,6 +73,12 @@ public class BlogDbContext : DbContext
         // Add check constraint to prevent self-reporting
         modelBuilder.Entity<Report>()
             .HasCheckConstraint("CK_Report_NoSelfReport", "\"ReporterId\" != \"ReportedUserId\"");
+
+        // Configure UserInterest entity
+        UserInterest.ConfigureEntity(modelBuilder);
+
+        // Configure PersonalizedFeed entity
+        PersonalizedFeed.ConfigureEntity(modelBuilder);
 
         base.OnModelCreating(modelBuilder);
     }

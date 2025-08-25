@@ -31,6 +31,11 @@ public class BlogPostsController : ControllerBase
         try
         {
             var result = await _blogPostService.GetAllAsync(parameters, HttpContext);
+            
+            // 🚀 HTTP CACHE: Cache blog posts for 5 minutes
+            Response.Headers["Cache-Control"] = "public, max-age=300"; // 5 minutes
+            Response.Headers["Vary"] = "Accept-Encoding, Authorization";
+            
             return Ok(result);
         }
         catch (Exception ex)
@@ -67,6 +72,11 @@ public class BlogPostsController : ControllerBase
         try
         {
             var posts = await _blogPostService.GetFeaturedAsync(count);
+            
+            // 🚀 HTTP CACHE: Cache featured posts for 15 minutes
+            Response.Headers["Cache-Control"] = "public, max-age=900"; // 15 minutes
+            Response.Headers["Vary"] = "Accept-Encoding";
+            
             return Ok(posts);
         }
         catch (Exception ex)
@@ -82,7 +92,13 @@ public class BlogPostsController : ControllerBase
     {
         try
         {
-            var posts = await _blogPostService.GetPopularAsync(count);
+            // Use personalized recommendations for authenticated users
+            var posts = await _blogPostService.GetPersonalizedPopularAsync(count, HttpContext);
+            
+            // 🚀 HTTP CACHE: Cache popular posts for 5 minutes (shorter due to personalization)
+            Response.Headers["Cache-Control"] = "public, max-age=300"; // 5 minutes
+            Response.Headers["Vary"] = "Accept-Encoding, Authorization";
+            
             return Ok(posts);
         }
         catch (Exception ex)
@@ -94,12 +110,11 @@ public class BlogPostsController : ControllerBase
 
     [HttpPost("{id}/view")]
     [AllowAnonymous]
-    public IActionResult IncrementViewCount(Guid id)
+    public async Task<IActionResult> IncrementViewCount(Guid id)
     {
         try
         {
-            // Optional endpoint - just return success for now
-            // You can implement actual view counting logic later if needed
+            await _blogPostService.IncrementViewCountAsync(id);
             return Ok(new { success = true, message = "View count incremented" });
         }
         catch (Exception ex)
