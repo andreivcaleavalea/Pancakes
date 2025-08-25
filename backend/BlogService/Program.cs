@@ -5,6 +5,7 @@ using BlogService.Repositories.Implementations;
 using BlogService.Services.Interfaces;
 using BlogService.Services.Implementations;
 using BlogService.Helpers;
+using BlogService.Configuration;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using AutoMapper;
@@ -83,6 +84,7 @@ builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 
 // Enhanced recommendation services
+builder.Services.AddSingleton<RecommendationConfig>();
 builder.Services.AddScoped<IUserInterestService, UserInterestService>();
 builder.Services.AddScoped<RecommendationService>();
 builder.Services.AddScoped<PersonalizedRecommendationService>();

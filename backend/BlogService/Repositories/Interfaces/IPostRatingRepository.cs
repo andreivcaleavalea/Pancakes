@@ -16,4 +16,9 @@ public interface IPostRatingRepository
     Task<Dictionary<decimal, int>> GetRatingDistributionAsync(Guid blogPostId);
     Task<IEnumerable<PostRating>> GetUserRatingsAsync(string userId);
     Task<IEnumerable<PostRating>> GetPostRatingsByUsersAsync(Guid postId, IEnumerable<string> userIds);
+    
+    // Batch methods for performance optimization
+    Task<Dictionary<Guid, decimal>> GetAverageRatingsBatchAsync(IEnumerable<Guid> blogPostIds);
+    Task<Dictionary<Guid, int>> GetTotalRatingsBatchAsync(IEnumerable<Guid> blogPostIds);
+    Task<Dictionary<Guid, (decimal Average, int Total)>> GetRatingStatsBatchAsync(IEnumerable<Guid> blogPostIds);
 } 
