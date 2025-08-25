@@ -12,31 +12,30 @@ public class RecommendationService : IRecommendationService
     private readonly IBlogPostRepository _blogPostRepository;
     private readonly IPostRatingRepository _postRatingRepository;
     private readonly ISavedBlogRepository _savedBlogRepository;
-    private readonly IFriendshipRepository _friendshipRepository;
+    private readonly IUserServiceClient _userServiceClient;
     private readonly IMemoryCache _cache;
     private readonly ILogger<RecommendationService> _logger;
     
     // Algorithm parameters
     private const int MinimumPostsForAlgorithm = 5;
-    private const double FriendLikeWeight = 0.25;
-    private const double UserSavedTagWeight = 0.20;
-    private const double ViewCountWeight = 0.15;
-    private const double AverageRatingWeight = 0.20;
-    private const double RecencyWeight = 0.10;
+    private const double UserSavedTagWeight = 0.30;
+    private const double ViewCountWeight = 0.20;
+    private const double AverageRatingWeight = 0.25;
+    private const double RecencyWeight = 0.15;
     private const double TotalRatingsWeight = 0.10;
 
     public RecommendationService(
         IBlogPostRepository blogPostRepository,
         IPostRatingRepository postRatingRepository,
         ISavedBlogRepository savedBlogRepository,
-        IFriendshipRepository friendshipRepository,
+        IUserServiceClient userServiceClient,
         IMemoryCache cache,
         ILogger<RecommendationService> logger)
     {
         _blogPostRepository = blogPostRepository;
         _postRatingRepository = postRatingRepository;
         _savedBlogRepository = savedBlogRepository;
-        _friendshipRepository = friendshipRepository;
+        _userServiceClient = userServiceClient;
         _cache = cache;
         _logger = logger;
     }
@@ -62,7 +61,7 @@ public class RecommendationService : IRecommendationService
             // Get user's interaction data
             var userSavedPosts = await _savedBlogRepository.GetUserSavedPostsAsync(userId);
             var userRatings = await _postRatingRepository.GetUserRatingsAsync(userId);
-            var userFriends = await _friendshipRepository.GetUserFriendsAsync(userId);
+            // Friends data is now retrieved from UserService when needed
 
             // Extract user preferences from saved posts and ratings
             var preferredTags = GetUserPreferredTags(userSavedPosts, userRatings);
@@ -77,7 +76,7 @@ public class RecommendationService : IRecommendationService
 
             // Calculate recommendation scores
             var recommendations = await CalculateRecommendationScores(
-                allPosts, userId, userFriends, preferredTags, userSavedPosts, userRatings);
+                allPosts, userId, preferredTags, userSavedPosts, userRatings);
 
             // Get top recommendations
             var topRecommendations = recommendations
@@ -190,13 +189,11 @@ public class RecommendationService : IRecommendationService
     private async Task<List<(BlogPost Post, double Score)>> CalculateRecommendationScores(
         IEnumerable<BlogPost> posts, 
         string userId,
-        IEnumerable<string> userFriends,
         Dictionary<string, double> preferredTags,
         IEnumerable<SavedBlog> userSavedPosts,
         IEnumerable<PostRating> userRatings)
     {
         var recommendations = new List<(BlogPost Post, double Score)>();
-        var friendsList = userFriends.ToList();
         var savedPostIds = userSavedPosts.Select(sp => sp.BlogPostId).ToHashSet();
         var ratedPostIds = userRatings.Select(ur => ur.BlogPostId).ToHashSet();
 
@@ -208,34 +205,27 @@ public class RecommendationService : IRecommendationService
 
             double score = 0;
 
-            // 1. Friend activity weight (25%)
-            if (friendsList.Any())
-            {
-                var friendEngagement = await CalculateFriendEngagement(post.Id, friendsList);
-                score += friendEngagement * FriendLikeWeight;
-            }
-
-            // 2. Tag preference weight (20%)
+            // 1. Tag preference weight (30%)
             if (preferredTags.Any())
             {
                 var tagScore = CalculateTagScore(post.Tags, preferredTags);
                 score += tagScore * UserSavedTagWeight;
             }
 
-            // 3. View count weight (15%)
+            // 2. View count weight (20%)
             var normalizedViewCount = NormalizeViewCount(post.ViewCount);
             score += normalizedViewCount * ViewCountWeight;
 
-            // 4. Average rating weight (20%)
+            // 3. Average rating weight (25%)
             var avgRating = await _postRatingRepository.GetAverageRatingAsync(post.Id);
             var normalizedRating = (double)avgRating / 5.0; // Normalize to 0-1
             score += normalizedRating * AverageRatingWeight;
 
-            // 5. Recency weight (10%)
+            // 4. Recency weight (15%)
             var recencyScore = CalculateRecencyScore(post.PublishedAt ?? post.CreatedAt);
             score += recencyScore * RecencyWeight;
 
-            // 6. Total ratings weight (10%) - indicates engagement level
+            // 5. Total ratings weight (10%) - indicates engagement level
             var totalRatings = await _postRatingRepository.GetTotalRatingsAsync(post.Id);
             var normalizedTotalRatings = Math.Min(totalRatings / 50.0, 1.0); // Normalize assuming 50+ ratings is excellent
             score += normalizedTotalRatings * TotalRatingsWeight;
@@ -258,24 +248,7 @@ public class RecommendationService : IRecommendationService
         return viewScore + ratingScore + engagementScore + recencyScore;
     }
 
-    private async Task<double> CalculateFriendEngagement(Guid postId, List<string> friendIds)
-    {
-        // Check if friends rated this post highly or saved it
-        var friendRatings = await _postRatingRepository.GetPostRatingsByUsersAsync(postId, friendIds);
-        var friendSaves = await _savedBlogRepository.GetPostSavesByUsersAsync(postId, friendIds);
 
-        double score = 0;
-
-        // High ratings from friends
-        var highRatings = friendRatings.Where(fr => fr.Rating >= 4.0m).Count();
-        score += highRatings * 0.3;
-
-        // Friends who saved the post
-        score += friendSaves.Count() * 0.5;
-
-        // Normalize by number of friends
-        return Math.Min(score / Math.Max(friendIds.Count, 1), 1.0);
-    }
 
     private Dictionary<string, double> GetUserPreferredTags(IEnumerable<SavedBlog> savedPosts, IEnumerable<PostRating> ratings)
     {

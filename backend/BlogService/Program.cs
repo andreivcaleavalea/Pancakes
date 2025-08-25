@@ -71,7 +71,6 @@ builder.Services.AddScoped<IPostRatingRepository, PostRatingRepository>();
 builder.Services.AddScoped<ICommentLikeRepository, CommentLikeRepository>();
 builder.Services.AddScoped<ISavedBlogRepository, SavedBlogRepository>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
-builder.Services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
