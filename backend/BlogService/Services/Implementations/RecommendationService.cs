@@ -7,28 +7,37 @@ using BlogService.Configuration;
 
 namespace BlogService.Services.Implementations;
 
+/// <summary>
+/// Advanced recommendation service with user interest tracking and social signals
+/// This service provides personalized content recommendations using multiple signals
+/// </summary>
 public class RecommendationService : IRecommendationService
 {
     private readonly IBlogPostRepository _blogPostRepository;
     private readonly IPostRatingRepository _postRatingRepository;
     private readonly ISavedBlogRepository _savedBlogRepository;
     private readonly IUserServiceClient _userServiceClient;
+    private readonly IUserInterestService _userInterestService;
+    private readonly IPersonalizedFeedRepository _personalizedFeedRepository;
     private readonly IMemoryCache _cache;
     private readonly ILogger<RecommendationService> _logger;
     
-    // Algorithm parameters
+    // Enhanced Algorithm Parameters (sum = 1.0)
     private const int MinimumPostsForAlgorithm = 5;
-    private const double UserSavedTagWeight = 0.30;
-    private const double ViewCountWeight = 0.20;
-    private const double AverageRatingWeight = 0.25;
-    private const double RecencyWeight = 0.15;
-    private const double TotalRatingsWeight = 0.10;
+    private const double UserInterestWeight = 0.25;        // Persistent user interests
+    private const double SocialSignalWeight = 0.20;       // Friends' activity
+    private const double ViewCountWeight = 0.15;          // Popularity
+    private const double AverageRatingWeight = 0.20;      // Quality
+    private const double RecencyWeight = 0.12;            // Freshness
+    private const double TotalRatingsWeight = 0.08;       // Engagement
 
     public RecommendationService(
         IBlogPostRepository blogPostRepository,
         IPostRatingRepository postRatingRepository,
         ISavedBlogRepository savedBlogRepository,
         IUserServiceClient userServiceClient,
+        IUserInterestService userInterestService,
+        IPersonalizedFeedRepository personalizedFeedRepository,
         IMemoryCache cache,
         ILogger<RecommendationService> logger)
     {
@@ -36,6 +45,8 @@ public class RecommendationService : IRecommendationService
         _postRatingRepository = postRatingRepository;
         _savedBlogRepository = savedBlogRepository;
         _userServiceClient = userServiceClient;
+        _userInterestService = userInterestService;
+        _personalizedFeedRepository = personalizedFeedRepository;
         _cache = cache;
         _logger = logger;
     }
@@ -44,12 +55,49 @@ public class RecommendationService : IRecommendationService
     {
         try
         {
-            var cacheKey = CacheConfig.FormatKey("recommendations", userId, count);
-            if (_cache.TryGetValue(cacheKey, out IEnumerable<BlogPost>? cachedRecommendations))
+            _logger.LogInformation("🤖 [RecommendationService] GetPersonalizedRecommendationsAsync called for user: {UserId}, count: {Count}", userId, count);
+
+            // First try to get from pre-computed feed
+            var personalizedFeed = await _personalizedFeedRepository.GetUserFeedAsync(userId);
+            if (personalizedFeed?.IsValid == true)
             {
-                return cachedRecommendations;
+                _logger.LogInformation("⚡ [RecommendationService] Serving recommendations from PRE-COMPUTED feed for user {UserId}", userId);
+                var feedPostIds = personalizedFeed.GetTopRecommendations(count);
+                var feedPosts = new List<BlogPost>();
+                
+                foreach (var postId in feedPostIds)
+                {
+                    var post = await _blogPostRepository.GetByIdAsync(postId);
+                    if (post != null && (excludeAuthorId == null || post.AuthorId != excludeAuthorId))
+                    {
+                        feedPosts.Add(post);
+                    }
+                }
+                
+                if (feedPosts.Count >= count)
+                {
+                    return feedPosts.Take(count);
+                }
             }
 
+            // Fall back to real-time computation
+            _logger.LogInformation("🔄 [RecommendationService] No valid pre-computed feed found - computing REAL-TIME recommendations for user {UserId}", userId);
+            return await ComputePersonalizedRecommendationsAsync(userId, count, excludeAuthorId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ [RecommendationService] Error getting personalized recommendations for user {UserId} - falling back to SIMPLE POPULAR", userId);
+            return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
+        }
+    }
+
+    /// <summary>
+    /// Compute personalized recommendations in real-time with auth token for social signals
+    /// </summary>
+    public async Task<IEnumerable<BlogPost>> ComputePersonalizedRecommendationsWithTokenAsync(string userId, int count = 20, string? excludeAuthorId = null, string? authToken = null)
+    {
+        try
+        {
             // Check if we have enough posts for the algorithm
             var totalPostCount = await _blogPostRepository.GetTotalPublishedCountAsync();
             if (totalPostCount < MinimumPostsForAlgorithm)
@@ -61,22 +109,25 @@ public class RecommendationService : IRecommendationService
             // Get user's interaction data
             var userSavedPosts = await _savedBlogRepository.GetUserSavedPostsAsync(userId);
             var userRatings = await _postRatingRepository.GetUserRatingsAsync(userId);
-            // Friends data is now retrieved from UserService when needed
-
-            // Extract user preferences from saved posts and ratings
-            var preferredTags = GetUserPreferredTags(userSavedPosts, userRatings);
+            
+            // Get user's persistent interests
+            var userInterests = await _userInterestService.GetUserInterestsAsync(userId);
+            
+            // Get user's friends and their activity with auth token
+            var socialSignals = await GetSocialSignalsAsync(userId, authToken);
             
             // Get all published posts excluding user's own posts
             var (allPosts, _) = await _blogPostRepository.GetAllAsync(new BlogPostQueryParameters 
             { 
                 PageSize = 1000, 
                 Page = 1,
+                Status = PostStatus.Published,
                 ExcludeAuthorId = excludeAuthorId
             });
 
-            // Calculate recommendation scores
-            var recommendations = await CalculateRecommendationScores(
-                allPosts, userId, preferredTags, userSavedPosts, userRatings);
+            // Calculate recommendation scores with enhanced algorithm
+            var recommendations = await CalculateEnhancedRecommendationScores(
+                allPosts, userId, userInterests, socialSignals, userSavedPosts, userRatings);
 
             // Get top recommendations
             var topRecommendations = recommendations
@@ -97,99 +148,193 @@ public class RecommendationService : IRecommendationService
                 topRecommendations.AddRange(trendingPosts);
             }
 
-            // Cache results for 10 minutes
-            _cache.Set(cacheKey, topRecommendations, TimeSpan.FromMinutes(10));
+            return topRecommendations;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error computing personalized recommendations with token for user {UserId}", userId);
+            return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
+        }
+    }
 
-            _logger.LogInformation("Generated {Count} personalized recommendations for user {UserId}", 
-                topRecommendations.Count, userId);
+    /// <summary>
+    /// Compute personalized recommendations in real-time (used by background service and fallback)
+    /// </summary>
+    public async Task<IEnumerable<BlogPost>> ComputePersonalizedRecommendationsAsync(string userId, int count = 20, string? excludeAuthorId = null)
+    {
+        try
+        {
+            // Check if we have enough posts for the algorithm
+            var totalPostCount = await _blogPostRepository.GetTotalPublishedCountAsync();
+            if (totalPostCount < MinimumPostsForAlgorithm)
+            {
+                _logger.LogInformation("Insufficient posts ({PostCount}) for recommendation algorithm, using simple popular", totalPostCount);
+                return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
+            }
+
+            // Get user's interaction data
+            var userSavedPosts = await _savedBlogRepository.GetUserSavedPostsAsync(userId);
+            var userRatings = await _postRatingRepository.GetUserRatingsAsync(userId);
+            
+            // Get user's persistent interests
+            var userInterests = await _userInterestService.GetUserInterestsAsync(userId);
+            
+            // Get user's friends and their activity (requires auth token for UserService API)
+            var socialSignals = await GetSocialSignalsAsync(userId, null); // No auth token in background service
+            
+            // Get all published posts excluding user's own posts
+            var (allPosts, _) = await _blogPostRepository.GetAllAsync(new BlogPostQueryParameters 
+            { 
+                PageSize = 1000, 
+                Page = 1,
+                Status = PostStatus.Published,
+                ExcludeAuthorId = excludeAuthorId
+            });
+
+            // Calculate recommendation scores with enhanced algorithm
+            var recommendations = await CalculateEnhancedRecommendationScores(
+                allPosts, userId, userInterests, socialSignals, userSavedPosts, userRatings);
+
+            // Get top recommendations
+            var topRecommendations = recommendations
+                .OrderByDescending(r => r.Score)
+                .Take(count)
+                .Select(r => r.Post)
+                .ToList();
+
+            // If we don't have enough personalized recommendations, fill with trending
+            if (topRecommendations.Count < count)
+            {
+                var excludeIds = topRecommendations.Select(p => p.Id).ToList();
+                var additionalNeeded = count - topRecommendations.Count;
+                
+                var trendingPosts = await GetTrendingRecommendationsAsync(
+                    additionalNeeded, excludeAuthorId, excludeIds);
+                
+                topRecommendations.AddRange(trendingPosts);
+            }
 
             return topRecommendations;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating personalized recommendations for user {UserId}", userId);
-            // Fallback to trending recommendations
-            return await GetTrendingRecommendationsAsync(count, excludeAuthorId);
-        }
-    }
-
-    public async Task<IEnumerable<BlogPost>> GetTrendingRecommendationsAsync(int count = 5, string? excludeAuthorId = null, IEnumerable<Guid>? excludePostIds = null)
-    {
-        try
-        {
-            var cacheKey = CacheConfig.FormatKey("trending", count, excludeAuthorId ?? "null");
-            if (_cache.TryGetValue(cacheKey, out IEnumerable<BlogPost>? cachedTrending))
-            {
-                var filtered = excludePostIds != null 
-                    ? cachedTrending.Where(p => !excludePostIds.Contains(p.Id))
-                    : cachedTrending;
-                return filtered.Take(count);
-            }
-
-            // Get posts with engagement metrics
-            var (posts, _) = await _blogPostRepository.GetAllAsync(new BlogPostQueryParameters 
-            { 
-                PageSize = 500, 
-                Page = 1,
-                ExcludeAuthorId = excludeAuthorId
-            });
-
-            var trendingPosts = new List<(BlogPost Post, double Score)>();
-
-            foreach (var post in posts)
-            {
-                if (excludePostIds?.Contains(post.Id) == true)
-                    continue;
-
-                var score = await CalculateTrendingScore(post);
-                trendingPosts.Add((post, score));
-            }
-
-            var result = trendingPosts
-                .OrderByDescending(tp => tp.Score)
-                .Take(count)
-                .Select(tp => tp.Post)
-                .ToList();
-
-            // Cache for 15 minutes
-            _cache.Set(cacheKey, result, TimeSpan.FromMinutes(15));
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating trending recommendations");
+            _logger.LogError(ex, "Error computing personalized recommendations for user {UserId}", userId);
             return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
         }
     }
 
-    public async Task<IEnumerable<BlogPost>> GetSimplePopularRecommendationsAsync(int count = 5, string? excludeAuthorId = null)
+    /// <summary>
+    /// Pre-compute and store personalized feed for a user (called by background service)
+    /// </summary>
+    public async Task PreComputeUserFeedAsync(string userId)
     {
         try
         {
-            // Simple fallback: most recent posts with highest engagement
-            var (posts, _) = await _blogPostRepository.GetAllAsync(new BlogPostQueryParameters 
-            { 
-                PageSize = Math.Min(count * 3, 100), 
-                Page = 1,
-                SortBy = "createdAt",
-                SortOrder = "desc",
-                ExcludeAuthorId = excludeAuthorId
-            });
-
-            return posts.Take(count);
+            var recommendations = await ComputePersonalizedRecommendationsAsync(userId, 50); // Compute more for variety
+            var blogPostIds = recommendations.Select(p => p.Id).ToList();
+            
+            // Create dummy scores for storage (real scores computed real-time)
+            var scores = blogPostIds.Select((_, index) => 1.0 - (index * 0.01)).ToList();
+            
+            await _personalizedFeedRepository.UpsertUserFeedAsync(userId, blogPostIds, scores, "2.0");
+            
+            _logger.LogDebug("Pre-computed feed for user {UserId} with {Count} recommendations", userId, blogPostIds.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating simple popular recommendations");
-            return Enumerable.Empty<BlogPost>();
+            _logger.LogError(ex, "Error pre-computing feed for user {UserId}", userId);
         }
     }
 
-    private async Task<List<(BlogPost Post, double Score)>> CalculateRecommendationScores(
-        IEnumerable<BlogPost> posts, 
+    private async Task<Dictionary<string, double>> GetSocialSignalsAsync(string userId, string? authToken = null)
+    {
+        var socialSignals = new Dictionary<string, double>();
+        
+        try
+        {
+            // Skip social signals if no auth token provided
+            if (string.IsNullOrEmpty(authToken))
+            {
+                _logger.LogDebug("No auth token provided for social signals, skipping friend recommendations for user {UserId}", userId);
+                return socialSignals;
+            }
+
+            // Get user's friends from UserService
+            var friendDtos = await _userServiceClient.GetUserFriendsAsync(authToken);
+            var friendIds = friendDtos.Select(f => f.UserId).ToList();
+            
+            if (!friendIds.Any())
+            {
+                _logger.LogDebug("No friends found for user {UserId}", userId);
+                return socialSignals;
+            }
+
+            _logger.LogDebug("Found {FriendCount} friends for user {UserId}", friendIds.Count, userId);
+
+            // Get friends' recent saved posts and high ratings
+            foreach (var friendId in friendIds.Take(10)) // Limit to avoid performance issues
+            {
+                try
+                {
+                    var friendSaves = await _savedBlogRepository.GetUserSavedPostsAsync(friendId);
+                    var recentSaves = friendSaves.Where(s => s.SavedAt > DateTime.UtcNow.AddDays(-7)).ToList();
+                    
+                    foreach (var save in recentSaves)
+                    {
+                        var postTags = save.BlogPost?.Tags ?? new List<string>();
+                        foreach (var tag in postTags)
+                        {
+                            socialSignals[tag] = socialSignals.GetValueOrDefault(tag, 0) + 0.3; // Friend saved
+                        }
+                    }
+
+                    // Also consider friends' high ratings (4+ stars)
+                    var friendRatings = await _postRatingRepository.GetUserRatingsAsync(friendId);
+                    var highRatings = friendRatings.Where(r => r.Rating >= 4.0m && r.CreatedAt > DateTime.UtcNow.AddDays(-7));
+                    
+                    foreach (var rating in highRatings)
+                    {
+                        var postTags = rating.BlogPost?.Tags ?? new List<string>();
+                        foreach (var tag in postTags)
+                        {
+                            socialSignals[tag] = socialSignals.GetValueOrDefault(tag, 0) + 0.2; // Friend rated highly
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error getting social signals from friend {FriendId}", friendId);
+                    // Continue with other friends
+                }
+            }
+
+            // Normalize social signals
+            if (socialSignals.Any())
+            {
+                var maxSignal = socialSignals.Values.Max();
+                socialSignals = socialSignals.ToDictionary(kvp => kvp.Key, kvp => kvp.Value / maxSignal);
+                
+                _logger.LogDebug("Generated social signals for user {UserId}: {Signals}", userId, 
+                    string.Join(", ", socialSignals.Take(5).Select(kvp => $"{kvp.Key}={kvp.Value:F2}")));
+            }
+            else
+            {
+                _logger.LogDebug("No social signals generated for user {UserId} - friends have no recent activity", userId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error getting social signals for user {UserId}", userId);
+        }
+
+        return socialSignals;
+    }
+
+    private async Task<List<(BlogPost Post, double Score)>> CalculateEnhancedRecommendationScores(
+        IEnumerable<BlogPost> posts,
         string userId,
-        Dictionary<string, double> preferredTags,
+        Dictionary<string, double> userInterests,
+        Dictionary<string, double> socialSignals,
         IEnumerable<SavedBlog> userSavedPosts,
         IEnumerable<PostRating> userRatings)
     {
@@ -199,41 +344,131 @@ public class RecommendationService : IRecommendationService
 
         foreach (var post in posts)
         {
-            // Skip posts user has already interacted with (they've already seen them)
+            // Skip posts user has already interacted with
             if (savedPostIds.Contains(post.Id) || ratedPostIds.Contains(post.Id))
                 continue;
 
             double score = 0;
 
-            // 1. Tag preference weight (30%)
-            if (preferredTags.Any())
+            // 1. User Interest Score (25%) - from persistent interest tracking
+            if (userInterests.Any() && post.Tags.Any())
             {
-                var tagScore = CalculateTagScore(post.Tags, preferredTags);
-                score += tagScore * UserSavedTagWeight;
+                var interestScore = CalculateInterestScore(post.Tags, userInterests);
+                score += interestScore * UserInterestWeight;
             }
 
-            // 2. View count weight (20%)
+            // 2. Social Signal Score (20%) - from friends' activity
+            if (socialSignals.Any() && post.Tags.Any())
+            {
+                var socialScore = CalculateSocialScore(post.Tags, socialSignals);
+                score += socialScore * SocialSignalWeight;
+            }
+
+            // 3. View count weight (15%)
             var normalizedViewCount = NormalizeViewCount(post.ViewCount);
             score += normalizedViewCount * ViewCountWeight;
 
-            // 3. Average rating weight (25%)
+            // 4. Average rating weight (20%)
             var avgRating = await _postRatingRepository.GetAverageRatingAsync(post.Id);
-            var normalizedRating = (double)avgRating / 5.0; // Normalize to 0-1
+            var normalizedRating = (double)avgRating / 5.0;
             score += normalizedRating * AverageRatingWeight;
 
-            // 4. Recency weight (15%)
+            // 5. Recency weight (12%)
             var recencyScore = CalculateRecencyScore(post.PublishedAt ?? post.CreatedAt);
             score += recencyScore * RecencyWeight;
 
-            // 5. Total ratings weight (10%) - indicates engagement level
+            // 6. Total ratings weight (8%) - indicates engagement level
             var totalRatings = await _postRatingRepository.GetTotalRatingsAsync(post.Id);
-            var normalizedTotalRatings = Math.Min(totalRatings / 50.0, 1.0); // Normalize assuming 50+ ratings is excellent
+            var normalizedTotalRatings = Math.Min(totalRatings / 50.0, 1.0);
             score += normalizedTotalRatings * TotalRatingsWeight;
 
             recommendations.Add((post, score));
         }
 
         return recommendations;
+    }
+
+    private double CalculateInterestScore(List<string> postTags, Dictionary<string, double> userInterests)
+    {
+        if (!postTags.Any() || !userInterests.Any())
+            return 0;
+
+        var matchingTags = postTags.Where(tag => userInterests.ContainsKey(tag));
+        if (!matchingTags.Any())
+            return 0;
+
+        // Weighted average of matching tags
+        return matchingTags.Sum(tag => userInterests[tag]) / postTags.Count;
+    }
+
+    private double CalculateSocialScore(List<string> postTags, Dictionary<string, double> socialSignals)
+    {
+        if (!postTags.Any() || !socialSignals.Any())
+            return 0;
+
+        var matchingTags = postTags.Where(tag => socialSignals.ContainsKey(tag));
+        if (!matchingTags.Any())
+            return 0;
+
+        // Weighted average of social signals
+        return matchingTags.Sum(tag => socialSignals[tag]) / postTags.Count;
+    }
+
+    // Reuse existing helper methods
+    private double NormalizeViewCount(int viewCount)
+    {
+        return Math.Log10(Math.Max(viewCount, 1) + 1) / Math.Log10(1001);
+    }
+
+    private double CalculateRecencyScore(DateTime publishedDate)
+    {
+        var daysSincePublished = (DateTime.UtcNow - publishedDate).TotalDays;
+        return Math.Exp(-daysSincePublished / 14.0);
+    }
+
+    // Implement the remaining required methods from IRecommendationService
+    public async Task<IEnumerable<BlogPost>> GetSimplePopularRecommendationsAsync(int count, string? excludeAuthorId = null)
+    {
+        var (posts, totalCount) = await _blogPostRepository.GetAllAsync(new BlogPostQueryParameters 
+        { 
+            PageSize = count * 2,
+            Page = 1,
+            Status = PostStatus.Published,
+            ExcludeAuthorId = excludeAuthorId,
+            SortBy = "ViewCount",
+            SortOrder = "desc"
+        });
+
+        return posts.Take(count);
+    }
+
+    public async Task<IEnumerable<BlogPost>> GetTrendingRecommendationsAsync(int count = 5, string? excludeAuthorId = null, IEnumerable<Guid>? excludePostIds = null)
+    {
+        var (posts, totalCount) = await _blogPostRepository.GetAllAsync(new BlogPostQueryParameters 
+        { 
+            PageSize = count * 3,
+            Page = 1,
+            Status = PostStatus.Published,
+            ExcludeAuthorId = excludeAuthorId
+        });
+
+        if (excludePostIds?.Any() == true)
+        {
+            posts = posts.Where(p => !excludePostIds.Contains(p.Id));
+        }
+
+        var trendingPosts = new List<(BlogPost Post, double Score)>();
+        
+        foreach (var post in posts)
+        {
+            var trendingScore = await CalculateTrendingScore(post);
+            trendingPosts.Add((post, trendingScore));
+        }
+
+        return trendingPosts
+            .OrderByDescending(t => t.Score)
+            .Take(count)
+            .Select(t => t.Post);
     }
 
     private async Task<double> CalculateTrendingScore(BlogPost post)
@@ -246,59 +481,5 @@ public class RecommendationService : IRecommendationService
         var recencyScore = CalculateRecencyScore(post.PublishedAt ?? post.CreatedAt) * 0.2;
 
         return viewScore + ratingScore + engagementScore + recencyScore;
-    }
-
-
-
-    private Dictionary<string, double> GetUserPreferredTags(IEnumerable<SavedBlog> savedPosts, IEnumerable<PostRating> ratings)
-    {
-        var tagScores = new Dictionary<string, double>();
-
-        // Get tags from saved posts (higher weight)
-        foreach (var savedPost in savedPosts)
-        {
-            foreach (var tag in savedPost.BlogPost?.Tags ?? new List<string>())
-            {
-                tagScores[tag] = tagScores.GetValueOrDefault(tag, 0) + 1.0;
-            }
-        }
-
-        // Get tags from highly rated posts (4+ stars)
-        var highRatings = ratings.Where(r => r.Rating >= 4.0m);
-        foreach (var rating in highRatings)
-        {
-            foreach (var tag in rating.BlogPost?.Tags ?? new List<string>())
-            {
-                tagScores[tag] = tagScores.GetValueOrDefault(tag, 0) + 0.7;
-            }
-        }
-
-        // Normalize scores
-        var maxScore = tagScores.Values.DefaultIfEmpty(1).Max();
-        return tagScores.ToDictionary(kvp => kvp.Key, kvp => kvp.Value / maxScore);
-    }
-
-    private double CalculateTagScore(List<string> postTags, Dictionary<string, double> preferredTags)
-    {
-        if (!postTags.Any() || !preferredTags.Any())
-            return 0;
-
-        var matchingTags = postTags.Where(tag => preferredTags.ContainsKey(tag));
-        return matchingTags.Sum(tag => preferredTags[tag]) / postTags.Count;
-    }
-
-    private double NormalizeViewCount(int viewCount)
-    {
-        // Logarithmic normalization to prevent very popular posts from dominating
-        return Math.Log10(Math.Max(viewCount, 1) + 1) / Math.Log10(1001); // Assumes max ~1000 views
-    }
-
-    private double CalculateRecencyScore(DateTime publishedDate)
-    {
-        var daysSincePublished = (DateTime.UtcNow - publishedDate).TotalDays;
-        
-        // Exponential decay: newer posts get higher scores
-        // Posts from today = 1.0, 7 days ago = ~0.5, 30 days ago = ~0.1
-        return Math.Exp(-daysSincePublished / 14.0);
     }
 }

@@ -18,7 +18,7 @@ public class SavedBlogRepository : ISavedBlogRepository
     {
         return await _context.SavedBlogs
             .Include(sb => sb.BlogPost)
-            .Where(sb => sb.UserId == userId)
+            .Where(sb => sb.UserId == userId && sb.BlogPost.Status == PostStatus.Published)
             .OrderByDescending(sb => sb.SavedAt)
             .ToListAsync();
     }
@@ -27,7 +27,7 @@ public class SavedBlogRepository : ISavedBlogRepository
     {
         return await _context.SavedBlogs
             .Include(sb => sb.BlogPost)
-            .FirstOrDefaultAsync(sb => sb.UserId == userId && sb.BlogPostId == blogPostId);
+            .FirstOrDefaultAsync(sb => sb.UserId == userId && sb.BlogPostId == blogPostId && sb.BlogPost.Status == PostStatus.Published);
     }
 
     public async Task<SavedBlog> SaveBlogAsync(SavedBlog savedBlog)
@@ -63,7 +63,7 @@ public class SavedBlogRepository : ISavedBlogRepository
     {
         return await _context.SavedBlogs
             .Include(sb => sb.BlogPost)
-            .Where(sb => sb.UserId == userId)
+            .Where(sb => sb.UserId == userId && sb.BlogPost.Status == PostStatus.Published)
             .ToListAsync();
     }
 

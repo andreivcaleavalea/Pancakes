@@ -52,8 +52,8 @@ public class BlogPostService : IBlogPostService
         var blogPost = await _blogPostRepository.GetByIdAsync(id);
         if (blogPost == null) return null;
         
-        // Filter out deleted posts for regular users (only show published posts)
-        if (blogPost.Status == PostStatus.Deleted)
+        // 🚫 SECURITY: Only show published posts to regular users (filter out drafts and deleted posts)
+        if (blogPost.Status == PostStatus.Deleted || blogPost.Status == PostStatus.Draft)
         {
             return null;
         }

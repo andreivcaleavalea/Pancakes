@@ -49,7 +49,7 @@ public class FeedPreComputationService : BackgroundService
     {
         using var scope = _serviceProvider.CreateScope();
         var personalizedFeedRepository = scope.ServiceProvider.GetRequiredService<IPersonalizedFeedRepository>();
-        var enhancedRecommendationService = scope.ServiceProvider.GetRequiredService<EnhancedRecommendationService>();
+        var recommendationService = scope.ServiceProvider.GetRequiredService<RecommendationService>();
         var userInterestService = scope.ServiceProvider.GetRequiredService<IUserInterestService>();
 
         try
@@ -76,7 +76,7 @@ public class FeedPreComputationService : BackgroundService
             {
                 try
                 {
-                    await enhancedRecommendationService.PreComputeUserFeedAsync(userId);
+                    await recommendationService.PreComputeUserFeedAsync(userId);
                     return true;
                 }
                 catch (Exception ex)
@@ -161,19 +161,19 @@ public interface IFeedPreComputationService
 }
 
 /// <summary>
-/// Wrapper service to access EnhancedRecommendationService methods
+/// Wrapper service to access RecommendationService methods
 /// </summary>
 public class FeedPreComputationServiceWrapper : IFeedPreComputationService
 {
-    private readonly EnhancedRecommendationService _enhancedRecommendationService;
+    private readonly RecommendationService _recommendationService;
 
-    public FeedPreComputationServiceWrapper(EnhancedRecommendationService enhancedRecommendationService)
+    public FeedPreComputationServiceWrapper(RecommendationService recommendationService)
     {
-        _enhancedRecommendationService = enhancedRecommendationService;
+        _recommendationService = recommendationService;
     }
 
     public async Task PreComputeUserFeedAsync(string userId)
     {
-        await _enhancedRecommendationService.PreComputeUserFeedAsync(userId);
+        await _recommendationService.PreComputeUserFeedAsync(userId);
     }
 }

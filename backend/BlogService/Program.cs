@@ -84,13 +84,13 @@ builder.Services.AddScoped<IReportService, ReportService>();
 
 // Enhanced recommendation services
 builder.Services.AddScoped<IUserInterestService, UserInterestService>();
-builder.Services.AddScoped<EnhancedRecommendationService>();
+builder.Services.AddScoped<RecommendationService>();
 builder.Services.AddScoped<PersonalizedRecommendationService>();
 builder.Services.AddScoped<IFeedPreComputationService, FeedPreComputationServiceWrapper>();
 builder.Services.AddScoped<InteractionTrackingService>();
 
 // Use enhanced recommendation service by default
-builder.Services.AddScoped<IRecommendationService, EnhancedRecommendationService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 // Background service for pre-computing feeds
 builder.Services.AddHostedService<FeedPreComputationService>();

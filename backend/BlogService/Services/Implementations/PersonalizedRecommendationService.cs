@@ -10,16 +10,16 @@ namespace BlogService.Services.Implementations;
 /// </summary>
 public class PersonalizedRecommendationService
 {
-    private readonly EnhancedRecommendationService _enhancedRecommendationService;
+    private readonly RecommendationService _recommendationService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<PersonalizedRecommendationService> _logger;
 
     public PersonalizedRecommendationService(
-        EnhancedRecommendationService enhancedRecommendationService,
+        RecommendationService recommendationService,
         IHttpContextAccessor httpContextAccessor,
         ILogger<PersonalizedRecommendationService> logger)
     {
-        _enhancedRecommendationService = enhancedRecommendationService;
+        _recommendationService = recommendationService;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
     }
@@ -37,18 +37,18 @@ public class PersonalizedRecommendationService
             if (!string.IsNullOrEmpty(authToken))
             {
                 // Use real-time computation with social signals
-                return await _enhancedRecommendationService.ComputePersonalizedRecommendationsWithTokenAsync(userId, count, excludeAuthorId, authToken);
+                return await _recommendationService.ComputePersonalizedRecommendationsWithTokenAsync(userId, count, excludeAuthorId, authToken);
             }
             else
             {
                 // Fall back to regular personalized recommendations (no social signals)
-                return await _enhancedRecommendationService.GetPersonalizedRecommendationsAsync(userId, count, excludeAuthorId);
+                return await _recommendationService.GetPersonalizedRecommendationsAsync(userId, count, excludeAuthorId);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting personalized recommendations with context for user {UserId}", userId);
-            return await _enhancedRecommendationService.GetPersonalizedRecommendationsAsync(userId, count, excludeAuthorId);
+            return await _recommendationService.GetPersonalizedRecommendationsAsync(userId, count, excludeAuthorId);
         }
     }
 
