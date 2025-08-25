@@ -11,7 +11,7 @@ interface BlogPostWithDisplay extends BlogPost {
   author?: string;
   authorAvatar?: string;
 }
-import { useFavorite } from "@/hooks/useBlog";
+import { useOptimizedFavorite } from "@/hooks/useOptimizedFavorite";
 import { useRouter } from "@/router/RouterProvider";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULTS } from "@/utils/constants";
 import { AverageRatingDisplay, BlogTags } from "@/components/common";
@@ -34,7 +34,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
     isFavorite,
     loading: isLoading,
     toggleFavorite,
-  } = useFavorite(post.id, post.isFeatured);
+  } = useOptimizedFavorite(post.id);
   const { message } = App.useApp();
   const { navigate } = useRouter();
 

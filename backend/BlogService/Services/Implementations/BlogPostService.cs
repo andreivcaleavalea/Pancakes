@@ -99,8 +99,14 @@ public class BlogPostService : IBlogPostService
 
     public async Task<IEnumerable<BlogPostDto>> GetPopularAsync(int count = 5)
     {
+        _logger.LogInformation("📈 [BlogPostService] GetPopularAsync called (FALLBACK - no personalization) with count: {Count}", count);
+        
         var posts = await _blogPostRepository.GetPopularAsync(count);
         var blogPostDtos = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
+        
+        _logger.LogInformation("📊 [BlogPostService] Regular popular posts returned: {Count} posts", blogPostDtos.Count());
+        _logger.LogInformation("📝 [BlogPostService] Popular post titles: {Titles}", 
+            string.Join(", ", blogPostDtos.Select(p => p.Title)));
         
         // ✅ OPTIMIZED: Batch populate author information for all posts
         await PopulateAuthorInfoBatchAsync(blogPostDtos);
@@ -624,21 +630,36 @@ public class BlogPostService : IBlogPostService
     {
         try
         {
+            _logger.LogInformation("🎯 [BlogPostService] GetPersonalizedPopularAsync called with count: {Count}", count);
+
             // If no context provided or user not authenticated, fallback to regular popular
             if (httpContext == null)
             {
+                _logger.LogInformation("⚠️ [BlogPostService] No HttpContext provided - falling back to regular popular posts");
                 return await GetPopularAsync(count);
             }
+
+            // Log authentication details
+            var authHeader = httpContext.Request.Headers.Authorization.FirstOrDefault();
+            var hasAuthHeader = !string.IsNullOrEmpty(authHeader);
+            _logger.LogInformation("🔐 [BlogPostService] Auth check - HasAuthHeader: {HasAuthHeader}, AuthHeaderLength: {Length}", 
+                hasAuthHeader, authHeader?.Length ?? 0);
 
             var userId = _jwtUserService.GetCurrentUserId();
             if (string.IsNullOrEmpty(userId))
             {
+                _logger.LogInformation("👤 [BlogPostService] No user ID found - falling back to regular popular posts. HasAuthHeader: {HasAuthHeader}", hasAuthHeader);
                 return await GetPopularAsync(count);
             }
+
+            _logger.LogInformation("✅ [BlogPostService] Authenticated user found: {UserId} - using personalized recommendations", userId);
 
             // Use recommendation service for authenticated users
             var recommendedPosts = await _recommendationService.GetPersonalizedRecommendationsAsync(
                 userId, count, userId);
+
+            _logger.LogInformation("📊 [BlogPostService] Personalized recommendations returned: {Count} posts for user {UserId}", 
+                recommendedPosts.Count(), userId);
 
             // Convert to DTOs
             var recommendedDtos = new List<BlogPostDto>();

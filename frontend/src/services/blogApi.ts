@@ -59,9 +59,67 @@ export const blogPostsApi = {
 
   // Get popular posts (PUBLIC - no auth required)
   getPopular: async (count: number = 5): Promise<BlogPost[]> => {
-    return publicBlogRequest<BlogPost[]>(
+    console.log("🔍 [BlogAPI] Getting popular posts (public - no auth):", { count });
+    const result = await publicBlogRequest<BlogPost[]>(
       `${ENDPOINTS.BLOG_POSTS}/popular?count=${count}`
     );
+    console.log("📊 [BlogAPI] Popular posts (public) result:", { 
+      count: result.length, 
+      postIds: result.map(p => p.id),
+      postTitles: result.map(p => p.title)
+    });
+    return result;
+  },
+
+  // Get personalized popular posts (AUTHENTICATED - personalized recommendations)
+  getPersonalizedPopular: async (count: number = 5): Promise<BlogPost[]> => {
+    // Check if user is authenticated
+    const authSession = localStorage.getItem("auth-session");
+    let isAuthenticated = false;
+    let userId = null;
+
+    if (authSession) {
+      try {
+        const session = JSON.parse(authSession);
+        isAuthenticated = !!session.token;
+        userId = session.user?.id || session.userId || 'unknown';
+      } catch (error) {
+        console.error("❌ [BlogAPI] Error parsing auth session:", error);
+      }
+    }
+
+    console.log("🔍 [BlogAPI] Getting personalized popular posts:", { 
+      count, 
+      isAuthenticated, 
+      userId,
+      hasAuthSession: !!authSession
+    });
+
+    if (!isAuthenticated) {
+      console.log("⚠️ [BlogAPI] No authentication - falling back to public popular posts");
+      return blogPostsApi.getPopular(count);
+    }
+
+    try {
+      const result = await authenticatedBlogRequest<BlogPost[]>(
+        `${ENDPOINTS.BLOG_POSTS}/popular?count=${count}`
+      );
+      
+      console.log("✅ [BlogAPI] Personalized popular posts result:", { 
+        userId,
+        count: result.length, 
+        postIds: result.map(p => p.id),
+        postTitles: result.map(p => p.title),
+        authors: result.map(p => p.authorName),
+        tags: result.map(p => p.tags)
+      });
+      
+      return result;
+    } catch (error) {
+      console.error("❌ [BlogAPI] Error getting personalized popular posts:", error);
+      console.log("⚠️ [BlogAPI] Falling back to public popular posts due to error");
+      return blogPostsApi.getPopular(count);
+    }
   },
 
   // Get posts by author (PUBLIC - no auth required)

@@ -71,6 +71,8 @@ builder.Services.AddScoped<IPostRatingRepository, PostRatingRepository>();
 builder.Services.AddScoped<ICommentLikeRepository, CommentLikeRepository>();
 builder.Services.AddScoped<ISavedBlogRepository, SavedBlogRepository>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IUserInterestRepository, UserInterestRepository>();
+builder.Services.AddScoped<IPersonalizedFeedRepository, PersonalizedFeedRepository>();
 
 builder.Services.AddScoped<IBlogPostService, BlogPostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
@@ -79,7 +81,19 @@ builder.Services.AddScoped<ICommentLikeService, CommentLikeService>();
 builder.Services.AddScoped<ISavedBlogService, SavedBlogService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+
+// Enhanced recommendation services
+builder.Services.AddScoped<IUserInterestService, UserInterestService>();
+builder.Services.AddScoped<EnhancedRecommendationService>();
+builder.Services.AddScoped<PersonalizedRecommendationService>();
+builder.Services.AddScoped<IFeedPreComputationService, FeedPreComputationServiceWrapper>();
+builder.Services.AddScoped<InteractionTrackingService>();
+
+// Use enhanced recommendation service by default
+builder.Services.AddScoped<IRecommendationService, EnhancedRecommendationService>();
+
+// Background service for pre-computing feeds
+builder.Services.AddHostedService<FeedPreComputationService>();
 
 // Add JWT User Service for extracting user info from tokens
 builder.Services.AddScoped<IJwtUserService, JwtUserService>();

@@ -101,14 +101,35 @@ export const authenticatedBlogRequest = async <T>(
   // Get token from localStorage
   const authSession = localStorage.getItem("auth-session");
   let token = "";
+  let userId = null;
+
+  console.log("🔐 [AuthBlogAPI] Making authenticated request:", { 
+    endpoint, 
+    method: options.method || 'GET',
+    hasAuthSession: !!authSession 
+  });
 
   if (authSession) {
     try {
       const session = JSON.parse(authSession);
       token = session.token || "";
+      userId = session.user?.id || session.userId || 'unknown';
+      
+      console.log("👤 [AuthBlogAPI] Auth session found:", { 
+        hasToken: !!token, 
+        tokenLength: token.length,
+        userId,
+        userInfo: session.user ? {
+          id: session.user.id,
+          name: session.user.name,
+          email: session.user.email
+        } : 'No user info'
+      });
     } catch (error) {
-      console.error("Error parsing auth session:", error);
+      console.error("❌ [AuthBlogAPI] Error parsing auth session:", error);
     }
+  } else {
+    console.log("⚠️ [AuthBlogAPI] No auth session found in localStorage");
   }
 
   const controller = new AbortController();
@@ -133,8 +154,21 @@ export const authenticatedBlogRequest = async <T>(
   };
 
   try {
+    console.log("📤 [AuthBlogAPI] Sending request:", { 
+      url, 
+      hasAuthHeader: !!defaultHeaders["Authorization"],
+      headers: Object.keys(defaultHeaders) 
+    });
+
     const response = await fetch(url, defaultOptions);
     clearTimeout(timeoutId);
+
+    console.log("📥 [AuthBlogAPI] Response received:", { 
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      url: response.url
+    });
 
     if (!response.ok) {
       let errorMessage: string = ERROR_MESSAGES.GENERIC;
@@ -145,6 +179,7 @@ export const authenticatedBlogRequest = async <T>(
           break;
         case 401:
           errorMessage = "Authentication required. Please log in.";
+          console.log("🚫 [AuthBlogAPI] 401 Unauthorized - clearing auth session");
           // Clear invalid session
           localStorage.removeItem("auth-session");
           window.location.href = "/login";
@@ -160,16 +195,28 @@ export const authenticatedBlogRequest = async <T>(
           errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       }
 
+      console.error("❌ [AuthBlogAPI] Request failed:", { 
+        status: response.status, 
+        statusText: response.statusText, 
+        errorMessage 
+      });
       throw new ApiError(errorMessage, response.status, response.statusText);
     }
 
     // Handle empty responses (like DELETE operations)
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
+      console.log("📄 [AuthBlogAPI] Non-JSON response, returning empty object");
       return {} as T;
     }
 
     const data = await response.json();
+    console.log("✅ [AuthBlogAPI] Request successful:", { 
+      endpoint,
+      dataType: Array.isArray(data) ? `array[${data.length}]` : typeof data,
+      userId
+    });
+    
     return data as T;
   } catch (error) {
     clearTimeout(timeoutId);
