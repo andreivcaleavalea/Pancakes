@@ -36,28 +36,9 @@ export class BlogService {
     gridPosts: BlogPost[];
   }> {
     try {
-      console.log("🏠 [BlogService] Loading home page data...");
-      
-      // Fetch featured posts
-      const featuredPostsData = await blogPostsApi.getFeatured(3);
-      const featuredPosts = featuredPostsData.map((post) => ({
-        ...this.transformBlogPost(post),
-        isFeatured: true as const,
-      })) as FeaturedPost[];
+      console.log("🏠 [BlogService] Loading home page data in parallel...");
 
-      console.log("⭐ [BlogService] Featured posts loaded:", { count: featuredPosts.length });
-
-      // Fetch horizontal posts (personalized popular posts)
-      console.log("🎯 [BlogService] Loading personalized popular posts for home page...");
-      const horizontalPostsData = await blogPostsApi.getPersonalizedPopular(4);
-      const horizontalPosts = horizontalPostsData.map(this.transformBlogPost);
-
-      console.log("📊 [BlogService] Popular posts for home page:", { 
-        count: horizontalPosts.length,
-        titles: horizontalPosts.map(p => p.title)
-      });
-
-      // Fetch grid posts (recent posts excluding featured and popular)
+      // Prepare grid posts params
       const gridPostsParams: BlogPostQueryParams = {
         page: 1,
         pageSize: 6,
@@ -65,8 +46,29 @@ export class BlogService {
         sortBy: "createdAt",
         sortOrder: "desc",
       };
-      const gridPostsResult = await blogPostsApi.getAll(gridPostsParams);
+
+      // Fetch all data in parallel for faster loading
+      const [featuredPostsData, horizontalPostsData, gridPostsResult] =
+        await Promise.all([
+          blogPostsApi.getFeatured(3),
+          blogPostsApi.getPersonalizedPopular(4),
+          blogPostsApi.getAll(gridPostsParams),
+        ]);
+
+      // Transform the data
+      const featuredPosts = featuredPostsData.map((post) => ({
+        ...this.transformBlogPost(post),
+        isFeatured: true as const,
+      })) as FeaturedPost[];
+
+      const horizontalPosts = horizontalPostsData.map(this.transformBlogPost);
       const gridPosts = gridPostsResult.data.map(this.transformBlogPost);
+
+      console.log("✅ [BlogService] All home page data loaded:", {
+        featuredCount: featuredPosts.length,
+        horizontalCount: horizontalPosts.length,
+        gridCount: gridPosts.length,
+      });
 
       return {
         featuredPosts,

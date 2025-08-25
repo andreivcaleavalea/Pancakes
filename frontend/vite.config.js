@@ -31,14 +31,54 @@ export default defineConfig({
         sourcemap: true,
         rollupOptions: {
             output: {
-                manualChunks: {
-                    vendor: ['react', 'react-dom'],
-                    antd: ['antd']
+                manualChunks: function (id) {
+                    var _a;
+                    // Vendor chunks
+                    if (id.includes('node_modules')) {
+                        if (id.includes('react') || id.includes('react-dom')) {
+                            return 'react-vendor';
+                        }
+                        if (id.includes('antd')) {
+                            return 'antd-vendor';
+                        }
+                        if (id.includes('@ant-design/icons')) {
+                            return 'icons-vendor';
+                        }
+                        return 'vendor';
+                    }
+                    // Feature-based chunks
+                    if (id.includes('/pages/')) {
+                        var pageName = (_a = id.split('/pages/')[1]) === null || _a === void 0 ? void 0 : _a.split('/')[0];
+                        if (pageName) {
+                            return "page-".concat(pageName.toLowerCase());
+                        }
+                    }
+                    if (id.includes('/components/common/')) {
+                        return 'common-components';
+                    }
+                    if (id.includes('/hooks/')) {
+                        return 'hooks';
+                    }
+                    if (id.includes('/services/')) {
+                        return 'services';
+                    }
+                    if (id.includes('/utils/')) {
+                        return 'utils';
+                    }
                 }
             }
         }
     },
     optimizeDeps: {
-        include: ['react', 'react-dom', 'antd']
+        include: ['react', 'react-dom', 'antd', '@ant-design/icons']
+    },
+    experimental: {
+        renderBuiltUrl: function (filename, _a) {
+            var hostType = _a.hostType;
+            if (hostType === 'js') {
+                return { js: "/".concat(filename) };
+            }
+            return { relative: true };
+        }
     }
 });

@@ -3,6 +3,7 @@ import { Card, Typography, App, Avatar } from "antd";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import type { BlogPost } from "@/types/blog";
 import { getProfilePictureUrl } from "@/utils/imageUtils";
+import LazyImage from "../LazyImage/LazyImage";
 
 interface BlogPostWithDisplay extends BlogPost {
   image?: string;
@@ -68,10 +69,11 @@ const BlogCard: React.FC<BlogCardProps> = ({
         onClick={handleCardClick}
         style={{ cursor: "pointer" }}
       >
-        <img
+        <LazyImage
           src={post.image || DEFAULTS.IMAGE}
           alt={post.title}
           className="blog-card__image--horizontal"
+          skeletonHeight={120}
         />
         <div className="blog-card__content">
           <div className="blog-card__meta">
@@ -143,7 +145,12 @@ const BlogCard: React.FC<BlogCardProps> = ({
       onClick={handleCardClick}
       style={{ cursor: "pointer" }}
     >
-      <img src={post.image} alt={post.title} className="blog-card__image" />
+      <LazyImage
+        src={post.image}
+        alt={post.title}
+        className="blog-card__image"
+        skeletonHeight={200}
+      />
       <div className="blog-card__content">
         <div className="blog-card__meta">
           <Text className="blog-card__date">{post.date}</Text>
