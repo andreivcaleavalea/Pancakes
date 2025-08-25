@@ -6,12 +6,41 @@ import type {
   BlogPostQueryParams,
 } from "@/types/blog";
 import { ApiError } from "@/utils/api";
+import { LRUCache, generateCacheKey } from "@/utils/memoryOptimizer";
+
+// 🚀 REQUEST DEDUPLICATION: Cache for in-flight requests
+const inflightRequests = new Map<string, Promise<any>>();
 
 /**
  * Blog Service - Centralized business logic for blog operations
- * This service handles data transformation and business rules
+ * This service handles data transformation and business rules with request deduplication
  */
 export class BlogService {
+  /**
+   * 🚀 REQUEST DEDUPLICATION: Execute function with deduplication
+   * Prevents duplicate simultaneous API calls by reusing in-flight requests
+   */
+  private static async deduplicateRequest<T>(
+    key: string,
+    fetchFn: () => Promise<T>
+  ): Promise<T> {
+    // Check if request is already in flight
+    if (inflightRequests.has(key)) {
+      console.log(`🔄 [BlogService] Deduplicating request: ${key}`);
+      return inflightRequests.get(key) as Promise<T>;
+    }
+
+    // Execute the request and cache the promise
+    const promise = fetchFn().finally(() => {
+      // Clean up the cache when request completes
+      inflightRequests.delete(key);
+    });
+
+    inflightRequests.set(key, promise);
+    console.log(`🚀 [BlogService] New request started: ${key}`);
+    return promise;
+  }
+
   /**
    * Transform BlogPost to include legacy fields for backward compatibility
    */
@@ -28,57 +57,66 @@ export class BlogService {
   }
 
   /**
-   * Get blog data for home page
+   * Get blog data for home page with request deduplication
    */
   static async getHomePageData(): Promise<{
     featuredPosts: FeaturedPost[];
     horizontalPosts: BlogPost[];
     gridPosts: BlogPost[];
   }> {
-    try {
-      console.log("🏠 [BlogService] Loading home page data in parallel...");
+    return this.deduplicateRequest("getHomePageData", async () => {
+      try {
+        console.log("🏠 [BlogService] Loading home page data in parallel...");
 
-      // Prepare grid posts params
-      const gridPostsParams: BlogPostQueryParams = {
-        page: 1,
-        pageSize: 6,
-        isFeatured: false,
-        sortBy: "createdAt",
-        sortOrder: "desc",
-      };
+        // Prepare grid posts params
+        const gridPostsParams: BlogPostQueryParams = {
+          page: 1,
+          pageSize: 6,
+          isFeatured: false,
+          sortBy: "createdAt",
+          sortOrder: "desc",
+        };
 
-      // Fetch all data in parallel for faster loading
-      const [featuredPostsData, horizontalPostsData, gridPostsResult] =
-        await Promise.all([
-          blogPostsApi.getFeatured(3),
-          blogPostsApi.getPersonalizedPopular(4),
-          blogPostsApi.getAll(gridPostsParams),
-        ]);
+        // 🚀 OPTIMIZED: Fetch all data in parallel with deduplication for each endpoint
+        const [featuredPostsData, horizontalPostsData, gridPostsResult] =
+          await Promise.all([
+            this.deduplicateRequest("getFeatured-3", () =>
+              blogPostsApi.getFeatured(3)
+            ),
+            this.deduplicateRequest("getPersonalizedPopular-4", () =>
+              blogPostsApi.getPersonalizedPopular(4)
+            ),
+            this.deduplicateRequest(
+              `getAll-${generateCacheKey("gridPosts", gridPostsParams)}`,
+              () => blogPostsApi.getAll(gridPostsParams)
+            ),
+          ]);
 
-      // Transform the data
-      const featuredPosts = featuredPostsData.map((post) => ({
-        ...this.transformBlogPost(post),
-        isFeatured: true as const,
-      })) as FeaturedPost[];
+        // Transform the data
+        const featuredPosts = featuredPostsData.map((post) => ({
+          ...this.transformBlogPost(post),
+          isFeatured: true as const,
+        })) as FeaturedPost[];
 
-      const horizontalPosts = horizontalPostsData.map(this.transformBlogPost);
-      const gridPosts = gridPostsResult.data.map(this.transformBlogPost);
+        const horizontalPosts = horizontalPostsData.map(this.transformBlogPost);
+        const gridPosts = gridPostsResult.data.map(this.transformBlogPost);
 
-      console.log("✅ [BlogService] All home page data loaded:", {
-        featuredCount: featuredPosts.length,
-        horizontalCount: horizontalPosts.length,
-        gridCount: gridPosts.length,
-      });
+        console.log("✅ [BlogService] All home page data loaded:", {
+          featuredCount: featuredPosts.length,
+          horizontalCount: horizontalPosts.length,
+          gridCount: gridPosts.length,
+        });
 
-      return {
-        featuredPosts,
-        horizontalPosts,
-        gridPosts,
-      };
-    } catch (error) {
-      console.error("Error fetching home page data:", error);
-      throw new Error("Failed to load blog data");
-    }
+        return {
+          featuredPosts,
+          horizontalPosts,
+          gridPosts,
+        };
+      } catch (error) {
+        console.error("Error fetching home page data:", error);
+        throw new Error("Failed to load blog data");
+      }
+    });
   }
 
   /**
