@@ -62,22 +62,38 @@ public class RecommendationService : IRecommendationService
             if (personalizedFeed?.IsValid == true)
             {
                 _logger.LogInformation("⚡ [RecommendationService] Serving recommendations from PRE-COMPUTED feed for user {UserId}", userId);
-                var feedPostIds = personalizedFeed.GetTopRecommendations(count);
+                
+                // 🚀 IMPROVEMENT: Filter out posts user has already interacted with
+                var userSavedPosts = await _savedBlogRepository.GetUserSavedPostsAsync(userId);
+                var userRatings = await _postRatingRepository.GetUserRatingsAsync(userId);
+                var savedPostIds = userSavedPosts.Select(sp => sp.BlogPostId).ToHashSet();
+                var ratedPostIds = userRatings.Select(ur => ur.BlogPostId).ToHashSet();
+                
+                var feedPostIds = personalizedFeed.GetTopRecommendations(count * 3); // Get more to account for filtering
                 var feedPosts = new List<BlogPost>();
                 
                 foreach (var postId in feedPostIds)
                 {
                     var post = await _blogPostRepository.GetByIdAsync(postId);
-                    if (post != null && (excludeAuthorId == null || post.AuthorId != excludeAuthorId))
+                    if (post != null && 
+                        (excludeAuthorId == null || post.AuthorId != excludeAuthorId) &&
+                        !savedPostIds.Contains(post.Id) && 
+                        !ratedPostIds.Contains(post.Id))
                     {
                         feedPosts.Add(post);
+                        if (feedPosts.Count >= count) break; // Stop when we have enough
                     }
                 }
                 
                 if (feedPosts.Count >= count)
                 {
+                    _logger.LogInformation("✅ [RecommendationService] Returning {Count} filtered pre-computed recommendations (excluded {ExcludedSaved} saved + {ExcludedRated} rated posts)", 
+                        feedPosts.Count, savedPostIds.Count, ratedPostIds.Count);
                     return feedPosts.Take(count);
                 }
+                
+                _logger.LogInformation("⚠️ [RecommendationService] Pre-computed feed only yielded {Count} posts after filtering (needed {Required}) - falling back to real-time", 
+                    feedPosts.Count, count);
             }
 
             // Fall back to real-time computation
@@ -86,8 +102,8 @@ public class RecommendationService : IRecommendationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ [RecommendationService] Error getting personalized recommendations for user {UserId} - falling back to SIMPLE POPULAR", userId);
-            return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
+            _logger.LogError(ex, "❌ [RecommendationService] Error getting personalized recommendations for user {UserId} - falling back to FILTERED POPULAR", userId);
+            return await GetFilteredPopularRecommendationsAsync(userId, count, excludeAuthorId);
         }
     }
 
@@ -100,13 +116,13 @@ public class RecommendationService : IRecommendationService
         {
             // Use default count if not specified
             if (count == -1) count = _config.DefaultRecommendationCount;
-            
+
             // Check if we have enough posts for the algorithm
             var totalPostCount = await _blogPostRepository.GetTotalPublishedCountAsync();
             if (totalPostCount < _config.MinimumPostsForAlgorithm)
             {
-                _logger.LogInformation("Insufficient posts ({PostCount}) for recommendation algorithm, using simple popular", totalPostCount);
-                return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
+                _logger.LogInformation("Insufficient posts ({PostCount}) for recommendation algorithm, using filtered popular for user {UserId}", totalPostCount, userId);
+                return await GetFilteredPopularRecommendationsAsync(userId, count, excludeAuthorId);
             }
 
             // Get user's interaction data
@@ -115,7 +131,7 @@ public class RecommendationService : IRecommendationService
             
             // Get user's persistent interests
             var userInterests = await _userInterestService.GetUserInterestsAsync(userId);
-            
+
             // Get user's friends and their activity with auth token
             var socialSignals = await GetSocialSignalsAsync(userId, authToken);
             
@@ -158,7 +174,7 @@ public class RecommendationService : IRecommendationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error computing personalized recommendations with token for user {UserId}", userId);
-            return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
+            return await GetFilteredPopularRecommendationsAsync(userId, count, excludeAuthorId);
         }
     }
 
@@ -176,8 +192,8 @@ public class RecommendationService : IRecommendationService
             var totalPostCount = await _blogPostRepository.GetTotalPublishedCountAsync();
             if (totalPostCount < _config.MinimumPostsForAlgorithm)
             {
-                _logger.LogInformation("Insufficient posts ({PostCount}) for recommendation algorithm, using simple popular", totalPostCount);
-                return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
+                _logger.LogInformation("Insufficient posts ({PostCount}) for recommendation algorithm, using filtered popular for user {UserId}", totalPostCount, userId);
+                return await GetFilteredPopularRecommendationsAsync(userId, count, excludeAuthorId);
             }
 
             // Get user's interaction data
@@ -229,7 +245,7 @@ public class RecommendationService : IRecommendationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error computing personalized recommendations for user {UserId}", userId);
-            return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
+            return await GetFilteredPopularRecommendationsAsync(userId, count, excludeAuthorId);
         }
     }
 
@@ -283,9 +299,9 @@ public class RecommendationService : IRecommendationService
 
             // Get friends' recent saved posts and high ratings
             foreach (var friendId in friendIds.Take(_config.MaxFriendsToProcess)) // Limit to avoid performance issues
-            {
-                try
-                {
+    {
+        try
+        {
                     var friendSaves = await _savedBlogRepository.GetUserSavedPostsAsync(friendId);
                     var recentSaves = friendSaves.Where(s => s.SavedAt > DateTime.UtcNow.AddDays(-_config.RecentActivityDays)).ToList();
                     
@@ -310,9 +326,9 @@ public class RecommendationService : IRecommendationService
                             socialSignals[tag] = socialSignals.GetValueOrDefault(tag, 0) + _config.FriendRatingSignalWeight; // Friend rated highly
                         }
                     }
-                }
-                catch (Exception ex)
-                {
+        }
+        catch (Exception ex)
+        {
                     _logger.LogWarning(ex, "Error getting social signals from friend {FriendId}", friendId);
                     // Continue with other friends
                 }
@@ -361,7 +377,7 @@ public class RecommendationService : IRecommendationService
     /// Optimized recommendation scoring with batch processing to eliminate N+1 queries
     /// </summary>
     private async Task<List<(BlogPost Post, double Score)>> CalculateOptimizedRecommendationScores(
-        IEnumerable<BlogPost> posts,
+        IEnumerable<BlogPost> posts, 
         string userId,
         Dictionary<string, double> userInterests,
         Dictionary<string, double> socialSignals,
@@ -412,7 +428,7 @@ public class RecommendationService : IRecommendationService
             
             foreach (var post in batch)
             {
-                double score = 0;
+            double score = 0;
 
                 // 1. User Interest Score (25%) - from persistent interest tracking
                 if (userInterests.Any() && post.Tags.Any())
@@ -429,7 +445,7 @@ public class RecommendationService : IRecommendationService
                 }
 
                 // 3. View count weight (15%)
-                var normalizedViewCount = NormalizeViewCount(post.ViewCount);
+            var normalizedViewCount = NormalizeViewCount(post.ViewCount);
                 score += normalizedViewCount * _config.ViewCountWeight;
 
                 // 4. Average rating weight (20%) - ✨ NO DB CALL - using batch data
@@ -438,7 +454,7 @@ public class RecommendationService : IRecommendationService
                 score += normalizedRating * _config.AverageRatingWeight;
 
                 // 5. Recency weight (12%)
-                var recencyScore = CalculateRecencyScore(post.PublishedAt ?? post.CreatedAt);
+            var recencyScore = CalculateRecencyScore(post.PublishedAt ?? post.CreatedAt);
                 score += recencyScore * _config.RecencyWeight;
 
                 // 6. Total ratings weight (8%) - ✨ NO DB CALL - using batch data
@@ -446,7 +462,7 @@ public class RecommendationService : IRecommendationService
                 var normalizedTotalRatings = Math.Min(totalRatings / _config.TotalRatingsNormalizationFactor, 1.0);
                 score += normalizedTotalRatings * _config.TotalRatingsWeight;
 
-                recommendations.Add((post, score));
+            recommendations.Add((post, score));
                 processedCount++;
             }
 
@@ -521,6 +537,57 @@ public class RecommendationService : IRecommendationService
         });
 
         return posts.Take(count);
+    }
+
+    /// <summary>
+    /// Get popular recommendations filtered by user interactions for better user experience
+    /// </summary>
+    public async Task<IEnumerable<BlogPost>> GetFilteredPopularRecommendationsAsync(string userId, int count, string? excludeAuthorId = null)
+    {
+        try
+        {
+            if (_config.EnablePerformanceLogging)
+            {
+                _logger.LogInformation("🔍 [RecommendationService] Getting filtered popular recommendations for user {UserId}, count: {Count}", userId, count);
+            }
+
+            // Get user's interactions to filter out
+            var userSavedPosts = await _savedBlogRepository.GetUserSavedPostsAsync(userId);
+            var userRatings = await _postRatingRepository.GetUserRatingsAsync(userId);
+            var savedPostIds = userSavedPosts.Select(sp => sp.BlogPostId).ToHashSet();
+            var ratedPostIds = userRatings.Select(ur => ur.BlogPostId).ToHashSet();
+
+            // Get more posts to account for filtering
+            var (posts, totalCount) = await _blogPostRepository.GetAllAsync(new BlogPostQueryParameters 
+            { 
+                PageSize = count * _config.SimplePopularMultiplier * 2, // Double to account for filtering
+                Page = 1,
+                Status = PostStatus.Published,
+                ExcludeAuthorId = excludeAuthorId,
+                SortBy = "ViewCount",
+                SortOrder = "desc"
+            });
+
+            // Filter out posts user has already interacted with
+            var filteredPosts = posts.Where(p => 
+                !savedPostIds.Contains(p.Id) && 
+                !ratedPostIds.Contains(p.Id)
+            ).Take(count);
+
+            if (_config.EnablePerformanceLogging)
+            {
+                _logger.LogInformation("✅ [RecommendationService] Filtered popular recommendations: {Count} posts (excluded {ExcludedSaved} saved + {ExcludedRated} rated)", 
+                    filteredPosts.Count(), savedPostIds.Count, ratedPostIds.Count);
+            }
+
+            return filteredPosts;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting filtered popular recommendations for user {UserId}", userId);
+            // Fallback to regular popular recommendations
+            return await GetSimplePopularRecommendationsAsync(count, excludeAuthorId);
+        }
     }
 
     public async Task<IEnumerable<BlogPost>> GetTrendingRecommendationsAsync(int count = 5, string? excludeAuthorId = null, IEnumerable<Guid>? excludePostIds = null)

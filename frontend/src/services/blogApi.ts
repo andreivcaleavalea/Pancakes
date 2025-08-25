@@ -59,15 +59,9 @@ export const blogPostsApi = {
 
   // Get popular posts (PUBLIC - no auth required)
   getPopular: async (count: number = 5): Promise<BlogPost[]> => {
-    console.log("🔍 [BlogAPI] Getting popular posts (public - no auth):", { count });
     const result = await publicBlogRequest<BlogPost[]>(
       `${ENDPOINTS.BLOG_POSTS}/popular?count=${count}`
     );
-    console.log("📊 [BlogAPI] Popular posts (public) result:", { 
-      count: result.length, 
-      postIds: result.map(p => p.id),
-      postTitles: result.map(p => p.title)
-    });
     return result;
   },
 
@@ -82,21 +76,13 @@ export const blogPostsApi = {
       try {
         const session = JSON.parse(authSession);
         isAuthenticated = !!session.token;
-        userId = session.user?.id || session.userId || 'unknown';
+        userId = session.user?.id || session.userId || "unknown";
       } catch (error) {
         console.error("❌ [BlogAPI] Error parsing auth session:", error);
       }
     }
 
-    console.log("🔍 [BlogAPI] Getting personalized popular posts:", { 
-      count, 
-      isAuthenticated, 
-      userId,
-      hasAuthSession: !!authSession
-    });
-
     if (!isAuthenticated) {
-      console.log("⚠️ [BlogAPI] No authentication - falling back to public popular posts");
       return blogPostsApi.getPopular(count);
     }
 
@@ -104,20 +90,12 @@ export const blogPostsApi = {
       const result = await authenticatedBlogRequest<BlogPost[]>(
         `${ENDPOINTS.BLOG_POSTS}/popular?count=${count}`
       );
-      
-      console.log("✅ [BlogAPI] Personalized popular posts result:", { 
-        userId,
-        count: result.length, 
-        postIds: result.map(p => p.id),
-        postTitles: result.map(p => p.title),
-        authors: result.map(p => p.authorName),
-        tags: result.map(p => p.tags)
-      });
-      
       return result;
     } catch (error) {
-      console.error("❌ [BlogAPI] Error getting personalized popular posts:", error);
-      console.log("⚠️ [BlogAPI] Falling back to public popular posts due to error");
+      console.error(
+        "❌ [BlogAPI] Error getting personalized popular posts:",
+        error
+      );
       return blogPostsApi.getPopular(count);
     }
   },
@@ -184,24 +162,9 @@ export const blogPostsApi = {
     // Add cache busting parameter to ensure fresh data
     const timestamp = Date.now();
     const url = `${ENDPOINTS.BLOG_POSTS}/drafts?page=${page}&pageSize=${pageSize}&_t=${timestamp}`;
-    console.log("🌐 [blogAPI] getDrafts called:", {
-      page,
-      pageSize,
-      timestamp,
-      url,
-    });
-
     const result = await authenticatedBlogRequest<PaginatedResult<BlogPost>>(
       url
     );
-
-    console.log("🌐 [blogAPI] getDrafts response:", {
-      dataLength: result.data?.length || 0,
-      totalItems: result.pagination?.totalItems || 0,
-      firstDraftId: result.data?.[0]?.id,
-      firstDraftUpdatedAt: result.data?.[0]?.updatedAt,
-    });
-
     return result;
   },
 

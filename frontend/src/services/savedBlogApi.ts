@@ -9,16 +9,9 @@ const ENDPOINTS = {
 export const savedBlogsApi = {
   // Get all saved blogs for current user
   getAll: async (): Promise<SavedBlog[]> => {
-    console.log(
-      "📥 [SavedBlogsAPI] Fetching ALL saved blogs (batch optimization)"
-    );
     const result = await authenticatedBlogRequest<SavedBlog[]>(
       ENDPOINTS.SAVED_BLOGS
     );
-    console.log("✅ [SavedBlogsAPI] Loaded saved blogs:", {
-      count: result.length,
-      blogIds: result.map((sb) => sb.blogPostId),
-    });
     return result;
   },
 

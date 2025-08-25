@@ -36,9 +36,6 @@ export const SavedBlogsProvider: React.FC<SavedBlogsProviderProps> = ({
     // Skip if user is not authenticated
     const authSession = localStorage.getItem("auth-session");
     if (!authSession) {
-      console.log(
-        "🔐 [SavedBlogsContext] No auth session - clearing saved blogs"
-      );
       setSavedBlogs([]);
       setSavedBlogIds(new Set());
       return;
@@ -46,18 +43,12 @@ export const SavedBlogsProvider: React.FC<SavedBlogsProviderProps> = ({
 
     try {
       setIsLoading(true);
-      console.log("🔄 [SavedBlogsContext] Fetching all saved blogs...");
 
       const blogs = await savedBlogsApi.getAll();
       const blogIds = new Set(blogs.map((blog) => blog.blogPostId));
 
       setSavedBlogs(blogs);
       setSavedBlogIds(blogIds);
-
-      console.log("✅ [SavedBlogsContext] Saved blogs loaded:", {
-        count: blogs.length,
-        blogIds: Array.from(blogIds),
-      });
     } catch (error) {
       console.error(
         "❌ [SavedBlogsContext] Error fetching saved blogs:",
@@ -88,12 +79,6 @@ export const SavedBlogsProvider: React.FC<SavedBlogsProviderProps> = ({
       try {
         const isSaved = savedBlogIds.has(blogPostId);
 
-        console.log(
-          `🔄 [SavedBlogsContext] ${
-            isSaved ? "Unsaving" : "Saving"
-          } blog ${blogPostId}...`
-        );
-
         if (isSaved) {
           // Unsave the blog
           await savedBlogsApi.unsave(blogPostId);
@@ -107,8 +92,6 @@ export const SavedBlogsProvider: React.FC<SavedBlogsProviderProps> = ({
             newSet.delete(blogPostId);
             return newSet;
           });
-
-          console.log("✅ [SavedBlogsContext] Blog unsaved successfully");
         } else {
           // Save the blog
           const savedBlog = await savedBlogsApi.save({ blogPostId });
@@ -116,8 +99,6 @@ export const SavedBlogsProvider: React.FC<SavedBlogsProviderProps> = ({
           // Update local state immediately for better UX
           setSavedBlogs((prev) => [savedBlog, ...prev]);
           setSavedBlogIds((prev) => new Set([...prev, blogPostId]));
-
-          console.log("✅ [SavedBlogsContext] Blog saved successfully");
         }
       } catch (error) {
         console.error(
@@ -137,9 +118,6 @@ export const SavedBlogsProvider: React.FC<SavedBlogsProviderProps> = ({
     // Listen for auth changes
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "auth-session") {
-        console.log(
-          "🔄 [SavedBlogsContext] Auth session changed - refreshing saved blogs"
-        );
         refreshSavedBlogs();
       }
     };

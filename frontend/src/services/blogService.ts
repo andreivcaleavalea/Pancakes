@@ -26,7 +26,6 @@ export class BlogService {
   ): Promise<T> {
     // Check if request is already in flight
     if (inflightRequests.has(key)) {
-      console.log(`🔄 [BlogService] Deduplicating request: ${key}`);
       return inflightRequests.get(key) as Promise<T>;
     }
 
@@ -37,7 +36,7 @@ export class BlogService {
     });
 
     inflightRequests.set(key, promise);
-    console.log(`🚀 [BlogService] New request started: ${key}`);
+
     return promise;
   }
 
@@ -66,8 +65,6 @@ export class BlogService {
   }> {
     return this.deduplicateRequest("getHomePageData", async () => {
       try {
-        console.log("🏠 [BlogService] Loading home page data in parallel...");
-
         // Prepare grid posts params
         const gridPostsParams: BlogPostQueryParams = {
           page: 1,
@@ -100,12 +97,6 @@ export class BlogService {
 
         const horizontalPosts = horizontalPostsData.map(this.transformBlogPost);
         const gridPosts = gridPostsResult.data.map(this.transformBlogPost);
-
-        console.log("✅ [BlogService] All home page data loaded:", {
-          featuredCount: featuredPosts.length,
-          horizontalCount: horizontalPosts.length,
-          gridCount: gridPosts.length,
-        });
 
         return {
           featuredPosts,
