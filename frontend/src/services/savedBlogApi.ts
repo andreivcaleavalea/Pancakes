@@ -9,7 +9,10 @@ const ENDPOINTS = {
 export const savedBlogsApi = {
   // Get all saved blogs for current user
   getAll: async (): Promise<SavedBlog[]> => {
-    return authenticatedBlogRequest<SavedBlog[]>(ENDPOINTS.SAVED_BLOGS);
+    const result = await authenticatedBlogRequest<SavedBlog[]>(
+      ENDPOINTS.SAVED_BLOGS
+    );
+    return result;
   },
 
   // Save a blog post
@@ -30,10 +33,15 @@ export const savedBlogsApi = {
     );
   },
 
-  // Check if a blog post is saved
+  // Check if a blog post is saved (DEPRECATED - use context instead for better performance)
   isBookmarked: async (
     blogPostId: string
   ): Promise<{ isBookmarked: boolean }> => {
+    console.warn(
+      "⚠️ [SavedBlogsAPI] DEPRECATED: Individual check call for blog",
+      blogPostId,
+      "- use SavedBlogsContext instead for better performance!"
+    );
     return authenticatedBlogRequest<{ isBookmarked: boolean }>(
       `${ENDPOINTS.SAVED_BLOGS}/check/${blogPostId}`
     );

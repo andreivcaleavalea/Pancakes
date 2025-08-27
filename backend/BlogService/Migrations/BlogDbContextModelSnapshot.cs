@@ -62,9 +62,12 @@ namespace BlogService.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.ToTable("BlogPosts", (string)null);
+                    b.ToTable("BlogPosts");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.Comment", b =>
@@ -109,7 +112,7 @@ namespace BlogService.Migrations
 
                     b.HasIndex("ParentCommentId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.CommentLike", b =>
@@ -140,44 +143,53 @@ namespace BlogService.Migrations
                     b.HasIndex("CommentId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("CommentLikes", (string)null);
+                    b.ToTable("CommentLikes");
                 });
 
-            modelBuilder.Entity("BlogService.Models.Entities.Friendship", b =>
+            modelBuilder.Entity("BlogService.Models.Entities.PersonalizedFeed", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("AcceptedAt")
+                    b.Property<string>("AlgorithmVersion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<List<Guid>>("BlogPostIds")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("ComputedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ReceiverId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("SenderId")
+                    b.Property<List<double>>("Scores")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("jsonb");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("SenderId", "ReceiverId")
+                    b.HasIndex("ComputedAt");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Friendships", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Friendship_NoSelfFriend", "\"SenderId\" != \"ReceiverId\"");
-                        });
+                    b.ToTable("PersonalizedFeeds");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.PostRating", b =>
@@ -208,7 +220,7 @@ namespace BlogService.Migrations
                     b.HasIndex("BlogPostId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("PostRatings", (string)null);
+                    b.ToTable("PostRatings");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.Report", b =>
@@ -272,9 +284,7 @@ namespace BlogService.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ContentId");
-
-                    b.ToTable("Reports", null, t =>
+                    b.ToTable("Reports", t =>
                         {
                             t.HasCheckConstraint("CK_Report_NoSelfReport", "\"ReporterId\" != \"ReportedUserId\"");
                         });
@@ -295,7 +305,46 @@ namespace BlogService.Migrations
 
                     b.HasIndex("BlogPostId");
 
-                    b.ToTable("SavedBlogs", (string)null);
+                    b.ToTable("SavedBlogs");
+                });
+
+            modelBuilder.Entity("BlogService.Models.Entities.UserInterest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("InteractionCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("Score")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastUpdated");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "Tag")
+                        .IsUnique();
+
+                    b.ToTable("UserInterests");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.Comment", b =>
@@ -336,27 +385,6 @@ namespace BlogService.Migrations
                         .IsRequired();
 
                     b.Navigation("BlogPost");
-                });
-
-            modelBuilder.Entity("BlogService.Models.Entities.Report", b =>
-                {
-                    b.HasOne("BlogService.Models.Entities.BlogPost", "BlogPost")
-                        .WithMany()
-                        .HasForeignKey("ContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Report_BlogPost");
-
-                    b.HasOne("BlogService.Models.Entities.Comment", "Comment")
-                        .WithMany()
-                        .HasForeignKey("ContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Report_Comment");
-
-                    b.Navigation("BlogPost");
-
-                    b.Navigation("Comment");
                 });
 
             modelBuilder.Entity("BlogService.Models.Entities.SavedBlog", b =>

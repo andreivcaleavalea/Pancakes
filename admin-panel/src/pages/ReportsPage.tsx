@@ -336,8 +336,8 @@ const ReportsPage: React.FC = () => {
       },
       {
         title: "Reporter",
-        dataIndex: "reporterUserName",
-        key: "reporterUserName",
+        dataIndex: "reporterName",
+        key: "reporterName",
         width: 120,
         render: (name: string) => <Text>{name}</Text>,
       },
@@ -517,7 +517,7 @@ const ReportsPage: React.FC = () => {
                   </div>
                   <div>
                     <Text strong>Reporter: </Text>
-                    <Text>{selectedReport.reporterUserName}</Text>
+                    <Text>{selectedReport.reporterName}</Text>
                   </div>
                   <div>
                     <Text strong>Reported User: </Text>
@@ -631,7 +631,7 @@ const ReportsPage: React.FC = () => {
                     </div>
                     <div>
                       <Text strong>Reporter: </Text>
-                      <Text>{selectedReport.reporterUserName}</Text>
+                      <Text>{selectedReport.reporterName}</Text>
                     </div>
                   </Space>
                 </Col>

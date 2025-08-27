@@ -12,7 +12,8 @@ export const reportApi = {
   getAll: async (
     page: number = 1,
     pageSize: number = 20,
-    status?: ReportStatus
+    status?: ReportStatus,
+    cacheBustingParams?: Record<string, any>
   ): Promise<ReportDto[]> => {
     const params: Record<string, string> = {
       page: page.toString(),
@@ -23,11 +24,19 @@ export const reportApi = {
       params.status = status.toString();
     }
 
-    const response = await api.get("/reports", { params });
+    // Add cache busting parameters if provided
+
+    const response = await api.get("/reports", {
+      params,
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    });
     return response.data.data; // AdminService wraps responses in ApiResponse format
   },
 
-  // Get a specific report by ID
   getById: async (id: string): Promise<ReportDto> => {
     const response = await api.get(`/reports/${id}`);
     return response.data.data;
@@ -48,8 +57,23 @@ export const reportApi = {
   },
 
   // Get report statistics
-  getStats: async (): Promise<ReportStats> => {
-    const response = await api.get("/reports/stats");
+  getStats: async (
+    cacheBustingParams?: Record<string, any>
+  ): Promise<ReportStats> => {
+    const config: any = {
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    };
+
+    // Add cache busting parameters if provided
+    if (cacheBustingParams) {
+      config.params = cacheBustingParams;
+    }
+
+    const response = await api.get("/reports/stats", config);
     return response.data.data;
   },
 };

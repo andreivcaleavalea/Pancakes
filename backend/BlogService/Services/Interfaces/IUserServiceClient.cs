@@ -11,4 +11,5 @@ public interface IUserServiceClient
     Task<IEnumerable<UserInfoDto>> GetAllUsersAsync();
     Task<IEnumerable<FriendDto>> GetUserFriendsAsync(string authToken);
     Task<bool> AreFriendsAsync(string userId1, string userId2, string authToken);
+    Task<bool> CreateNotificationAsync(string userId, string type, string title, string message, string reason, string source, string? blogTitle = null, string? blogId = null, string? additionalData = null, string? authToken = null);
 }

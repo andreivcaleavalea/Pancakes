@@ -59,9 +59,45 @@ export const blogPostsApi = {
 
   // Get popular posts (PUBLIC - no auth required)
   getPopular: async (count: number = 5): Promise<BlogPost[]> => {
-    return publicBlogRequest<BlogPost[]>(
+    const result = await publicBlogRequest<BlogPost[]>(
       `${ENDPOINTS.BLOG_POSTS}/popular?count=${count}`
     );
+    return result;
+  },
+
+  // Get personalized popular posts (AUTHENTICATED - personalized recommendations)
+  getPersonalizedPopular: async (count: number = 5): Promise<BlogPost[]> => {
+    // Check if user is authenticated
+    const authSession = localStorage.getItem("auth-session");
+    let isAuthenticated = false;
+    let userId = null;
+
+    if (authSession) {
+      try {
+        const session = JSON.parse(authSession);
+        isAuthenticated = !!session.token;
+        userId = session.user?.id || session.userId || "unknown";
+      } catch (error) {
+        console.error("❌ [BlogAPI] Error parsing auth session:", error);
+      }
+    }
+
+    if (!isAuthenticated) {
+      return blogPostsApi.getPopular(count);
+    }
+
+    try {
+      const result = await authenticatedBlogRequest<BlogPost[]>(
+        `${ENDPOINTS.BLOG_POSTS}/popular?count=${count}`
+      );
+      return result;
+    } catch (error) {
+      console.error(
+        "❌ [BlogAPI] Error getting personalized popular posts:",
+        error
+      );
+      return blogPostsApi.getPopular(count);
+    }
   },
 
   // Get posts by author (PUBLIC - no auth required)
@@ -126,24 +162,9 @@ export const blogPostsApi = {
     // Add cache busting parameter to ensure fresh data
     const timestamp = Date.now();
     const url = `${ENDPOINTS.BLOG_POSTS}/drafts?page=${page}&pageSize=${pageSize}&_t=${timestamp}`;
-    console.log("🌐 [blogAPI] getDrafts called:", {
-      page,
-      pageSize,
-      timestamp,
-      url,
-    });
-
     const result = await authenticatedBlogRequest<PaginatedResult<BlogPost>>(
       url
     );
-
-    console.log("🌐 [blogAPI] getDrafts response:", {
-      dataLength: result.data?.length || 0,
-      totalItems: result.pagination?.totalItems || 0,
-      firstDraftId: result.data?.[0]?.id,
-      firstDraftUpdatedAt: result.data?.[0]?.updatedAt,
-    });
-
     return result;
   },
 

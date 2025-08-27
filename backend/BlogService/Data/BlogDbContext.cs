@@ -14,6 +14,8 @@ public class BlogDbContext : DbContext
     public DbSet<SavedBlog> SavedBlogs { get; set; }
     public DbSet<Friendship> Friendships { get; set; }
     public DbSet<Report> Reports { get; set; }
+    public DbSet<UserInterest> UserInterests { get; set; }
+    public DbSet<PersonalizedFeed> PersonalizedFeeds { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -81,6 +83,12 @@ public class BlogDbContext : DbContext
         // Add check constraint to prevent self-reporting
         modelBuilder.Entity<Report>()
             .HasCheckConstraint("CK_Report_NoSelfReport", "\"ReporterId\" != \"ReportedUserId\"");
+
+        // Configure UserInterest entity
+        UserInterest.ConfigureEntity(modelBuilder);
+
+        // Configure PersonalizedFeed entity
+        PersonalizedFeed.ConfigureEntity(modelBuilder);
 
         base.OnModelCreating(modelBuilder);
     }

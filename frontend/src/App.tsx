@@ -3,6 +3,8 @@ import { ConfigProvider, App as AntApp } from "antd";
 import { RouterProvider } from "./router/RouterProvider";
 import MainLayout from "./layouts/MainLayout/MainLayout";
 import PageRenderer from "./router/PageRenderer";
+
+import { SavedBlogsProvider } from "./contexts/SavedBlogsContext";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -27,11 +29,13 @@ const App: React.FC = () => {
       }}
     >
       <AntApp>
-        <RouterProvider>
-          <MainLayout>
-            <PageRenderer />
-          </MainLayout>
-        </RouterProvider>
+        <SavedBlogsProvider>
+          <RouterProvider>
+            <MainLayout>
+              <PageRenderer />
+            </MainLayout>
+          </RouterProvider>
+        </SavedBlogsProvider>
       </AntApp>
     </ConfigProvider>
   );

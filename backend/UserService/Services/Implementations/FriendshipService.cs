@@ -16,6 +16,7 @@ public class FriendshipService : IFriendshipService
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
     private readonly ILogger<FriendshipService> _logger;
 
     public FriendshipService(
@@ -23,12 +24,14 @@ public class FriendshipService : IFriendshipService
         IUserRepository userRepository,
         IMapper mapper,
         ICurrentUserService currentUserService,
+        INotificationService notificationService,
         ILogger<FriendshipService> logger)
     {
         _friendshipRepository = friendshipRepository;
         _userRepository = userRepository;
         _mapper = mapper;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
         _logger = logger;
     }
 
@@ -149,6 +152,33 @@ public class FriendshipService : IFriendshipService
         };
 
         var createdFriendship = await _friendshipRepository.CreateAsync(friendship);
+        
+        // Create notification for the receiver
+        try
+        {
+            var senderUser = await _userRepository.GetByIdAsync(senderId);
+            if (senderUser != null)
+            {
+                var notificationDto = new CreateNotificationDto
+                {
+                    UserId = receiverId,
+                    Type = "FRIEND_REQUEST_RECEIVED",
+                    Title = "New Friend Request",
+                    Message = $"{senderUser.Name} sent you a friend request.",
+                    Reason = "Friend request notification",
+                    Source = "FRIEND_SYSTEM"
+                };
+                
+                await _notificationService.CreateNotificationAsync(notificationDto);
+                _logger.LogInformation("Friend request notification sent to user {ReceiverId} from {SenderId}", receiverId, senderId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create friend request notification for user {ReceiverId}", receiverId);
+            // Don't fail the whole operation if notification fails
+        }
+        
         return _mapper.Map<FriendshipDto>(createdFriendship);
     }
 
@@ -174,6 +204,33 @@ public class FriendshipService : IFriendshipService
         friendship.AcceptedAt = DateTime.UtcNow;
 
         var updatedFriendship = await _friendshipRepository.UpdateAsync(friendship);
+        
+        // Create notification for the sender (their request was accepted)
+        try
+        {
+            var accepterUser = await _userRepository.GetByIdAsync(userId);
+            if (accepterUser != null)
+            {
+                var notificationDto = new CreateNotificationDto
+                {
+                    UserId = friendship.SenderId,
+                    Type = "FRIEND_REQUEST_ACCEPTED",
+                    Title = "Friend Request Accepted",
+                    Message = $"{accepterUser.Name} accepted your friend request.",
+                    Reason = "Friend request acceptance notification",
+                    Source = "FRIEND_SYSTEM"
+                };
+                
+                await _notificationService.CreateNotificationAsync(notificationDto);
+                _logger.LogInformation("Friend request acceptance notification sent to user {SenderId} from {AccepterId}", friendship.SenderId, userId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create friend request acceptance notification for user {SenderId}", friendship.SenderId);
+            // Don't fail the whole operation if notification fails
+        }
+        
         return _mapper.Map<FriendshipDto>(updatedFriendship);
     }
 

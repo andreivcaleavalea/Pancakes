@@ -3,6 +3,7 @@ import { Card, Typography, App, Avatar } from "antd";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import type { BlogPost } from "@/types/blog";
 import { getProfilePictureUrl } from "@/utils/imageUtils";
+import LazyImage from "../LazyImage/LazyImage";
 
 interface BlogPostWithDisplay extends BlogPost {
   image?: string;
@@ -11,7 +12,7 @@ interface BlogPostWithDisplay extends BlogPost {
   author?: string;
   authorAvatar?: string;
 }
-import { useFavorite } from "@/hooks/useBlog";
+import { useOptimizedFavorite } from "@/hooks/useOptimizedFavorite";
 import { useRouter } from "@/router/RouterProvider";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULTS } from "@/utils/constants";
 import { AverageRatingDisplay, BlogTags } from "@/components/common";
@@ -34,7 +35,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
     isFavorite,
     loading: isLoading,
     toggleFavorite,
-  } = useFavorite(post.id, post.isFeatured);
+  } = useOptimizedFavorite(post.id);
   const { message } = App.useApp();
   const { navigate } = useRouter();
 
@@ -68,10 +69,11 @@ const BlogCard: React.FC<BlogCardProps> = ({
         onClick={handleCardClick}
         style={{ cursor: "pointer" }}
       >
-        <img
+        <LazyImage
           src={post.image || DEFAULTS.IMAGE}
           alt={post.title}
           className="blog-card__image--horizontal"
+          skeletonHeight={120}
         />
         <div className="blog-card__content">
           <div className="blog-card__meta">
@@ -143,7 +145,12 @@ const BlogCard: React.FC<BlogCardProps> = ({
       onClick={handleCardClick}
       style={{ cursor: "pointer" }}
     >
-      <img src={post.image} alt={post.title} className="blog-card__image" />
+      <LazyImage
+        src={post.image}
+        alt={post.title}
+        className="blog-card__image"
+        skeletonHeight={200}
+      />
       <div className="blog-card__content">
         <div className="blog-card__meta">
           <Text className="blog-card__date">{post.date}</Text>
