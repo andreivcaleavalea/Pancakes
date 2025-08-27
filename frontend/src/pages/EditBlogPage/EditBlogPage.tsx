@@ -22,11 +22,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { blogPostsApi } from "@/services/blogApi";
 import { PostStatus } from "@/types/blog";
 import type { UpdateBlogPostDto, BlogPost } from "@/types/blog";
-import { TagInput, ImageUpload } from "@/components/common";
+import { TagInput, ImageUpload, MarkdownEditor } from "@/components/common";
 import "./EditBlogPage.scss";
 
 const { Title } = Typography;
-const { TextArea } = Input;
 
 interface EditBlogFormValues {
   title: string;
@@ -340,10 +339,9 @@ const EditBlogPage: React.FC = () => {
               ]}
               help="Content is required for publishing, but optional for drafts"
             >
-              <TextArea
-                rows={12}
+              <MarkdownEditor
                 placeholder="Write your blog post content here..."
-                className="edit-blog-page__textarea"
+                rows={12}
               />
             </Form.Item>
 

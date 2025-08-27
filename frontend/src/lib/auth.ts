@@ -1,3 +1,5 @@
+import { API_CONFIG } from "@/utils/constants";
+
 // OAuth provider configurations for the stateless authentication system
 export const oauthProviders = {
   google: {
@@ -31,9 +33,7 @@ export function initiateOAuthLogin(provider: OAuthProvider): void {
 
   const state = generateRandomState();
   // Redirect to backend callback URL, which will then redirect to frontend
-  const redirectUri = `${
-    import.meta.env.VITE_USER_API_URL || "http://localhost:5141"
-  }/auth/${provider}/callback`;
+  const redirectUri = `${API_CONFIG.USER_API_URL}/auth/${provider}/callback`;
 
   console.log(`🔐 OAuth: Generated state and redirect URI:`, {
     provider,

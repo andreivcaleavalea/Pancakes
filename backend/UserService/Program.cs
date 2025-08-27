@@ -135,10 +135,16 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Configure static file serving for profile pictures
+var assetsPath = Path.Combine(builder.Environment.ContentRootPath, "assets");
+if (!Directory.Exists(assetsPath))
+{
+    Directory.CreateDirectory(assetsPath);
+    Directory.CreateDirectory(Path.Combine(assetsPath, "profile-pictures"));
+}
+
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "assets")),
+    FileProvider = new PhysicalFileProvider(assetsPath),
     RequestPath = "/assets"
 });
 

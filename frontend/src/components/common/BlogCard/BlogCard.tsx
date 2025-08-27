@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Typography, App, Avatar } from "antd";
+import { Card, Typography, App } from "antd";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import type { BlogPost } from "@/types/blog";
 import { getProfilePictureUrl } from "@/utils/imageUtils";
@@ -15,7 +15,7 @@ interface BlogPostWithDisplay extends BlogPost {
 import { useOptimizedFavorite } from "@/hooks/useOptimizedFavorite";
 import { useRouter } from "@/router/RouterProvider";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULTS } from "@/utils/constants";
-import { AverageRatingDisplay, BlogTags } from "@/components/common";
+import { AverageRatingDisplay, BlogTags, CachedAvatar } from "@/components/common";
 import "./BlogCard.scss";
 
 const { Title, Text, Paragraph } = Typography;
@@ -101,15 +101,14 @@ const BlogCard: React.FC<BlogCardProps> = ({
             </Paragraph>
             {post.author && (
               <div className="blog-card__author-info">
-                <Avatar
-                  src={
-                    getProfilePictureUrl(post.authorAvatar) || DEFAULTS.AVATAR
-                  }
+                <CachedAvatar
+                  src={post.authorAvatar}
+                  fallbackSrc={DEFAULTS.AVATAR}
                   size={32}
                   style={{ marginRight: 8 }}
                 >
                   {post.author.charAt(0)}
-                </Avatar>
+                </CachedAvatar>
                 <Text className="blog-card__author">By {post.author}</Text>
               </div>
             )}
@@ -177,13 +176,14 @@ const BlogCard: React.FC<BlogCardProps> = ({
           </div>
           {post.author && (
             <div className="blog-card__author-info">
-              <Avatar
-                src={getProfilePictureUrl(post.authorAvatar)}
+              <CachedAvatar
+                src={post.authorAvatar}
+                fallbackSrc={DEFAULTS.AVATAR}
                 size={variant === "featured" ? 40 : 32}
                 style={{ marginRight: 8 }}
               >
                 {post.author.charAt(0)}
-              </Avatar>
+              </CachedAvatar>
               <Text className="blog-card__author">By {post.author}</Text>
             </div>
           )}

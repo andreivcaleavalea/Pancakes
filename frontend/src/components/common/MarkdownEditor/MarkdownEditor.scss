@@ -1,0 +1,99 @@
+.markdown-editor {
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  overflow: hidden;
+
+  &__toolbar {
+    background: #fafafa;
+    border-bottom: 1px solid #d9d9d9;
+    padding: 8px 16px;
+
+    .ant-btn {
+      border: none;
+      box-shadow: none;
+      
+      &:hover {
+        background: #e6f7ff;
+        color: #1890ff;
+      }
+    }
+  }
+
+  &__content {
+    min-height: 300px;
+  }
+
+  &__textarea {
+    border: none !important;
+    border-radius: 0 !important;
+    resize: vertical;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+
+    &:focus {
+      box-shadow: none !important;
+    }
+  }
+
+  &__preview {
+    padding: 16px;
+    min-height: 300px;
+    background: white;
+    
+    // Override markdown body styles for better integration
+    .markdown-body {
+      background: transparent;
+      padding: 0;
+      margin: 0;
+    }
+  }
+
+  &__help {
+    padding: 8px 16px;
+    background: #f6f8fa;
+    border-top: 1px solid #d9d9d9;
+    color: #666;
+    font-size: 12px;
+  }
+
+  // Dark mode support
+  .dark & {
+    border-color: #434343;
+    
+    &__toolbar {
+      background: #1f1f1f;
+      border-bottom-color: #434343;
+    }
+
+    &__preview {
+      background: #141414;
+      color: #ffffff;
+    }
+
+    &__help {
+      background: #1f1f1f;
+      border-top-color: #434343;
+      color: #a6a6a6;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .markdown-editor {
+    &__toolbar {
+      padding: 6px 12px;
+      
+      .ant-space {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .ant-btn {
+        font-size: 12px;
+        padding: 4px 8px;
+      }
+    }
+  }
+}

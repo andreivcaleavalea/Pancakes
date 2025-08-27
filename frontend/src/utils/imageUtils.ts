@@ -1,4 +1,5 @@
 import { blogImageApi } from "@/services/blogImageApi";
+import { API_CONFIG } from "@/utils/constants";
 
 /**
  * Get the proper image URL for display - handles both uploaded and external images
@@ -7,7 +8,7 @@ import { blogImageApi } from "@/services/blogImageApi";
  */
 export const getImageUrl = (imagePath: string | undefined | null): string => {
   if (!imagePath) {
-    return "/placeholder-image.jpg"; // Default placeholder
+    return "/placeholder-image.svg"; // Default placeholder
   }
 
   // If it's already a full URL (external image), return as-is
@@ -37,9 +38,7 @@ export const getProfilePictureUrl = (
   }
 
   // For profile pictures, use UserService URL
-  const USER_SERVICE_URL =
-    import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:5141";
-  return `${USER_SERVICE_URL}/${imagePath}`;
+  return `${API_CONFIG.USER_API_URL}/${imagePath}`;
 };
 
 /**

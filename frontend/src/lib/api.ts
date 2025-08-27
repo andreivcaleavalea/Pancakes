@@ -1,3 +1,5 @@
+import { API_CONFIG } from "@/utils/constants";
+
 /**
  * Utility functions for making authenticated API calls in a stateless system.
  * The JWT token contains all user information needed for backend operations.
@@ -19,7 +21,7 @@ export async function authenticatedFetch<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const baseUrl = import.meta.env.VITE_USER_API_URL || "http://localhost:5141";
+  const baseUrl = API_CONFIG.USER_API_URL;
   const url = `${baseUrl}${
     endpoint.startsWith("/") ? endpoint : "/" + endpoint
   }`;

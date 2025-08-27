@@ -1,0 +1,7 @@
+# Required packages for tech_news_publisher DAG
+feedparser==6.0.11
+google-generativeai==0.8.0
+
+# Use compatible versions with Airflow
+requests>=2.32.0
+beautifulsoup4>=4.12.3

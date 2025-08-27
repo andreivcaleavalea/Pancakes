@@ -48,7 +48,7 @@ export class BlogService {
       ...post,
       description: post.excerpt || post.content.substring(0, 150) + "...",
       date: post.publishedAt || post.createdAt,
-      image: post.featuredImage || "/placeholder-image.jpg",
+      image: post.featuredImage || "/placeholder-image.svg",
       // Use the author information from the backend (already populated by UserService)
       author: post.authorName || "Unknown Author",
       authorAvatar: post.authorImage || "/default-avatar.png",

@@ -29,7 +29,8 @@ export const BREAKPOINTS = {
 // Default Values
 export const DEFAULTS = {
   AVATAR: "/default-avatar.png",
-  IMAGE: "/placeholder-image.jpg",
+  BOT_AVATAR: "bot-avatar.png", // Will be handled by CachedAvatar import
+  IMAGE: "/placeholder-image.svg",
   AUTHOR: "Author Name", // TODO: Remove when user service is implemented
 } as const;
 

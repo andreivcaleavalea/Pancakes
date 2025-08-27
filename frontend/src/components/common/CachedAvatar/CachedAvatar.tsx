@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Avatar } from "antd";
 import type { AvatarProps } from "antd";
+import { API_CONFIG } from "@/utils/constants";
+import botAvatarPng from "@/assets/bot-avatar.png";
 
 // Simple in-memory cache for images
 const imageCache = new Map<string, string>();
@@ -42,8 +44,22 @@ const CachedAvatar: React.FC<CachedAvatarProps> = ({
       return;
     }
 
+    // Handle bot avatar from assets folder - CHECK THIS FIRST before other paths
+    if (src.includes('bot-avatar')) {
+      setImageSrc(botAvatarPng);
+      setHasError(false);
+      return;
+    }
+
+    // Handle frontend public assets (paths starting with /)
+    if (src.startsWith('/')) {
+      setImageSrc(src);
+      setHasError(false);
+      return;
+    }
+
     // For local files, construct the full URL
-    const fullSrc = `${import.meta.env.VITE_USER_API_URL || 'http://localhost:5141'}/${src}`;
+    const fullSrc = `${API_CONFIG.USER_API_URL}/${src}`;
 
     // Check if image is already cached
     if (imageCache.has(fullSrc)) {

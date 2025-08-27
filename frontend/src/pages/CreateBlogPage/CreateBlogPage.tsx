@@ -10,11 +10,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { blogPostsApi } from "@/services/blogApi";
 import { PostStatus } from "@/types/blog";
 import type { CreateBlogPostDto } from "@/types/blog";
-import { TagInput, ImageUpload } from "@/components/common";
+import { TagInput, ImageUpload, MarkdownEditor } from "@/components/common";
 import "./CreateBlogPage.scss";
 
 const { Title } = Typography;
-const { TextArea } = Input;
 
 interface CreateBlogFormValues {
   title: string;
@@ -105,7 +104,7 @@ const CreateBlogPage: React.FC = () => {
       .catch((errorInfo) => {
         // Only require title for drafts, content can be optional
         const titleErrors = errorInfo.errorFields?.filter(
-          (field: any) => field.name[0] === "title"
+          (field: unknown) => field.name[0] === "title"
         );
         if (titleErrors && titleErrors.length > 0) {
           message.error("Please enter a title to save as draft");
@@ -199,12 +198,12 @@ const CreateBlogPage: React.FC = () => {
                 { required: true, message: "Please enter content" },
                 { min: 10, message: "Content must be at least 10 characters" },
               ]}
-              help="Content is required for publishing, but optional for drafts"
+              help="Use Markdown formatting. The editor provides buttons to help you format your content."
             >
-              <TextArea
+              <MarkdownEditor
                 rows={12}
-                placeholder="Write your blog post content here..."
-                className="create-blog-page__textarea"
+                placeholder="Write your blog post content here using Markdown..."
+                className="create-blog-page__markdown-editor"
               />
             </Form.Item>
 

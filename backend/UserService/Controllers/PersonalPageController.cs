@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using UserService.Models.DTOs;
+using UserService.Models.Requests;
 using UserService.Services.Interfaces;
 using UserService.Services;
 
@@ -99,6 +100,22 @@ public class PersonalPageController : ControllerBase
         {
             _logger.LogError(ex, "Error getting public personal page for slug {PageSlug}", pageSlug);
             return StatusCode(500, "An error occurred while getting the personal page");
+        }
+    }
+
+    // Get paginated public portfolios
+    [HttpGet("public-all")]
+    public async Task<IActionResult> GetPublicPortfolios([FromQuery] PortfolioQueryParameters parameters)
+    {
+        try
+        {
+            var result = await _personalPageService.GetPublicPortfoliosAsync(parameters);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting public portfolios");
+            return StatusCode(500, "An error occurred while getting public portfolios");
         }
     }
 

@@ -1,4 +1,5 @@
 import { authenticatedBlogRequest } from "@/utils/blogApi";
+import { API_CONFIG } from "@/utils/constants";
 import type {
   CreatePostRatingDto,
   PostRating,
@@ -64,7 +65,7 @@ export const postRatingApi = {
       throw new Error("No authentication token found");
     }
 
-    const response = await fetch(`http://localhost:5001/api/postratings`, {
+    const response = await fetch(`${API_CONFIG.BLOG_API_URL}/api/postratings`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

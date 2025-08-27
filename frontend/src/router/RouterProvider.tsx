@@ -27,7 +27,7 @@ interface RouterContextType {
   loginMode: LoginMode;
   publicSlug?: string;
   blogId?: string;
-  navigate: (page: PageType, mode?: LoginMode, blogId?: string) => void;
+  navigate: (page: PageType, mode?: LoginMode, blogId?: string, publicSlug?: string) => void;
 }
 
 const RouterContext = createContext<RouterContextType | undefined>(undefined);
@@ -126,13 +126,16 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const navigate = (page: PageType, mode?: LoginMode, blogIdParam?: string) => {
+  const navigate = (page: PageType, mode?: LoginMode, blogIdParam?: string, publicSlugParam?: string) => {
     setCurrentPage(page);
     if (mode) {
       setLoginMode(mode);
     }
     if (blogIdParam) {
       setBlogId(blogIdParam);
+    }
+    if (publicSlugParam) {
+      setPublicSlug(publicSlugParam);
     }
 
     // Update URL
@@ -143,6 +146,8 @@ export const RouterProvider: React.FC<RouterProviderProps> = ({ children }) => {
       url = `/blog/${blogIdParam}`;
     } else if (page === "edit-blog" && blogIdParam) {
       url = `/edit-blog/${blogIdParam}`;
+    } else if (page === "public" && publicSlugParam) {
+      url = `/public/${publicSlugParam}`;
     } else if (page === "banned") {
       url = "/banned";
     }

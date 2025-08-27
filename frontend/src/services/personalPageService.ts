@@ -155,4 +155,38 @@ export class PersonalPageService {
     const slug = response.data!.slug;
     return slug;
   }
+
+  // Get paginated public portfolios
+  static async getPublicPortfolios(page: number = 1, pageSize: number = 10, search?: string): Promise<{ data: PublicPersonalPage[], pagination: any }> {
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('pageSize', pageSize.toString());
+      if (search) {
+        params.append('search', search);
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/PersonalPage/public-all?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('PersonalPageService: Error fetching public portfolios:', response.status, errorText);
+        throw new Error(`Failed to fetch public portfolios: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return {
+        data: result.data || [],
+        pagination: result.pagination || {}
+      };
+    } catch (error) {
+      console.error('PersonalPageService: Error in getPublicPortfolios:', error);
+      throw error;
+    }
+  }
 } 

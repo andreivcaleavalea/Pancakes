@@ -1,4 +1,5 @@
 using UserService.Models.Entities;
+using UserService.Models.Requests;
 
 namespace UserService.Repositories.Interfaces;
 
@@ -11,4 +12,5 @@ public interface IPersonalPageSettingsRepository
     Task DeleteAsync(string id);
     Task<bool> ExistsAsync(string userId);
     Task<bool> PageSlugExistsAsync(string pageSlug, string? excludeUserId = null);
+    Task<(List<PersonalPageSettings> settings, int totalCount)> GetPublicPaginatedAsync(PortfolioQueryParameters parameters);
 } 

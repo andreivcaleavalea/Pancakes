@@ -30,6 +30,7 @@ import {
   ReportButton,
 } from "@/components/common";
 import { blogPostsApi } from "@/services/blogApi";
+import { MarkdownRenderer } from "@/components/common/MarkdownRenderer/MarkdownRenderer";
 import { DEFAULTS } from "@/utils/constants";
 import { getProfilePictureUrl } from "@/utils/imageUtils";
 import { ReportContentType } from "@/types/report";
@@ -201,7 +202,7 @@ const BlogViewPage: React.FC = () => {
         <div className="blog-view__meta">
           <div className="blog-view__author">
             <CachedAvatar
-              src={getProfilePictureUrl(blogWithDisplay.authorAvatar)}
+              src={blogWithDisplay.authorAvatar}
               fallbackSrc={DEFAULTS.AVATAR}
               size={48}
               className="blog-view__author-avatar"
@@ -265,7 +266,7 @@ const BlogViewPage: React.FC = () => {
         </div>
 
         <div className="blog-view__content">
-          <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+          <MarkdownRenderer content={blog.content} />
         </div>
 
         {/* Glaze Meter Rating System - Hidden for drafts */}

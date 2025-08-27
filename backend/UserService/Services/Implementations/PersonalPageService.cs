@@ -2,6 +2,7 @@ using AutoMapper;
 using System.Text.Json;
 using UserService.Models.DTOs;
 using UserService.Models.Entities;
+using UserService.Models.Requests;
 using UserService.Repositories.Interfaces;
 using UserService.Services.Interfaces;
 
@@ -144,6 +145,50 @@ public class PersonalPageService : IPersonalPageService
         }
 
         return slug;
+    }
+
+    public async Task<PaginatedResult<PublicPersonalPageDto>> GetPublicPortfoliosAsync(PortfolioQueryParameters parameters)
+    {
+        var (publicSettings, totalCount) = await _settingsRepository.GetPublicPaginatedAsync(parameters);
+        var result = new List<PublicPersonalPageDto>();
+
+        foreach (var settings in publicSettings)
+        {
+            if (settings?.User == null) continue;
+
+            var userId = settings.UserId;
+            
+            var educations = await _educationRepository.GetByUserIdAsync(userId);
+            var jobs = await _jobRepository.GetByUserIdAsync(userId);
+            var hobbies = await _hobbyRepository.GetByUserIdAsync(userId);
+            var projects = await _projectRepository.GetByUserIdAsync(userId);
+
+            var publicPage = new PublicPersonalPageDto
+            {
+                User = _mapper.Map<UserProfileDto>(settings.User),
+                Educations = _mapper.Map<List<EducationDto>>(educations),
+                Jobs = _mapper.Map<List<JobDto>>(jobs),
+                Hobbies = _mapper.Map<List<HobbyDto>>(hobbies),
+                Projects = _mapper.Map<List<ProjectDto>>(projects),
+                Settings = _mapper.Map<PersonalPageSettingsDto>(settings)
+            };
+
+            result.Add(publicPage);
+        }
+
+        var totalPages = (int)Math.Ceiling((double)totalCount / parameters.PageSize);
+
+        return new PaginatedResult<PublicPersonalPageDto>
+        {
+            Data = result,
+            Pagination = new PaginationInfo
+            {
+                CurrentPage = parameters.Page,
+                PageSize = parameters.PageSize,
+                TotalPages = totalPages,
+                TotalItems = totalCount
+            }
+        };
     }
 
     private async Task<string> GetUserNameAsync(string userId)

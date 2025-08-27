@@ -11,6 +11,34 @@ const ENDPOINTS = {
   BLOG_POSTS: "/api/blogposts",
 } as const;
 
+// --- Helpers ---------------------------------------------------------------
+type RawPagination = {
+  currentPage?: number; CurrentPage?: number;
+  pageSize?: number; PageSize?: number;
+  totalPages?: number; TotalPages?: number;
+  totalItems?: number; TotalItems?: number;
+  hasNextPage?: boolean; HasNextPage?: boolean;
+  hasPreviousPage?: boolean; HasPreviousPage?: boolean;
+};
+interface RawShape<T> { data?: T[]; Data?: T[]; pagination?: RawPagination; Pagination?: RawPagination; }
+function normalizePaginated<T>(rawUnknown: unknown, fallbackPageSize = 0): PaginatedResult<T> {
+  const raw = rawUnknown as RawShape<T> | null | undefined;
+  const itemsSource = raw?.data || raw?.Data;
+  const items: T[] = Array.isArray(itemsSource) ? itemsSource : [];
+  const p: RawPagination = (raw?.pagination || raw?.Pagination || {}) as RawPagination;
+  return {
+    data: items,
+    pagination: {
+      currentPage: p.currentPage ?? p.CurrentPage ?? 1,
+      pageSize: p.pageSize ?? p.PageSize ?? fallbackPageSize,
+      totalPages: p.totalPages ?? p.TotalPages ?? 0,
+      totalItems: p.totalItems ?? p.TotalItems ?? 0,
+      hasNextPage: p.hasNextPage ?? p.HasNextPage ?? false,
+      hasPreviousPage: p.hasPreviousPage ?? p.HasPreviousPage ?? false,
+    },
+  };
+}
+
 // Blog Posts API
 export const blogPostsApi = {
   // Get paginated blog posts with filtering (PUBLIC - no auth required)
@@ -37,7 +65,8 @@ export const blogPostsApi = {
       ? `${ENDPOINTS.BLOG_POSTS}?${queryString}`
       : ENDPOINTS.BLOG_POSTS;
 
-    return publicBlogRequest<PaginatedResult<BlogPost>>(endpoint);
+  const raw = await publicBlogRequest<unknown>(endpoint);
+  return normalizePaginated<BlogPost>(raw, params.pageSize || 0);
   },
 
   // Get blog post by ID (PUBLIC - no auth required)
@@ -162,10 +191,22 @@ export const blogPostsApi = {
     // Add cache busting parameter to ensure fresh data
     const timestamp = Date.now();
     const url = `${ENDPOINTS.BLOG_POSTS}/drafts?page=${page}&pageSize=${pageSize}&_t=${timestamp}`;
-    const result = await authenticatedBlogRequest<PaginatedResult<BlogPost>>(
-      url
-    );
-    return result;
+    console.log("🌐 [blogAPI] getDrafts called:", {
+      page,
+      pageSize,
+      timestamp,
+      url,
+    });
+
+    const raw = await authenticatedBlogRequest<unknown>(url);
+    const normalized = normalizePaginated<BlogPost>(raw, pageSize);
+    console.log("🌐 [blogAPI] getDrafts response (normalized):", {
+      dataLength: normalized.data.length,
+      totalItems: normalized.pagination.totalItems,
+      firstDraftId: normalized.data[0]?.id,
+      firstDraftUpdatedAt: normalized.data[0]?.updatedAt,
+    });
+    return normalized;
   },
 
   // Convert published post to draft (for admin or user)

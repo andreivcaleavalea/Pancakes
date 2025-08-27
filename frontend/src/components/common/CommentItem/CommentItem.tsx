@@ -99,7 +99,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         <div className="comment-item__avatar">
           <CachedAvatar
             size={depth > 0 ? 32 : 40}
-            src={getProfilePictureUrl(comment.authorImage)}
+            src={comment.authorImage}
             fallbackSrc="/default-avatar.png"
             icon={<UserOutlined />}
             alt={comment.authorName}

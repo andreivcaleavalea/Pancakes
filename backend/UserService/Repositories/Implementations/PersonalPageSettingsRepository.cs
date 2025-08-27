@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UserService.Data;
 using UserService.Models.Entities;
+using UserService.Models.Requests;
 using UserService.Repositories.Interfaces;
 
 namespace UserService.Repositories.Implementations;
@@ -71,5 +72,40 @@ public class PersonalPageSettingsRepository : IPersonalPageSettingsRepository
         }
         
         return await query.AnyAsync();
+    }
+
+    public async Task<(List<PersonalPageSettings> settings, int totalCount)> GetPublicPaginatedAsync(PortfolioQueryParameters parameters)
+    {
+        var query = _context.PersonalPageSettings
+            .Include(p => p.User)
+            .Where(p => p.IsPublic && !string.IsNullOrEmpty(p.PageSlug));
+
+        // Apply search filter
+        if (!string.IsNullOrEmpty(parameters.Search))
+        {
+            query = query.Where(p => p.User.Name.Contains(parameters.Search) || 
+                                   (p.User.Bio != null && p.User.Bio.Contains(parameters.Search)));
+        }
+
+        // Apply sorting
+        query = parameters.SortBy.ToLower() switch
+        {
+            "name" => parameters.SortOrder.ToLower() == "desc" 
+                ? query.OrderByDescending(p => p.User.Name)
+                : query.OrderBy(p => p.User.Name),
+            "createdat" => parameters.SortOrder.ToLower() == "desc" 
+                ? query.OrderByDescending(p => p.CreatedAt)
+                : query.OrderBy(p => p.CreatedAt),
+            _ => query.OrderByDescending(p => p.CreatedAt)
+        };
+
+        var totalCount = await query.CountAsync();
+
+        var settings = await query
+            .Skip((parameters.Page - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
+            .ToListAsync();
+
+        return (settings, totalCount);
     }
 } 
