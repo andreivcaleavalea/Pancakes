@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PersonalPageService, PublicPersonalPage } from '@/services/personalPageService';
+import { PersonalPageService } from '@/services/personalPageService';
+import type { PublicPersonalPage } from '@/services/personalPageService';
 
 interface PaginationInfo {
   currentPage: number;

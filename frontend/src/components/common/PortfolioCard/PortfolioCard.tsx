@@ -3,7 +3,7 @@ import { Card, Tag, Typography, Button } from 'antd';
 import { UserOutlined, EnvironmentOutlined, LinkOutlined } from '@ant-design/icons';
 import CachedAvatar from '@/components/common/CachedAvatar/CachedAvatar';
 import { getProfilePictureUrl } from '@/utils/imageUtils';
-import { PublicPersonalPage } from '@/services/personalPageService';
+import type { PublicPersonalPage } from '@/services/personalPageService';
 import { useRouter } from '@/router/RouterProvider';
 import './PortfolioCard.scss';
 
@@ -25,7 +25,7 @@ export const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onClick
   const technologies = projects
     .flatMap(project => 
       typeof project.technologies === 'string' 
-        ? project.technologies.split(',').map(tech => tech.trim())
+        ? project.technologies.split(',').map((tech: string) => tech.trim())
         : Array.isArray(project.technologies) 
         ? project.technologies 
         : []
